@@ -36,6 +36,8 @@ export interface AppliedAction {
   before: TriMesh;
   beforeMetadata: WorldMetadata;
   beforeVisualPoints: Float32Array;
+  /** ledger defect regions BEFORE the action — whole-world transforms move them */
+  beforeRegions: Map<string, Region>;
   reverted: boolean;
 }
 
@@ -145,6 +147,10 @@ export class RepairEngine {
   // -------------------------------------------------------------- ACT
 
   private push(tool: string, args: unknown): AppliedAction {
+    const beforeRegions = new Map<string, Region>();
+    for (const [id, d] of this.ledger) {
+      beforeRegions.set(id, { min: [...d.region.min], max: [...d.region.max] });
+    }
     const action: AppliedAction = {
       actionId: `a-${this.seq++}`,
       tool,
@@ -152,6 +158,7 @@ export class RepairEngine {
       before: cloneMesh(this.state.collider),
       beforeMetadata: { ...this.state.metadata },
       beforeVisualPoints: this.state.visualPoints, // visual points only change on scale ops; shared ref is fine otherwise
+      beforeRegions,
       reverted: false,
     };
     this.stack.push(action);
@@ -171,6 +178,16 @@ export class RepairEngine {
     for (let i = 0; i < vp.length; i++) vp[i] = this.state.visualPoints[i] * factor;
     this.state.visualPoints = vp;
     this.state.metadata = { ...this.state.metadata, metricScaleFactor: 1 };
+    // a whole-world transform moves every recorded region with it — the
+    // ledger stays in world coordinates or identity matching falls apart
+    // and every defect double-counts at its new location
+    const scaleRegion = (r: Region): Region => ({
+      min: [r.min[0] * factor, r.min[1] * factor, r.min[2] * factor],
+      max: [r.max[0] * factor, r.max[1] * factor, r.max[2] * factor],
+    });
+    for (const d of this.ledger.values()) d.region = scaleRegion(d.region);
+    for (const q of this.quarantined) q.region = scaleRegion(q.region);
+    this.spawns = this.spawns.map((s) => ({ ...s, x: s.x * factor, y: s.y * factor, z: s.z * factor }));
     return { actionId: action.actionId, factorApplied: factor };
   }
 
@@ -299,6 +316,11 @@ export class RepairEngine {
       this.state.collider = cloneMesh(a.before);
       this.state.metadata = { ...a.beforeMetadata };
       this.state.visualPoints = a.beforeVisualPoints;
+      // restore ledger regions (whole-world transforms move them on apply)
+      for (const [id, region] of a.beforeRegions) {
+        const d = this.ledger.get(id);
+        if (d) d.region = { min: [...region.min], max: [...region.max] };
+      }
       if (a.tool === "quarantine") {
         const args = a.args as { defectId: string };
         this.quarantined = this.quarantined.filter((q) => q.region !== this.ledger.get(args.defectId)?.region);
