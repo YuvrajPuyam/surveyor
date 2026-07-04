@@ -32,6 +32,7 @@ export interface CertifyResult {
   certificate: Certificate;
   survey: SurveyResult;
   trustMap: TrustMap;
+  metrology: import("./metrology.js").MetrologyResult;
 }
 
 function computeGrade(defects: Certificate["defects"]): { grade: Grade; rationale: string } {
@@ -108,5 +109,5 @@ export async function certifyWorld(input: CertifyInput, opts: CertifyOptions = {
     },
   };
 
-  return { certificate, survey, trustMap };
+  return { certificate, survey, trustMap, metrology };
 }

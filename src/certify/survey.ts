@@ -26,6 +26,12 @@ export interface SurveyOptions {
   maxSettleSteps: number;
   /** visual point flagged as "physics missing" beyond this distance to any collider */
   divergenceThresholdM: number;
+  /**
+   * Regional re-certification: concentrate the probe rain over this AABB
+   * (expanded margin included by the caller). Rays and divergence stay
+   * world-wide — they are cheap and catch global regressions.
+   */
+  focusRegion?: { min: { x: number; z: number }; max: { x: number; z: number } };
 }
 
 export const DEFAULT_SURVEY: SurveyOptions = {
@@ -121,8 +127,12 @@ export async function runSurvey(
   // -------------------------------------------------------- probe rain
   const rng = mulberry32(hashSeed(opts.seed, "probe-rain"));
   const inset = opts.probeRadius * 2;
-  const spanX = aabb.max.x - aabb.min.x - 2 * inset;
-  const spanZ = aabb.max.z - aabb.min.z - 2 * inset;
+  const rainMinX = opts.focusRegion ? Math.max(aabb.min.x, opts.focusRegion.min.x) : aabb.min.x;
+  const rainMaxX = opts.focusRegion ? Math.min(aabb.max.x, opts.focusRegion.max.x) : aabb.max.x;
+  const rainMinZ = opts.focusRegion ? Math.max(aabb.min.z, opts.focusRegion.min.z) : aabb.min.z;
+  const rainMaxZ = opts.focusRegion ? Math.min(aabb.max.z, opts.focusRegion.max.z) : aabb.max.z;
+  const spanX = rainMaxX - rainMinX - 2 * inset;
+  const spanZ = rainMaxZ - rainMinZ - 2 * inset;
   const perRow = Math.ceil(Math.sqrt(opts.probeCount * (spanX / Math.max(spanZ, 1e-6))));
   const rows = Math.ceil(opts.probeCount / perRow);
 
@@ -133,8 +143,8 @@ export async function runSurvey(
       if (n >= opts.probeCount) break outer;
       const jx = (rng() - 0.5) * (spanX / perRow);
       const jz = (rng() - 0.5) * (spanZ / rows);
-      const x = aabb.min.x + inset + ((c + 0.5) / perRow) * spanX + jx;
-      const z = aabb.min.z + inset + ((r + 0.5) / rows) * spanZ + jz;
+      const x = rainMinX + inset + ((c + 0.5) / perRow) * spanX + jx;
+      const z = rainMinZ + inset + ((r + 0.5) / rows) * spanZ + jz;
       // stagger drop height slightly so probes don't start interpenetrating
       const y = topY + 0.2 + rng() * 0.4;
       probes.push({ body: pw.spawnProbe({ x, y, z }, opts.probeRadius), dropX: x, dropZ: z });

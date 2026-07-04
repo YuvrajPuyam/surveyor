@@ -90,6 +90,8 @@ export interface HabitatOptions {
   seed?: number;
   /** Collider floor hole in room A (visuals stay intact) */
   colliderHole?: boolean;
+  /** Custom hole rectangle (overrides the default room-A position) */
+  holeRect?: { x0: number; x1: number; z0: number; z1: number };
   /** Raised sill across the interior doorway (visual + collider — a real feature that fails small robots) */
   raisedSillM?: number;
   /** Invisible collider barrier in room B (physics, no visuals) */
@@ -113,7 +115,7 @@ export function buildHabitat(opts: HabitatOptions): WorldBundle {
   const manifest: PlantedDefect[] = [];
 
   // ---- floor
-  const hole = opts.colliderHole ? { x0: 2.0, x1: 3.2, z0: 5.0, z1: 6.2 } : null;
+  const hole = opts.holeRect ?? (opts.colliderHole ? { x0: 2.0, x1: 3.2, z0: 5.0, z1: 6.2 } : null);
   colliderBoxes.push(...floorWithHole(0, 10, 0, 8, hole));
   visualBoxes.push(...floorWithHole(0, 10, 0, 8, null)); // visuals always show a perfect floor
   if (hole) {
@@ -216,6 +218,24 @@ export function buildHabitat(opts: HabitatOptions): WorldBundle {
       groundPlaneY: 0,
     },
   };
+}
+
+/**
+ * The hero world for the repair-loop demo: a collider hole hugging the
+ * doorway approach (so an oversized fitted-slab patch intrudes on the
+ * passage), plus the sill and a visual lie for quarantine.
+ */
+export function heroWorld(seed = 1234): WorldBundle {
+  return buildHabitat({
+    worldId: "syn-hero",
+    seed,
+    // one meter back from the doorway: far enough that the sill's own step
+    // edges stay a distinct region, close enough that an oversized slab patch
+    // lands a new obstacle in the passage approach
+    holeRect: { x0: 3.3, x1: 3.95, z0: 3.55, z1: 4.35 },
+    raisedSillM: 0.15,
+    visualOnlyWall: true,
+  });
 }
 
 /** The standard self-validation set: one clean control + one world per defect class + a kitchen sink. */
