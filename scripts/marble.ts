@@ -15,7 +15,7 @@
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { MarbleClient, operationIdOf, type MarbleWorld } from "../src/ingest/marbleClient.js";
+import { MarbleClient, operationIdOf, worldIdOf, type MarbleWorld } from "../src/ingest/marbleClient.js";
 import type { WorldMetadata } from "../src/core/types.js";
 
 // ---- minimal .env support (no dependency)
@@ -54,7 +54,8 @@ function findMetadataKeys(obj: unknown, path = "", out: Record<string, unknown> 
 }
 
 async function downloadWorld(world: MarbleWorld): Promise<string> {
-  const dir = join(MARBLE_ROOT, world.id);
+  const worldId = worldIdOf(world);
+  const dir = join(MARBLE_ROOT, worldId);
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, "raw.json"), JSON.stringify(world, null, 2));
 
@@ -62,7 +63,7 @@ async function downloadWorld(world: MarbleWorld): Promise<string> {
   const spzUrls = world.assets?.splats?.spz_urls ?? {};
   const panoUrl = world.assets?.imagery?.pano_url;
 
-  console.log(`\n=== ${world.id} (${world.display_name ?? "unnamed"}) ===`);
+  console.log(`\n=== ${worldId} (${world.display_name ?? "unnamed"}) ===`);
   console.log(`collider shipped: ${colliderUrl ? "YES" : "NO  <-- Gate D1 answer"}`);
   console.log(`splat resolutions: ${Object.keys(spzUrls).join(", ") || "none"}`);
   console.log(`pano: ${panoUrl ? "yes" : "no"}`);
@@ -78,14 +79,10 @@ async function downloadWorld(world: MarbleWorld): Promise<string> {
     console.log(`splat-${spzKey}.spz downloaded (${(spzBuf.length / 1e6).toFixed(1)} MB)`);
     // splat centers -> visual points for the divergence checks
     try {
-      // runtime exports loadSpz; the shipped .d.ts is stale, hence the cast
-      const spz = (await import("@spz-loader/core")) as unknown as {
-        loadSpz: (buf: ArrayBuffer) => Promise<{ positions: Float32Array | number[] }>;
-      };
-      const cloud = await spz.loadSpz(new Uint8Array(spzBuf).buffer);
-      const positions = cloud.positions instanceof Float32Array ? cloud.positions : new Float32Array(cloud.positions);
+      const { parseSpzPositions } = await import("../src/ingest/spz.js");
+      const { positions, numPoints } = parseSpzPositions(spzBuf);
       writeFileSync(join(dir, "visual-points.f32"), Buffer.from(positions.buffer, positions.byteOffset, positions.byteLength));
-      console.log(`visual-points.f32: ${positions.length / 3} splat centers extracted`);
+      console.log(`visual-points.f32: ${numPoints} splat centers extracted (in-house SPZ parser)`);
     } catch (e) {
       writeFileSync(join(dir, "visual-points.f32"), Buffer.alloc(0));
       console.log(`SPZ parse failed (${(e as Error).message.slice(0, 80)}) — wrote empty visual points; certify runs collider-only`);
@@ -103,7 +100,7 @@ async function downloadWorld(world: MarbleWorld): Promise<string> {
   const scaleKey = Object.keys(metaKeys).find((k) => /metric_scale/i.test(k)) ?? Object.keys(metaKeys).find((k) => /scale/i.test(k));
   const groundKey = Object.keys(metaKeys).find((k) => /ground/i.test(k));
   const metadata: WorldMetadata = {
-    worldId: world.id,
+    worldId,
     source: "marble",
     metricScaleFactor: scaleKey && typeof metaKeys[scaleKey] === "number" ? (metaKeys[scaleKey] as number) : undefined,
     groundPlaneY: groundKey && typeof metaKeys[groundKey] === "number" ? (metaKeys[groundKey] as number) : undefined,
@@ -171,7 +168,9 @@ switch (cmd) {
       "small space habitat interior, two rooms connected by a doorway with a raised metal sill at the threshold, industrial floor";
     console.log(`GATE D1: generating with model=${model}...`);
     const op = await client().generateFromText(prompt, { model, displayName: `gate-d1 ${model}` });
-    const world = await client().waitForOperation(operationIdOf(op), (s) => console.log(`  ...generating (${s.toFixed(0)} s)`));
+    const opId = operationIdOf(op);
+    console.log(`operation: ${opId} (recoverable via 'wait ${opId}' or 'list' if this run dies)`);
+    const world = await client().waitForOperation(opId, (s) => console.log(`  ...generating (${s.toFixed(0)} s)`));
     const dir = await downloadWorld(world);
     if (world.assets?.mesh?.collider_mesh_url) {
       console.log(`\nGATE D1 PASS for ${model} — collider shipped. Now certify it:`);
@@ -181,6 +180,14 @@ switch (cmd) {
     }
     break;
   }
+  case "list": {
+    const { worlds } = await client().listWorlds();
+    for (const w of worlds) {
+      console.log(`${worldIdOf(w)}  ${w.model ?? "?"}  collider=${w.assets?.mesh?.collider_mesh_url ? "yes" : "NO"}  ${w.display_name ?? ""}`);
+    }
+    if (worlds.length === 0) console.log("(no worlds yet)");
+    break;
+  }
   default:
-    console.log("commands: generate --prompt <p> [--model m] [--name n] [--wait] | pano --uri <u> [--wait] | wait <opId> | get <worldId> | download <worldId> | gate-d1 [--model m]");
+    console.log("commands: list | generate --prompt <p> [--model m] [--name n] [--wait] | pano --uri <u> [--wait] | wait <opId> | get <worldId> | download <worldId> | gate-d1 [--model m]");
 }

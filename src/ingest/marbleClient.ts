@@ -21,7 +21,9 @@ export interface MarbleOperation {
 }
 
 export interface MarbleWorld {
-  id: string;
+  /** the live API returns world_id; early docs said id — accept both via worldIdOf() */
+  world_id?: string;
+  id?: string;
   display_name?: string;
   model?: string;
   assets?: {
@@ -93,6 +95,11 @@ export class MarbleClient {
     return this.request<MarbleWorld>("GET", `/marble/v1/worlds/${worldId}`);
   }
 
+  /** List generated worlds (undocumented but live: POST worlds:list). */
+  async listWorlds(): Promise<{ worlds: MarbleWorld[]; next_page_token?: string | null }> {
+    return this.request("POST", "/marble/v1/worlds:list", {});
+  }
+
   /** Poll an operation until done (default: every 15 s, up to 15 min). */
   async waitForOperation(
     operationId: string,
@@ -119,6 +126,12 @@ export class MarbleClient {
     if (!res.ok) throw new Error(`asset download failed ${res.status}: ${url.slice(0, 120)}`);
     return Buffer.from(await res.arrayBuffer());
   }
+}
+
+export function worldIdOf(world: MarbleWorld): string {
+  const id = world.world_id ?? world.id;
+  if (!id) throw new Error(`Cannot find world id in: ${JSON.stringify(world).slice(0, 300)}`);
+  return id;
 }
 
 export function operationIdOf(op: MarbleOperation): string {

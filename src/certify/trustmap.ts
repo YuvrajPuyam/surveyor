@@ -19,12 +19,21 @@ export function buildTrustMap(grid: Grid2D): TrustMap {
   const vnp = grid.channel("visualNoPhys");
   const pnv = grid.channel("physNoVisual");
 
+  // Density-relative lie gate: divergence evidence must be about as dense as
+  // this world's real surfaces (baseline: cells where probes rested). Sparse
+  // hallucinated fuzz is not a surface claim and must not read as "lying".
+  const restedVisual: number[] = [];
+  for (let i = 0; i < grid.size; i++) if (contact[i] > 0 && visual[i] > 0) restedVisual.push(visual[i]);
+  restedVisual.sort((a, b) => a - b);
+  const medianSurfaceDensity = restedVisual.length > 0 ? restedVisual[Math.floor(restedVisual.length / 2)] : 0;
+  const lieThreshold = Math.max(3, 0.2 * medianSurfaceDensity);
+
   const states: TrustCellState[] = new Array(grid.size);
   const counts = { unknown: 0, verified: 0, observed: 0, lying: 0 };
 
   for (let i = 0; i < grid.size; i++) {
     let s: TrustCellState;
-    if (fall[i] > 0 || vnp[i] >= 3 || pnv[i] >= 3) s = "lying";
+    if (fall[i] > 0 || vnp[i] >= lieThreshold || pnv[i] >= 3) s = "lying";
     else if (contact[i] > 0) s = "verified";
     else if (visual[i] > 0) s = "observed";
     else s = "unknown";

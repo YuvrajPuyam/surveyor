@@ -5,7 +5,7 @@
  * without the raycast cross-check.
  */
 import type { Aabb } from "../core/geom.js";
-import { iouXZ } from "../core/geom.js";
+import { aabbAreaXZ, aabbOverlapXZ, iouXZ } from "../core/geom.js";
 import type { Defect, Evidence } from "../core/types.js";
 import type { MetrologyResult } from "./metrology.js";
 import type { SurveyResult } from "./survey.js";
@@ -31,6 +31,16 @@ export function synthesizeDefects(survey: SurveyResult, metrology: MetrologyResu
   const fall = grid.channel("fallConfirmed");
   const vnp = grid.channel("visualNoPhys");
   const pnv = grid.channel("physNoVisual");
+
+  // same density-relative lie gate as the trust map: divergence claims are
+  // measured against this world's verified-surface splat density
+  const contact = grid.channel("probeContact");
+  const visual = grid.channel("visualPts");
+  const restedVisual: number[] = [];
+  for (let i = 0; i < grid.size; i++) if (contact[i] > 0 && visual[i] > 0) restedVisual.push(visual[i]);
+  restedVisual.sort((a, b) => a - b);
+  const medianSurfaceDensity = restedVisual.length > 0 ? restedVisual[Math.floor(restedVisual.length / 2)] : 0;
+  const lieThreshold = Math.max(3, 0.2 * medianSurfaceDensity);
 
   const countInRegion = (channel: Float64Array, region: Aabb): number => {
     let total = 0;
@@ -108,9 +118,15 @@ export function synthesizeDefects(survey: SurveyResult, metrology: MetrologyResu
   // ------------------------------------------------ visual-only surfaces
   // Skip clusters that sit over a detected collider hole — same root defect.
   const holeRegions = defects.filter((d) => d.type === "collider_hole").map((d) => regionToAabb(d.region));
-  const vnpRegions = grid.regions((i) => vnp[i] >= 3);
+  const vnpRegions = grid.regions((i) => vnp[i] >= lieThreshold);
   for (const r of vnpRegions) {
-    if (holeRegions.some((h) => iouXZ(h, r) > 0.05)) continue;
+    // same root defect if the cluster overlaps a hole — by IoU for comparable
+    // sizes, or by containment when the cluster is a sliver of the hole's rim
+    const overHole = holeRegions.some((h) => {
+      const cover = aabbAreaXZ(r) > 0 ? aabbOverlapXZ(h, r) / aabbAreaXZ(r) : 0;
+      return iouXZ(h, r) > 0.05 || cover > 0.4;
+    });
+    if (overHole) continue;
     const samples = countInRegion(vnp, r);
     if (samples < MIN_CLUSTER_SAMPLES) continue;
     defects.push({

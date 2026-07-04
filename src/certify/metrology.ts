@@ -51,10 +51,22 @@ export function runMetrology(rayGrid: Grid2D, seed: number, metadata?: WorldMeta
   const cell = rayGrid.cellSize;
 
   // ------------------------------------------------- RANSAC floor plane
-  // Candidate floor points: lowest mode of surface heights.
-  const hitIdx: number[] = [];
-  for (let i = 0; i < rayGrid.size; i++) if (hasHit[i]) hitIdx.push(i);
-  if (hitIdx.length < 10) throw new Error("Too few raycast hits to fit a floor plane");
+  // Fit on STANDABLE columns only, preferring those with a finite ceiling
+  // above them: interior floors sit under ceilings, roof tops under sky. A
+  // shell roof spanning the footprint would otherwise out-populate the floor
+  // and the "floor plane" would be the roof. Ceilingless worlds (synthetic
+  // bench) have almost no finite-headroom cells and fall back to all
+  // standable columns.
+  const standableCh = rayGrid.channel("standable");
+  const allStandable: number[] = [];
+  const interiorStandable: number[] = [];
+  for (let i = 0; i < rayGrid.size; i++) {
+    if (!standableCh[i]) continue;
+    allStandable.push(i);
+    if (headroom[i] < 990) interiorStandable.push(i);
+  }
+  const hitIdx = interiorStandable.length >= 0.15 * allStandable.length ? interiorStandable : allStandable;
+  if (hitIdx.length < 10) throw new Error("Too few standable columns to fit a floor plane");
 
   const rng = mulberry32(hashSeed(seed, "ransac-floor"));
   let bestInliers: number[] = [];
@@ -120,38 +132,72 @@ export function runMetrology(rayGrid: Grid2D, seed: number, metadata?: WorldMeta
     }
     const [x, z] = rayGrid.center(i);
     const dy = surfaceY[i] - planeYat(x, z);
-    if (dy < 0.04) classes[i] = 1; // floor
+    if (Math.abs(dy) <= 0.06) classes[i] = 1; // floor at the fitted plane
+    else if (dy < -0.06) classes[i] = standableCh[i] ? 1 : 2; // sunken but standable = still floor
     else if (dy < 0.6) classes[i] = 2; // low obstacle / sill / furniture
-    else classes[i] = 3; // wall
+    else classes[i] = 3; // wall (or roof-only column)
   }
 
-  // ------------------------------------------------- interior void regions
-  // A void region counts as interior (candidate hole) if it touches floor cells
-  // on at least two sides — border void (outside the world) touches the grid edge.
-  const voidRegions = rayGrid.regions((i) => classes[i] === 0);
+  // ------------------------------------------------- floor-claiming voids
+  // A hole is a void column whose splats CLAIM floor: visual points
+  // concentrated at floor height (a wall-line void has splats spread over
+  // the wall's full height; void beyond the walls has no splats at all).
+  // Real colliders are open shells with no exterior, so "inside vs outside"
+  // must come from the visual evidence, not from grid geometry.
+  const visualBand = rayGrid.channel("visualFloorBand");
+  const visualTotal = rayGrid.channel("visualTotal");
+  // density-relative floor-claim gate (same calibration as probe placement):
+  // a hole claim must be about as splat-dense as this world's real floors
+  const stBands: number[] = [];
+  for (let i = 0; i < rayGrid.size; i++) if (standableCh[i] && visualBand[i] > 0) stBands.push(visualBand[i]);
+  stBands.sort((a, b) => a - b);
+  const medianFloorBand = stBands.length > 0 ? stBands[Math.floor(stBands.length / 2)] : 0;
+  const claimThreshold = Math.max(2, 0.25 * medianFloorBand);
+  const claimZone = rayGrid.channel("claimZone");
+  const holeCell = (i: number) =>
+    classes[i] === 0 &&
+    claimZone[i] > 0 &&
+    visualBand[i] >= claimThreshold &&
+    visualBand[i] / Math.max(1, visualTotal[i]) >= 0.3;
+  const voidRegions = rayGrid.regions(holeCell);
   const interiorVoids: Aabb[] = [];
   for (const r of voidRegions) {
-    const touchesEdge =
-      r.min.x <= rayGrid.x0 + cell ||
-      r.min.z <= rayGrid.z0 + cell ||
-      r.max.x >= rayGrid.x0 + rayGrid.cols * cell - cell ||
-      r.max.z >= rayGrid.z0 + rayGrid.rows * cell - cell;
-    if (!touchesEdge) interiorVoids.push(r);
+    const areaCells = ((r.max.x - r.min.x) / cell) * ((r.max.z - r.min.z) / cell);
+    if (areaCells >= 3) interiorVoids.push(r);
   }
 
   // ------------------------------------------------- doorway detection
-  // Structural, not metric: a doorway is a traversable constriction — finite
-  // headroom well below the prevailing wall height. Defining it metrically
-  // ("< 2.6 m") would be circular: doorways are how we ESTIMATE the scale.
-  const wallHeights: number[] = [];
+  // Structural, not metric: a doorway is a traversable constriction. Defining
+  // it metrically ("< 2.6 m") would be circular — doorways are how we
+  // ESTIMATE the scale. Two regimes:
+  //  - interior worlds (most floor cells have a ceiling): a doorway is
+  //    headroom noticeably below the prevailing ceiling;
+  //  - ceilingless worlds (synthetic bench): any finite headroom well under
+  //    the prevailing wall height is a header.
+  let floorCells = 0;
+  const floorHeads: number[] = [];
   for (let i = 0; i < rayGrid.size; i++) {
-    if (classes[i] !== 3) continue;
-    const [x, z] = rayGrid.center(i);
-    wallHeights.push(surfaceY[i] - planeYat(x, z));
+    if (classes[i] !== 1) continue;
+    floorCells++;
+    if (headroom[i] < 990) floorHeads.push(headroom[i]);
   }
-  wallHeights.sort((a, b) => a - b);
-  const wallH = wallHeights.length > 0 ? wallHeights[Math.floor(wallHeights.length * 0.9)] : 3.0;
-  const headLimit = Math.max(2.6, 0.8 * wallH);
+  floorHeads.sort((a, b) => a - b);
+  const interiorWorld = floorHeads.length >= 0.3 * Math.max(1, floorCells);
+  let headLimit: number;
+  if (interiorWorld) {
+    const medianHead = floorHeads[Math.floor(floorHeads.length / 2)];
+    headLimit = Math.min(0.93 * medianHead, medianHead - 0.05);
+  } else {
+    const wallHeights: number[] = [];
+    for (let i = 0; i < rayGrid.size; i++) {
+      if (classes[i] !== 3) continue;
+      const [x, z] = rayGrid.center(i);
+      wallHeights.push(surfaceY[i] - planeYat(x, z));
+    }
+    wallHeights.sort((a, b) => a - b);
+    const wallH = wallHeights.length > 0 ? wallHeights[Math.floor(wallHeights.length * 0.9)] : 3.0;
+    headLimit = Math.max(2.6, 0.8 * wallH);
+  }
   const doorPred = (i: number) =>
     (classes[i] === 1 || classes[i] === 2) && headroom[i] > 0.5 && headroom[i] < headLimit && headroom[i] < 990;
   const doorRegions = rayGrid.regions(doorPred);

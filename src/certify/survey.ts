@@ -84,43 +84,68 @@ export async function runSurvey(
   const topY = aabb.max.y + 0.5;
   const worldHeight = aabb.max.y - aabb.min.y;
 
+  // ------------------------------------------------ inspectable domain
+  // Real colliders are open shells with NO exterior geometry: everything
+  // outside the modeled rooms is void. The instrument only makes claims
+  // where the world claims to exist — columns with collider hits or visual
+  // support. Probing the void outside and calling it "lying" would be the
+  // instrument inspecting empty space.
+  const visualRayCells = rayGrid.channel("visualPts");
+  for (let i = 0; i < visualPoints.length; i += 3) {
+    const x = visualPoints[i], z = visualPoints[i + 2];
+    // grid indexing clamps to the border — filter background scenery so it
+    // can't pile up on edge cells and read as world coverage
+    if (x < aabb.min.x - 0.25 || x > aabb.max.x + 0.25 || z < aabb.min.z - 0.25 || z > aabb.max.z + 0.25) continue;
+    trustGrid.add("visualPts", x, z);
+    visualRayCells[rayGrid.index(x, z)]++;
+  }
+
   // ---------------------------------------------------- virtual LiDAR grid
-  // Multi-hit profile per column. The walkable surface is the LOWEST
-  // upward-facing hit with at least 0.5 m of headroom to the next
-  // downward-facing surface above it — this sees under doorway headers.
+  // Multi-hit profile per column. Walkable surface: the LOWEST hit with
+  // >= 0.5 m of open gap above it, confirmed free by a projection query
+  // (a point 0.4 m above a standable surface is far from any geometry; a
+  // point inside a solid wall or slab is not). Works for open shells and
+  // closed solids alike — crossing parity does not, and Rapier flips
+  // trimesh normals toward the ray, so neither carries orientation.
   const hasHit = rayGrid.channel("hasHit");
   const surfaceY = rayGrid.channel("surfaceY");
   const headroom = rayGrid.channel("headroom");
+  const domain = rayGrid.channel("domain");
+  const standable = rayGrid.channel("standable");
   for (let i = 0; i < rayGrid.size; i++) {
     const [x, z] = rayGrid.center(i);
     const profile = pw.castDownProfile(x, topY, z, worldHeight + 1.0);
+    if (visualRayCells[i] > 0 || profile.length > 0) domain[i] = 1;
     if (profile.length === 0) {
       surfaceY[i] = NaN;
       headroom[i] = 999;
       continue;
     }
     hasHit[i] = 1;
-    // Crossing parity: descending from open sky, surfaces alternate
-    // enter-solid / exit-solid. Even-indexed hits are top faces (air above,
-    // solid below) — the only standable candidates. Rapier flips trimesh
-    // normals toward the ray, so parity, not normals, carries orientation.
+    // dedupe coincident faces (coplanar slab tops/bottoms)
+    const hits: number[] = [];
+    for (const h of profile) {
+      if (hits.length === 0 || Math.abs(hits[hits.length - 1] - h.y) > 0.02) hits.push(h.y);
+    }
     let walkY = NaN;
     let walkHead = 999;
-    for (let k = 0; k < profile.length; k += 2) {
-      const head = k === 0 ? 999 : profile[k - 1].y - profile[k].y;
-      if (head < 0.5) continue; // crawl space / slab interior — not standable
-      if (Number.isNaN(walkY) || profile[k].y < walkY) {
-        walkY = profile[k].y;
-        walkHead = head;
-      }
+    for (let k = hits.length - 1; k >= 0; k--) {
+      const gapAbove = k === 0 ? 999 : hits[k - 1] - hits[k];
+      if (gapAbove < 0.5) continue;
+      const free = pw.distanceToCollider({ x, y: hits[k] + 0.4, z });
+      if (free < 0.25) continue; // inside a solid, or hard against geometry
+      walkY = hits[k];
+      walkHead = gapAbove;
+      break; // lowest standable wins
     }
     if (Number.isNaN(walkY)) {
-      // no standable surface in this column (solid wall) — report the top
-      surfaceY[i] = profile[0].y;
+      // no standable surface in this column (wall) — report the top
+      surfaceY[i] = hits[0];
       headroom[i] = 999;
     } else {
       surfaceY[i] = walkY;
       headroom[i] = walkHead;
+      standable[i] = 1;
     }
   }
 
@@ -136,7 +161,131 @@ export async function runSurvey(
   const perRow = Math.ceil(Math.sqrt(opts.probeCount * (spanX / Math.max(spanZ, 1e-6))));
   const rows = Math.ceil(opts.probeCount / perRow);
 
-  const probes: { body: import("@dimforge/rapier3d-compat").RigidBody; dropX: number; dropZ: number }[] = [];
+  // Probes spawn INSIDE the inhabitable volume, just under the local ceiling
+  // (real worlds have roofs — probes dropped from above the AABB would test
+  // the roof, not the floor). Probes go only where a floor claim exists:
+  // standable columns, and void columns whose splats are FLOOR-LIKE
+  // (concentrated at floor height — the signature of a hole under intact
+  // pixels). Void beyond the walls gets no probes: the instrument does not
+  // inspect empty space and call it a defect.
+  // Interior floors sit under ceilings; roof tops sit under sky. When enough
+  // standable columns have finite headroom, those are the interior — without
+  // this, a shell roof spanning the whole footprint out-populates the floor.
+  const allStandable: number[] = [];
+  const interiorStandable: number[] = [];
+  for (let i = 0; i < rayGrid.size; i++) {
+    if (!standable[i]) continue;
+    allStandable.push(surfaceY[i]);
+    if (headroom[i] < 990) interiorStandable.push(surfaceY[i]);
+  }
+  const floorHeights =
+    interiorStandable.length >= 0.15 * allStandable.length ? interiorStandable : allStandable;
+  floorHeights.sort((a, b) => a - b);
+  const floorEst = floorHeights.length > 0 ? floorHeights[Math.floor(floorHeights.length * 0.2)] : aabb.min.y;
+
+  // Local floor height per column: real floors slope and step (this world's
+  // floor rises 0.8 m along the corridor). Each cell's floor reference is its
+  // own walkable surface, or the nearest standable cell's within ~0.6 m, or
+  // the global p20 estimate as a last resort. Computed by multi-source BFS.
+  const localFloorY = rayGrid.channel("localFloorY");
+  {
+    const dist = new Int32Array(rayGrid.size).fill(-1);
+    const queue: number[] = [];
+    for (let i = 0; i < rayGrid.size; i++) {
+      if (standable[i]) {
+        localFloorY[i] = surfaceY[i];
+        dist[i] = 0;
+        queue.push(i);
+      } else {
+        localFloorY[i] = floorEst;
+      }
+    }
+    let head = 0;
+    const maxDepth = Math.round(0.6 / opts.rayCellSize);
+    while (head < queue.length) {
+      const i = queue[head++];
+      if (dist[i] >= maxDepth) continue;
+      const [c, r] = rayGrid.colRow(i);
+      for (const [dc, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+        const nc = c + dc, nr = r + dr;
+        if (nc < 0 || nc >= rayGrid.cols || nr < 0 || nr >= rayGrid.rows) continue;
+        const ni = nr * rayGrid.cols + nc;
+        if (dist[ni] === -1) {
+          dist[ni] = dist[i] + 1;
+          localFloorY[ni] = localFloorY[i];
+          queue.push(ni);
+        }
+      }
+    }
+  }
+
+  // per-column visual height profile: total vs floor-band counts, smoothed
+  // over a ±0.25 m window so sparse point clouds don't fragment coverage
+  const visualBandRaw = new Float64Array(rayGrid.size);
+  const visualTotalRaw = new Float64Array(rayGrid.size);
+  for (let i = 0; i < visualPoints.length; i += 3) {
+    const x = visualPoints[i], y = visualPoints[i + 1], z = visualPoints[i + 2];
+    if (x < aabb.min.x - 0.25 || x > aabb.max.x + 0.25 || z < aabb.min.z - 0.25 || z > aabb.max.z + 0.25) continue;
+    const idx = rayGrid.index(x, z);
+    visualTotalRaw[idx]++;
+    if (Math.abs(y - localFloorY[idx]) < 0.35) visualBandRaw[idx]++;
+  }
+  const visualBand = rayGrid.channel("visualFloorBand");
+  const visualTotal = rayGrid.channel("visualTotal");
+  const win = Math.max(1, Math.round(0.25 / opts.rayCellSize));
+  for (let r = 0; r < rayGrid.rows; r++) {
+    for (let c = 0; c < rayGrid.cols; c++) {
+      let band = 0;
+      let total = 0;
+      for (let dr = -win; dr <= win; dr++) {
+        for (let dc = -win; dc <= win; dc++) {
+          const rr = r + dr, cc = c + dc;
+          if (rr < 0 || rr >= rayGrid.rows || cc < 0 || cc >= rayGrid.cols) continue;
+          band += visualBandRaw[rr * rayGrid.cols + cc];
+          total += visualTotalRaw[rr * rayGrid.cols + cc];
+        }
+      }
+      const i = r * rayGrid.cols + c;
+      visualBand[i] = band;
+      visualTotal[i] = total;
+    }
+  }
+
+  // Density calibration: a floor CLAIM must be about as splat-dense as real
+  // floors in this world. Hallucinated fuzz beyond the walls is diffuse —
+  // orders of magnitude sparser than actual surfaces — and must not draw
+  // probes. Baseline: median floor-band density over standable columns.
+  const standableBands: number[] = [];
+  for (let i = 0; i < rayGrid.size; i++) {
+    if (standable[i] && visualBand[i] > 0) standableBands.push(visualBand[i]);
+  }
+  standableBands.sort((a, b) => a - b);
+  const medianFloorBand = standableBands.length > 0 ? standableBands[Math.floor(standableBands.length / 2)] : 0;
+  const floorClaimThreshold = Math.max(2, 0.25 * medianFloorBand);
+
+  const dropHeightAt = (x: number, z: number): number | null => {
+    const i = rayGrid.index(x, z);
+    if (standable[i]) {
+      const head = headroom[i];
+      const rise = head >= 990 ? 2.0 : Math.min(Math.max(head - 0.15, 0.3), 2.0);
+      return surfaceY[i] + rise;
+    }
+    if (
+      !hasHit[i] &&
+      visualBand[i] >= floorClaimThreshold &&
+      visualBand[i] / Math.max(1, visualTotal[i]) >= 0.3
+    ) {
+      return floorEst + 1.2; // floor-claiming void: the probe falls through the candidate hole
+    }
+    return null; // wall column, roof-only column, or fuzz/void outside the world
+  };
+
+  const probes: {
+    body: import("@dimforge/rapier3d-compat").RigidBody;
+    dropX: number;
+    dropY: number;
+    dropZ: number;
+  }[] = [];
   let n = 0;
   outer: for (let r = 0; r < rows; r++) {
     for (let c = 0; c < perRow; c++) {
@@ -145,10 +294,12 @@ export async function runSurvey(
       const jz = (rng() - 0.5) * (spanZ / rows);
       const x = rainMinX + inset + ((c + 0.5) / perRow) * spanX + jx;
       const z = rainMinZ + inset + ((r + 0.5) / rows) * spanZ + jz;
-      // stagger drop height slightly so probes don't start interpenetrating
-      const y = topY + 0.2 + rng() * 0.4;
-      probes.push({ body: pw.spawnProbe({ x, y, z }, opts.probeRadius), dropX: x, dropZ: z });
-      n++;
+      const drop = dropHeightAt(x, z);
+      n++; // grid slot consumed either way, so density stays uniform over the domain
+      if (drop === null) continue;
+      // small stagger so probes don't start interpenetrating
+      const y = drop + rng() * 0.15;
+      probes.push({ body: pw.spawnProbe({ x, y, z }, opts.probeRadius), dropX: x, dropY: y, dropZ: z });
     }
   }
 
@@ -171,6 +322,60 @@ export async function runSurvey(
   }
   const elapsed = (performance.now() - t0) / 1000;
 
+  // ------------------------------------------------- reachability mask
+  // The certificate makes claims about space a robot can REACH. Flood-fill
+  // from physics-verified cells (where probes rested) across standable
+  // columns; walls (non-standable) bound the fill; doorway gaps let it
+  // through to adjacent rooms. Dilate by 0.3 m so holes at the floor edge
+  // and doorway thresholds stay in scope. Dense splat fuzz beyond the walls
+  // is unreachable and stops counting as evidence.
+  const reachable = rayGrid.channel("reachable");
+  {
+    const queue: number[] = [];
+    for (const p of probes) {
+      const pos = p.body.translation();
+      if (pos.y >= killY) {
+        const i = rayGrid.index(pos.x, pos.z);
+        if (standable[i] && !reachable[i]) {
+          reachable[i] = 1;
+          queue.push(i);
+        }
+      }
+    }
+    while (queue.length) {
+      const i = queue.pop()!;
+      const [c, r] = rayGrid.colRow(i);
+      for (const [dc, dr] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+        const nc = c + dc, nr = r + dr;
+        if (nc < 0 || nc >= rayGrid.cols || nr < 0 || nr >= rayGrid.rows) continue;
+        const ni = nr * rayGrid.cols + nc;
+        if (!reachable[ni] && standable[ni]) {
+          reachable[ni] = 1;
+          queue.push(ni);
+        }
+      }
+    }
+  }
+  // dilated claim zone (evidence within 0.3 m of reachable space counts)
+  const claimZone = rayGrid.channel("claimZone");
+  {
+    const rad = Math.max(1, Math.round(0.3 / opts.rayCellSize));
+    for (let r = 0; r < rayGrid.rows; r++) {
+      for (let c = 0; c < rayGrid.cols; c++) {
+        if (!reachable[r * rayGrid.cols + c]) continue;
+        for (let dr = -rad; dr <= rad; dr++) {
+          for (let dc = -rad; dc <= rad; dc++) {
+            const rr = r + dr, cc = c + dc;
+            if (rr < 0 || rr >= rayGrid.rows || cc < 0 || cc >= rayGrid.cols) continue;
+            claimZone[rr * rayGrid.cols + cc] = 1;
+          }
+        }
+      }
+    }
+  }
+  const inClaimZone = (x: number, z: number) => claimZone[rayGrid.index(x, z)] > 0;
+
+  // ------------------------------------------- probe outcome classification
   let rested = 0;
   let fell = 0;
   let artifacts = 0;
@@ -178,29 +383,39 @@ export async function runSurvey(
     const pos = p.body.translation();
     if (pos.y < killY) {
       fell++;
-      // cross-check: does an independent ray at the drop point also pass through?
-      const ray = pw.castDown(p.dropX, topY, p.dropZ, worldHeight + 1.0);
+      // cross-check from the probe's own drop height — casting from above the
+      // AABB would hit the roof of an interior world and misread every genuine
+      // hole as a tunneling artifact
+      const ray = pw.castDown(p.dropX, p.dropY, p.dropZ, worldHeight + 1.0);
       if (ray) {
         artifacts++; // engine tunneling — surface exists; excluded from hole evidence
-      } else {
+      } else if (inClaimZone(p.dropX, p.dropZ)) {
         trustGrid.add("fallConfirmed", p.dropX, p.dropZ);
       }
+      // falls outside the claim zone: probe rolled off the world's edge —
+      // not evidence about reachable space
     } else {
       rested++;
       trustGrid.add("probeContact", pos.x, pos.z);
     }
   }
 
-  // ------------------------------------------- divergence, both directions
-  // With no visual data at all (collider-only bundle, e.g. SPZ parse failed)
-  // both divergence passes are skipped: absence of visuals is not evidence
-  // of phantom geometry.
+  // (trustGrid visualPts binning happened before the LiDAR pass, for the domain mask)
   const hasVisuals = visualPoints.length > 0;
   const threshold = opts.divergenceThresholdM;
   let visualNoPhys = 0;
   for (let i = 0; i < visualPoints.length; i += 3) {
     const x = visualPoints[i], y = visualPoints[i + 1], z = visualPoints[i + 2];
-    trustGrid.add("visualPts", x, z);
+    // background scenery — splats beyond the collider's bounding volume (sky,
+    // horizon, out-of-window vistas) — is not a claim about walkable space
+    if (
+      x < aabb.min.x - 0.25 || x > aabb.max.x + 0.25 ||
+      z < aabb.min.z - 0.25 || z > aabb.max.z + 0.25 ||
+      y < aabb.min.y - 0.5 || y > aabb.max.y + 0.5
+    ) {
+      continue;
+    }
+    if (!inClaimZone(x, z)) continue; // unreachable fuzz beyond the walls is not a claim
     const d = pw.distanceToCollider({ x, y, z });
     if (d > threshold) {
       visualNoPhys++;
@@ -215,6 +430,7 @@ export async function runSurvey(
   const nearRadius = 0.2;
   for (let i = 0; i < colliderSamples.length; i += 3) {
     const x = colliderSamples[i], y = colliderSamples[i + 1], z = colliderSamples[i + 2];
+    if (!inClaimZone(x, z)) continue; // collider beyond reachable space cannot ambush a robot
     const d2 = visualHash.nearestDist2(x, y, z, nearRadius);
     if (d2 > nearRadius * nearRadius) {
       physNoVisual++;
