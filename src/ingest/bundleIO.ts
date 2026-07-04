@@ -26,6 +26,8 @@ export interface LoadedWorld {
   worldId: string;
   collider: TriMesh;
   visualPoints: Float32Array;
+  /** per-splat max Gaussian scale, aligned with visualPoints (SPZ worlds only) */
+  visualScales?: Float32Array;
   metadata: WorldMetadata;
   manifest?: PlantedDefect[];
 }
@@ -35,9 +37,16 @@ export async function loadWorldBundle(dir: string): Promise<LoadedWorld> {
   const collider = await loadColliderGlb(join(dir, "collider.glb"));
   const raw = readFileSync(join(dir, "visual-points.f32"));
   const visualPoints = new Float32Array(raw.buffer, raw.byteOffset, raw.byteLength / 4);
+  const scalesPath = join(dir, "visual-scales.f32");
+  let visualScales: Float32Array | undefined;
+  if (existsSync(scalesPath)) {
+    const sraw = readFileSync(scalesPath);
+    visualScales = new Float32Array(sraw.buffer, sraw.byteOffset, sraw.byteLength / 4);
+    if (visualScales.length !== visualPoints.length / 3) visualScales = undefined; // stale sidecar
+  }
   const manifestPath = join(dir, "manifest.json");
   const manifest = existsSync(manifestPath)
     ? (JSON.parse(readFileSync(manifestPath, "utf-8")) as PlantedDefect[])
     : undefined;
-  return { worldId: metadata.worldId, collider, visualPoints, metadata, manifest };
+  return { worldId: metadata.worldId, collider, visualPoints, visualScales, metadata, manifest };
 }

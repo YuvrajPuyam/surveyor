@@ -30,10 +30,18 @@ npm run certify -- assets/generated/syn-kitchen-sink --gravity mars
 npm run mcp              # MCP server over stdio (Claude Desktop front door)
 ```
 
-Current self-validation: **100% precision / 100% recall** on 7 synthetic
-worlds, 8 planted defects (collider hole, raised sill, phantom collider,
-visual-only surface, 2x scale error), zero false positives on the clean
-control.
+Current self-validation on the 27-world bench (31 planted defects, including
+adversarial classes outside the certifier's taxonomy — frame mismatch, local
+mis-scale — and defects at the detection floor):
+**recall 96.8% (95% CI ≥ 85.6%), precision 100% (95% CI ≥ 90.5%)**, zero
+false positives on clean controls, one honest miss (local sub-region
+mis-scale — disclosed as a scope limitation). Confidence intervals are
+one-sided Clopper-Pearson and ship on the certificate itself.
+
+Field-validated: the first real Marble world's vendor scale factor (1.624)
+was independently recovered by door-height metrology at 1.60 [1.44..1.76],
+and a subscription-billed headless agent episode repaired the world F → A
+with all 81 defect outcomes recorded (cassette in `traces/`).
 
 ## Architecture
 

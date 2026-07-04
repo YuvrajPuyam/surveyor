@@ -64,14 +64,28 @@ export const REPAIR_TOOLS: AgentToolDef[] = [
   {
     name: "quarantine",
     description:
-      "Exclude a defect's region from the navigable area and record outcome=quarantined. Call for visual lies that cannot be repaired (visual_only_surface) so no training episode touches the lie, or after 2 failed repair attempts.",
-    input_schema: obj({ defectId: { type: "string" }, reason: { type: "string" } }, ["defectId", "reason"]),
+      "Exclude defect regions from the navigable area and record outcome=quarantined. Call for visual lies that cannot be repaired (visual_only_surface) so no training episode touches the lie, or after 2 failed repair attempts. Accepts one defectId or a defectIds array for bulk resolution of a shared diagnosis.",
+    input_schema: obj(
+      {
+        defectId: { type: "string" },
+        defectIds: { type: "array", items: { type: "string" } },
+        reason: { type: "string" },
+      },
+      ["reason"],
+    ),
   },
   {
     name: "accept_defect",
     description:
-      "Record outcome=accepted: the finding is correct as-is and needs no repair (e.g. a genuinely raised sill whose negotiability is robot-relative — the verdict stands). Call when diagnosis concludes NO action is the right action.",
-    input_schema: obj({ defectId: { type: "string" }, reason: { type: "string" } }, ["defectId", "reason"]),
+      "Record outcome=accepted: the finding is correct as-is and needs no repair (e.g. a genuinely raised sill whose negotiability is robot-relative — the verdict stands). Call when diagnosis concludes NO action is the right action. Accepts one defectId or a defectIds array for bulk resolution of a shared diagnosis.",
+    input_schema: obj(
+      {
+        defectId: { type: "string" },
+        defectIds: { type: "array", items: { type: "string" } },
+        reason: { type: "string" },
+      },
+      ["reason"],
+    ),
   },
   {
     name: "rebuild_navmesh_and_spawns",
@@ -166,11 +180,19 @@ export async function dispatchTool(engine: RepairEngine, name: string, input: un
       return engine.patchHole(args.defectId, args.method as "fitted_slab" | "mesh_fill");
     case "carve_opening":
       return engine.carveOpening(args.defectId);
-    case "quarantine":
-      return engine.quarantine(args.defectId, args.reason);
+    case "quarantine": {
+      const a = args as unknown as { defectId?: string; defectIds?: string[]; reason: string };
+      const ids = a.defectIds ?? (a.defectId ? [a.defectId] : []);
+      if (ids.length === 0) return { error: "quarantine requires defectId or defectIds" };
+      const actionIds = ids.map((id) => engine.quarantine(id, a.reason).actionId);
+      return { defectIds: ids, actionIds, outcome: "quarantined" };
+    }
     case "accept_defect": {
-      engine.markOutcome(args.defectId, "accepted", args.reason);
-      return { defectId: args.defectId, outcome: "accepted" };
+      const a = args as unknown as { defectId?: string; defectIds?: string[]; reason: string };
+      const ids = a.defectIds ?? (a.defectId ? [a.defectId] : []);
+      if (ids.length === 0) return { error: "accept_defect requires defectId or defectIds" };
+      for (const id of ids) engine.markOutcome(id, "accepted", a.reason);
+      return { defectIds: ids, outcome: "accepted" };
     }
     case "rebuild_navmesh_and_spawns":
       return engine.rebuildNavmeshAndSpawns();

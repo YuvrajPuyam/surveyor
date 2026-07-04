@@ -22,6 +22,13 @@ export function computeVerdicts(
   const holes = defects.filter((d) => d.type === "collider_hole");
   const sills = defects.filter((d) => d.type === "raised_sill");
   const gName = gravity.name;
+  // meter-denominated gates are meaningless while world scale is unverified —
+  // an unresolved scale defect suspends metric verdicts until apply_vendor_scale
+  // + re-certification make the meters real
+  const scaleUnverified = defects.some(
+    (d) => d.type === "scale_error" && (!d.outcome || d.outcome === "escalated"),
+  );
+  const SCALE_HOLD = "suspended: metric verdict withheld until the diagnosed scale defect is resolved and the world re-certified";
 
   for (const robot of robots) {
     // ------------------------------------------------- floor integrity
@@ -42,9 +49,11 @@ export function computeVerdicts(
       verdicts.push({
         robotId: robot.id,
         check: "passage_clearance_width",
-        pass: narrowest.widthM.uncertainty.low >= required,
+        pass: scaleUnverified ? "not_evaluated" : narrowest.widthM.uncertainty.low >= required,
         measured: narrowest.widthM,
-        requirement: `narrowest passage ≥ ${required.toFixed(2)} m (2x footprint radius + 0.10 m margin)`,
+        requirement: scaleUnverified
+          ? SCALE_HOLD
+          : `narrowest passage ≥ ${required.toFixed(2)} m (2x footprint radius + 0.10 m margin)`,
         gravitySensitivity: "unchanged_by_gravity",
         gravityNote: `unchanged under ${gName} gravity: geometry does not scale with g`,
         defectIds: [],
@@ -59,9 +68,11 @@ export function computeVerdicts(
     verdicts.push({
       robotId: robot.id,
       check: "step_negotiation",
-      pass: maxStep ? maxStep.uncertainty.high <= robot.maxStepM : true,
+      pass: scaleUnverified ? "not_evaluated" : maxStep ? maxStep.uncertainty.high <= robot.maxStepM : true,
       measured: maxStep,
-      requirement: `max step/sill ≤ ${robot.maxStepM.toFixed(2)} m (${robot.kind === "kinematic_envelope" ? "published capability envelope" : "wheel-climb limit for the vehicle model class"})`,
+      requirement: scaleUnverified
+        ? SCALE_HOLD
+        : `max step/sill ≤ ${robot.maxStepM.toFixed(2)} m (${robot.kind === "kinematic_envelope" ? "published capability envelope" : "wheel-climb limit for the vehicle model class"})`,
       gravitySensitivity: "unchanged_by_gravity",
       gravityNote: `unchanged under ${gName} gravity: step negotiability in this model class is kinematic`,
       defectIds: sills.map((d) => d.id),

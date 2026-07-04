@@ -167,15 +167,21 @@ export function synthesizeDefects(survey: SurveyResult, metrology: MetrologyResu
   }
 
   // -------------------------------------------------------- scale error
+  // Two independent triggers: (a) the door-height prior disagrees with unit
+  // scale; (b) the vendor's own metadata declares a non-metric export — even
+  // when no doorway is measurable, the world says of itself that its meters
+  // are not meters until the factor is applied.
+  const vendorScale = metrology.measurements.find((m) => m.name === "vendor_metric_scale_factor");
   const est = metrology.scaleEstimate;
+  const wholeWorld = {
+    min: [survey.aabb.min.x, survey.aabb.min.y, survey.aabb.min.z] as [number, number, number],
+    max: [survey.aabb.max.x, survey.aabb.max.y, survey.aabb.max.z] as [number, number, number],
+  };
   if (est && Math.abs(est.value - 1) > 0.3) {
     defects.push({
       id: nextId("scale"),
       type: "scale_error",
-      region: {
-        min: [survey.aabb.min.x, survey.aabb.min.y, survey.aabb.min.z],
-        max: [survey.aabb.max.x, survey.aabb.max.y, survey.aabb.max.z],
-      },
+      region: wholeWorld,
       severity: "critical",
       confidence: 0.8,
       evidence: [
@@ -187,6 +193,25 @@ export function synthesizeDefects(survey: SurveyResult, metrology: MetrologyResu
       ],
       description:
         "World-level metric scale disagrees with door-height priors. All metric verdicts are invalid until scale is corrected (apply_vendor_scale, then cross-check).",
+    });
+  } else if (vendorScale && Math.abs(vendorScale.value - 1) > 0.15) {
+    defects.push({
+      id: nextId("scale"),
+      type: "scale_error",
+      region: wholeWorld,
+      severity: "critical",
+      confidence: 0.6,
+      evidence: [
+        {
+          kind: "vendor_metadata",
+          detail:
+            `vendor ships metric_scale_factor ${vendorScale.value.toFixed(3)} — the world declares itself non-metric as exported; ` +
+            (est ? `door-height estimate ${est.value.toFixed(2)} available for cross-check` : "no measurable doorway for independent verification"),
+          measurement: vendorScale,
+        },
+      ],
+      description:
+        "Vendor metadata declares a non-metric export. Metric verdicts are suspended until apply_vendor_scale bakes the factor and re-certification confirms.",
     });
   }
 

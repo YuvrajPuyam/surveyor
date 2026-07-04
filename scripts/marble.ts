@@ -80,9 +80,21 @@ async function downloadWorld(world: MarbleWorld): Promise<string> {
     // splat centers -> visual points for the divergence checks
     try {
       const { parseSpzPositions } = await import("../src/ingest/spz.js");
-      const { positions, numPoints } = parseSpzPositions(spzBuf);
-      writeFileSync(join(dir, "visual-points.f32"), Buffer.from(positions.buffer, positions.byteOffset, positions.byteLength));
-      console.log(`visual-points.f32: ${numPoints} splat centers extracted (in-house SPZ parser)`);
+      const { positions, numPoints, alphas, maxScales } = parseSpzPositions(spzBuf);
+      // low-alpha floaters are not surface claims — drop them at ingestion
+      const ALPHA_MIN = 0.15;
+      const keptPos: number[] = [];
+      const keptScale: number[] = [];
+      for (let i = 0; i < numPoints; i++) {
+        if (alphas[i] < ALPHA_MIN) continue;
+        keptPos.push(positions[i * 3], positions[i * 3 + 1], positions[i * 3 + 2]);
+        keptScale.push(maxScales[i]);
+      }
+      const posArr = new Float32Array(keptPos);
+      const scaleArr = new Float32Array(keptScale);
+      writeFileSync(join(dir, "visual-points.f32"), Buffer.from(posArr.buffer, posArr.byteOffset, posArr.byteLength));
+      writeFileSync(join(dir, "visual-scales.f32"), Buffer.from(scaleArr.buffer, scaleArr.byteOffset, scaleArr.byteLength));
+      console.log(`visual-points.f32: ${keptScale.length}/${numPoints} splat centers kept (alpha >= ${ALPHA_MIN}), scales saved`);
     } catch (e) {
       writeFileSync(join(dir, "visual-points.f32"), Buffer.alloc(0));
       console.log(`SPZ parse failed (${(e as Error).message.slice(0, 80)}) — wrote empty visual points; certify runs collider-only`);

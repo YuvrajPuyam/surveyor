@@ -62,6 +62,11 @@ export const DefectTypeSchema = z.enum([
   "scale_error", // world-level metric scale disagrees with priors/vendor metadata
   "raised_sill", // step/threshold at a passage exceeding expected floor continuity
   "clearance_violation", // passage narrower/lower than robot spec requires
+  // ---- bench-only classes: planted in validation manifests to test the
+  // certifier OUTSIDE its own taxonomy; the certifier never emits these.
+  // Detection counts if the certifier flags the damage in its own terms.
+  "frame_mismatch", // collider rotated/offset relative to visuals (the -90 deg X quirk)
+  "local_scale_error", // one sub-region mis-scaled relative to the rest
 ]);
 export type DefectType = z.infer<typeof DefectTypeSchema>;
 
@@ -199,6 +204,9 @@ export const SelfValidationSchema = z.object({
   falseNegatives: z.number().int(),
   precision: z.number(),
   recall: z.number(),
+  /** one-sided 95% Clopper-Pearson lower bounds — a 100% at n=8 is a ">=69%", and the certificate says so */
+  recallCI95Low: z.number(),
+  precisionCI95Low: z.number(),
   notes: z.array(z.string()),
 });
 export type SelfValidation = z.infer<typeof SelfValidationSchema>;

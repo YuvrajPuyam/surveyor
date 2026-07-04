@@ -65,6 +65,9 @@ export interface SurveyResult {
     visualNoPhysCount: number;
     colliderSamplesChecked: number;
     physNoVisualCount: number;
+    /** self-calibrated lie threshold: p99 x 1.5 of splat-to-collider distance on probe-verified cells */
+    noiseFloorM: number;
+    noiseFloorCalibrated: boolean;
   };
 }
 
@@ -72,6 +75,8 @@ export async function runSurvey(
   collider: TriMesh,
   visualPoints: Float32Array,
   opts: SurveyOptions,
+  /** optional per-splat max Gaussian scale (length = points/3), from SPZ */
+  visualScales?: Float32Array,
 ): Promise<SurveyResult> {
   await initRapier();
   const pw = new PhysicsWorld(opts.gravityMps2);
@@ -383,14 +388,15 @@ export async function runSurvey(
     const pos = p.body.translation();
     if (pos.y < killY) {
       fell++;
-      // cross-check from the probe's own drop height — casting from above the
-      // AABB would hit the roof of an interior world and misread every genuine
-      // hole as a tunneling artifact
-      const ray = pw.castDown(p.dropX, p.dropY, p.dropZ, worldHeight + 1.0);
+      // cross-check at the probe's EXIT column (it may have rolled before
+      // falling), from its drop height — casting from above the AABB would
+      // hit the roof of an interior world and misread every genuine hole as
+      // a tunneling artifact
+      const ray = pw.castDown(pos.x, p.dropY, pos.z, worldHeight + 1.0);
       if (ray) {
         artifacts++; // engine tunneling — surface exists; excluded from hole evidence
-      } else if (inClaimZone(p.dropX, p.dropZ)) {
-        trustGrid.add("fallConfirmed", p.dropX, p.dropZ);
+      } else if (inClaimZone(pos.x, pos.z)) {
+        trustGrid.add("fallConfirmed", pos.x, pos.z);
       }
       // falls outside the claim zone: probe rolled off the world's edge —
       // not evidence about reachable space
@@ -401,9 +407,22 @@ export async function runSurvey(
   }
 
   // (trustGrid visualPts binning happened before the LiDAR pass, for the domain mask)
+  // Two-pass divergence with a SELF-CALIBRATED lie threshold: measure the
+  // splat-to-collider distance distribution on cells where probes RESTED
+  // (physics verified the visuals there) — that distribution IS this world's
+  // simplification noise floor. "Lying" means divergence beyond the vendor's
+  // own demonstrated tolerance, not beyond an arbitrary constant. Per-point
+  // Gaussian scale (when available from SPZ) inflates the tolerance: a fat
+  // splat's surface extends far from its center.
   const hasVisuals = visualPoints.length > 0;
-  const threshold = opts.divergenceThresholdM;
-  let visualNoPhys = 0;
+  const contactCh = trustGrid.channel("probeContact");
+  interface DivergenceSample {
+    x: number;
+    z: number;
+    d: number;
+    verified: boolean;
+  }
+  const samples: DivergenceSample[] = [];
   for (let i = 0; i < visualPoints.length; i += 3) {
     const x = visualPoints[i], y = visualPoints[i + 1], z = visualPoints[i + 2];
     // background scenery — splats beyond the collider's bounding volume (sky,
@@ -416,10 +435,21 @@ export async function runSurvey(
       continue;
     }
     if (!inClaimZone(x, z)) continue; // unreachable fuzz beyond the walls is not a claim
-    const d = pw.distanceToCollider({ x, y, z });
-    if (d > threshold) {
+    let d = pw.distanceToCollider({ x, y, z });
+    if (visualScales) d = Math.max(0, d - visualScales[i / 3]); // splat surface, not center
+    samples.push({ x, z, d, verified: contactCh[trustGrid.index(x, z)] > 0 });
+  }
+  const verifiedDists = samples.filter((s) => s.verified).map((s) => s.d).sort((a, b) => a - b);
+  let noiseFloorM = opts.divergenceThresholdM; // fallback when calibration is undersampled
+  if (verifiedDists.length >= 200) {
+    const p99 = verifiedDists[Math.floor(verifiedDists.length * 0.99)];
+    noiseFloorM = Math.min(0.5, Math.max(0.05, p99 * 1.5));
+  }
+  let visualNoPhys = 0;
+  for (const s of samples) {
+    if (s.d > noiseFloorM) {
       visualNoPhys++;
-      trustGrid.add("visualNoPhys", x, z);
+      trustGrid.add("visualNoPhys", s.x, s.z);
     }
   }
 
@@ -458,6 +488,8 @@ export async function runSurvey(
       visualNoPhysCount: visualNoPhys,
       colliderSamplesChecked: colliderSamples.length / 3,
       physNoVisualCount: physNoVisual,
+      noiseFloorM,
+      noiseFloorCalibrated: verifiedDists.length >= 200,
     },
   };
 }

@@ -20,6 +20,10 @@ export interface SpzInfo {
   version: number;
   shDegree: number;
   positions: Float32Array;
+  /** opacity 0..1 per splat — low-alpha floaters are not surface claims */
+  alphas: Float32Array;
+  /** max Gaussian scale (m) per splat — a fat splat's surface extends far from its center */
+  maxScales: Float32Array;
 }
 
 const SPZ_MAGIC = 0x5053474e;
@@ -48,5 +52,22 @@ export function parseSpzPositions(spzFile: Buffer): SpzInfo {
     positions[i] = v * scale;
     off += 3;
   }
-  return { numPoints, version, shDegree, positions };
+
+  // after positions: alphas (1B each), colors (3B each), scales (3B each,
+  // log-encoded: s = exp(b/16 - 10)), then rotations + SH which we skip
+  const alphas = new Float32Array(numPoints);
+  const maxScales = new Float32Array(numPoints);
+  const alphaOff = off;
+  const scalesOff = alphaOff + numPoints + numPoints * 3;
+  if (raw.length >= scalesOff + numPoints * 3) {
+    for (let i = 0; i < numPoints; i++) alphas[i] = raw[alphaOff + i] / 255;
+    for (let i = 0; i < numPoints; i++) {
+      const b = Math.max(raw[scalesOff + i * 3], raw[scalesOff + i * 3 + 1], raw[scalesOff + i * 3 + 2]);
+      maxScales[i] = Math.exp(b / 16 - 10);
+    }
+  } else {
+    alphas.fill(1);
+    // maxScales stays 0 — no inflation without data
+  }
+  return { numPoints, version, shDegree, positions, alphas, maxScales };
 }

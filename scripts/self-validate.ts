@@ -20,7 +20,10 @@ console.log(
   `TP ${report.summary.truePositives}  FP ${report.summary.falsePositives}  FN ${report.summary.falseNegatives}`,
 );
 console.log(
-  `precision ${(report.summary.precision * 100).toFixed(1)}%  recall ${(report.summary.recall * 100).toFixed(1)}%`,
+  `recall    ${(report.summary.recall * 100).toFixed(1)}% (95% CI: >= ${(report.summary.recallCI95Low * 100).toFixed(1)}%, n=${report.summary.truePositives + report.summary.falseNegatives})`,
+);
+console.log(
+  `precision ${(report.summary.precision * 100).toFixed(1)}% (95% CI: >= ${(report.summary.precisionCI95Low * 100).toFixed(1)}%, n=${report.summary.truePositives + report.summary.falsePositives})`,
 );
 console.log("");
 for (const w of report.perWorld) {

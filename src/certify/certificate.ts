@@ -16,6 +16,8 @@ export interface CertifyInput {
   worldId: string;
   collider: TriMesh;
   visualPoints: Float32Array;
+  /** per-splat max Gaussian scale, aligned with visualPoints (SPZ worlds) */
+  visualScales?: Float32Array;
   metadata?: WorldMetadata;
 }
 
@@ -57,7 +59,7 @@ export async function certifyWorld(input: CertifyInput, opts: CertifyOptions = {
   const robots = opts.robots ?? [ROBOT_PRESETS.rover, ROBOT_PRESETS.quadruped];
 
   const surveyOpts: SurveyOptions = { ...DEFAULT_SURVEY, ...opts.survey, seed, gravityMps2: gravity.g };
-  const survey = await runSurvey(input.collider, input.visualPoints, surveyOpts);
+  const survey = await runSurvey(input.collider, input.visualPoints, surveyOpts, input.visualScales);
   const metrology = runMetrology(survey.rayGrid, seed, input.metadata);
   const defects = synthesizeDefects(survey, metrology);
   const trustMap = buildTrustMap(survey.trustGrid);
@@ -95,8 +97,24 @@ export async function certifyWorld(input: CertifyInput, opts: CertifyOptions = {
     },
     disclosures: [
       ...robots.map((r) => `${r.label}: ${r.modelClassDisclosure}`),
-      "Probe methodology: seeded probe rain with CCD; every fall-through cross-checked by an independent raycast before it counts as a hole.",
-      "Trust states cover the inspected footprint only; 'observed' means no physical experiment touched the cell.",
+      "Probe methodology: seeded probe rain with CCD; every fall-through cross-checked by an independent raycast at the probe's exit point before it counts as a hole.",
+      "Trust states cover robot-REACHABLE space only; 'observed' means no physical experiment touched the cell.",
+      (() => {
+        // detection floor: what "verified" rules out at this coverage
+        const domainCh = survey.rayGrid.channel("domain");
+        let domainCells = 0;
+        for (let i = 0; i < survey.rayGrid.size; i++) if (domainCh[i]) domainCells++;
+        const domainArea = domainCells * surveyOpts.rayCellSize * surveyOpts.rayCellSize;
+        const probeSpacing = survey.probeStats.probesDropped > 0 ? Math.sqrt(domainArea / survey.probeStats.probesDropped) : Infinity;
+        const rayFloor = 2 * surveyOpts.rayCellSize;
+        const floor = Math.max(rayFloor, Number.isFinite(probeSpacing) ? probeSpacing : rayFloor);
+        return `Detection floor: at this coverage (ray grid ${surveyOpts.rayCellSize} m, ~${Number.isFinite(probeSpacing) ? probeSpacing.toFixed(2) : "n/a"} m probe spacing over ${domainArea.toFixed(0)} m²), 'verified' rules out collider holes with footprint ≥ ~${floor.toFixed(2)} m; smaller defects are below the instrument's floor.`;
+      })(),
+      survey.divergence.noiseFloorCalibrated
+        ? `Divergence 'lying' threshold self-calibrated to this world's simplification noise floor: ${survey.divergence.noiseFloorM.toFixed(3)} m (1.5x the p99 splat-to-collider distance on probe-verified cells). 'Lying' means divergence beyond the vendor's own demonstrated simplification tolerance.`
+        : `Divergence threshold: default ${survey.divergence.noiseFloorM.toFixed(2)} m (insufficient probe-verified visual samples for self-calibration).`,
+      "Single-level survey: one walkable surface per column; multi-level worlds are unsupported in this version.",
+      "Scope of the grade: it predicts navmesh-level traversability under the disclosed model class. It does not predict policy transfer or visual-domain fidelity.",
       "All measurements carry uncertainty ranges; the methods line under each number states how it was obtained.",
     ],
     probeStats: {

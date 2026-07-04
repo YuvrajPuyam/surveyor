@@ -51,23 +51,37 @@ function toRegion(a: Aabb): PlantedDefect["region"] {
   return { min: [a.min.x, a.min.y, a.min.z], max: [a.max.x, a.max.y, a.max.z] };
 }
 
-/** Slabs covering rect [x0,x1]x[z0,z1] minus a rectangular hole, top at y=0. */
-function floorWithHole(
-  x0: number, x1: number, z0: number, z1: number,
-  hole: { x0: number; x1: number; z0: number; z1: number } | null,
-  thickness = 0.1,
-): Box[] {
+interface Rect {
+  x0: number;
+  x1: number;
+  z0: number;
+  z1: number;
+}
+
+/** Slabs covering rect [x0,x1]x[z0,z1] minus any number of rectangular holes, top at y=0. */
+function floorWithHoles(x0: number, x1: number, z0: number, z1: number, holes: Rect[], thickness = 0.1): Box[] {
   const cy = -thickness / 2;
-  if (!hole) {
-    return [box((x0 + x1) / 2, cy, (z0 + z1) / 2, x1 - x0, thickness, z1 - z0)];
+  let rects: Rect[] = [{ x0, x1, z0, z1 }];
+  for (const hole of holes) {
+    const next: Rect[] = [];
+    for (const r of rects) {
+      const ix0 = Math.max(r.x0, hole.x0), ix1 = Math.min(r.x1, hole.x1);
+      const iz0 = Math.max(r.z0, hole.z0), iz1 = Math.min(r.z1, hole.z1);
+      if (ix0 >= ix1 || iz0 >= iz1) {
+        next.push(r); // no intersection
+        continue;
+      }
+      // split into up to four remainder strips
+      if (hole.x0 > r.x0) next.push({ x0: r.x0, x1: hole.x0, z0: r.z0, z1: r.z1 });
+      if (r.x1 > hole.x1) next.push({ x0: hole.x1, x1: r.x1, z0: r.z0, z1: r.z1 });
+      if (hole.z0 > r.z0) next.push({ x0: ix0, x1: ix1, z0: r.z0, z1: hole.z0 });
+      if (r.z1 > hole.z1) next.push({ x0: ix0, x1: ix1, z0: hole.z1, z1: r.z1 });
+    }
+    rects = next;
   }
-  const slabs: Box[] = [];
-  // left / right strips (full z), front / back strips (hole x-range only)
-  if (hole.x0 > x0) slabs.push(box((x0 + hole.x0) / 2, cy, (z0 + z1) / 2, hole.x0 - x0, thickness, z1 - z0));
-  if (x1 > hole.x1) slabs.push(box((hole.x1 + x1) / 2, cy, (z0 + z1) / 2, x1 - hole.x1, thickness, z1 - z0));
-  if (hole.z0 > z0) slabs.push(box((hole.x0 + hole.x1) / 2, cy, (z0 + hole.z0) / 2, hole.x1 - hole.x0, thickness, hole.z0 - z0));
-  if (z1 > hole.z1) slabs.push(box((hole.x0 + hole.x1) / 2, cy, (hole.z1 + z1) / 2, hole.x1 - hole.x0, thickness, z1 - hole.z1));
-  return slabs;
+  return rects
+    .filter((r) => r.x1 - r.x0 > 1e-6 && r.z1 - r.z0 > 1e-6)
+    .map((r) => box((r.x0 + r.x1) / 2, cy, (r.z0 + r.z1) / 2, r.x1 - r.x0, thickness, r.z1 - r.z0));
 }
 
 /** Wall along z at fixed x, with an optional doorway gap [gz0,gz1] of height doorH. */
@@ -92,6 +106,15 @@ export interface HabitatOptions {
   colliderHole?: boolean;
   /** Custom hole rectangle (overrides the default room-A position) */
   holeRect?: { x0: number; x1: number; z0: number; z1: number };
+  /** Additional hole rectangles (multi-hole worlds) */
+  extraHoles?: { x0: number; x1: number; z0: number; z1: number }[];
+  /**
+   * Out-of-taxonomy: rotate the COLLIDER -90 deg about X relative to the
+   * visuals (the vendor quirk the plan's own reference facts document).
+   */
+  frameMismatch?: boolean;
+  /** Out-of-taxonomy: vertically mis-scale room B (x > 5.1) by this factor. */
+  localScaleYRoomB?: number;
   /** Raised sill across the interior doorway (visual + collider — a real feature that fails small robots) */
   raisedSillM?: number;
   /** Invisible collider barrier in room B (physics, no visuals) */
@@ -115,14 +138,17 @@ export function buildHabitat(opts: HabitatOptions): WorldBundle {
   const manifest: PlantedDefect[] = [];
 
   // ---- floor
-  const hole = opts.holeRect ?? (opts.colliderHole ? { x0: 2.0, x1: 3.2, z0: 5.0, z1: 6.2 } : null);
-  colliderBoxes.push(...floorWithHole(0, 10, 0, 8, hole));
-  visualBoxes.push(...floorWithHole(0, 10, 0, 8, null)); // visuals always show a perfect floor
-  if (hole) {
+  const holes: { x0: number; x1: number; z0: number; z1: number }[] = [];
+  const mainHole = opts.holeRect ?? (opts.colliderHole ? { x0: 2.0, x1: 3.2, z0: 5.0, z1: 6.2 } : null);
+  if (mainHole) holes.push(mainHole);
+  if (opts.extraHoles) holes.push(...opts.extraHoles);
+  colliderBoxes.push(...floorWithHoles(0, 10, 0, 8, holes));
+  visualBoxes.push(...floorWithHoles(0, 10, 0, 8, [])); // visuals always show a perfect floor
+  for (const hole of holes) {
     manifest.push({
       type: "collider_hole",
       region: toRegion({ min: { x: hole.x0, y: -0.3, z: hole.z0 }, max: { x: hole.x1, y: 0.3, z: hole.z1 } }),
-      note: "1.2x1.2 m physics hole under visually perfect floor in room A",
+      note: `${(hole.x1 - hole.x0).toFixed(1)}x${(hole.z1 - hole.z0).toFixed(1)} m physics hole under visually perfect floor`,
     });
   }
 
@@ -183,8 +209,45 @@ export function buildHabitat(opts: HabitatOptions): WorldBundle {
     return { positions, indices: m.indices };
   };
 
-  const collider = scaleMesh(mergeTriMeshes(colliderBoxes.map((b) => boxTriMesh(b.c, b.e))));
-  const visual = scaleMesh(mergeTriMeshes(visualBoxes.map((b) => boxTriMesh(b.c, b.e))));
+  // out-of-taxonomy transforms, applied before global scaling
+  const localScaleY = (m: TriMesh): TriMesh => {
+    const f = opts.localScaleYRoomB;
+    if (!f || f === 1) return m;
+    const positions = new Float32Array(m.positions);
+    for (let i = 0; i < positions.length; i += 3) {
+      if (positions[i] > 5.1 && positions[i + 1] > 0) positions[i + 1] *= f;
+    }
+    return { positions, indices: m.indices };
+  };
+  const rotateColliderX90 = (m: TriMesh): TriMesh => {
+    if (!opts.frameMismatch) return m;
+    // -90 deg about X: (x, y, z) -> (x, z, -y)
+    const positions = new Float32Array(m.positions.length);
+    for (let i = 0; i < m.positions.length; i += 3) {
+      positions[i] = m.positions[i];
+      positions[i + 1] = m.positions[i + 2];
+      positions[i + 2] = -m.positions[i + 1];
+    }
+    return { positions, indices: m.indices };
+  };
+
+  const collider = rotateColliderX90(scaleMesh(localScaleY(mergeTriMeshes(colliderBoxes.map((b) => boxTriMesh(b.c, b.e))))));
+  const visual = scaleMesh(localScaleY(mergeTriMeshes(visualBoxes.map((b) => boxTriMesh(b.c, b.e)))));
+
+  if (opts.frameMismatch) {
+    manifest.push({
+      type: "frame_mismatch",
+      region: toRegion({ min: { x: 0, y: -10, z: -10 }, max: { x: 10 * scale, y: 10, z: 10 } }),
+      note: "collider rotated -90 deg about X relative to visuals (vendor export quirk)",
+    });
+  }
+  if (opts.localScaleYRoomB && opts.localScaleYRoomB !== 1) {
+    manifest.push({
+      type: "local_scale_error",
+      region: toRegion({ min: { x: 5.1 * scale, y: 0, z: 0 }, max: { x: 10 * scale, y: 4 * scale, z: 8 * scale } }),
+      note: `room B vertically mis-scaled by ${opts.localScaleYRoomB}x relative to room A`,
+    });
+  }
   // constant areal density in EXPORTED units — a mis-scaled world must not
   // become artificially sparse, or divergence checks flood with false phantoms
   const visualPoints = sampleMeshSurface(visual, 60, rng);
@@ -238,15 +301,42 @@ export function heroWorld(seed = 1234): WorldBundle {
   });
 }
 
-/** The standard self-validation set: one clean control + one world per defect class + a kitchen sink. */
+/**
+ * The self-validation bench: clean controls + every in-taxonomy defect class
+ * across multiple seeds, PLUS adversarial worlds planted outside the
+ * taxonomy (frame mismatch, local mis-scale) and at the detection floor
+ * (small hole, low sill). Missing some of the hard ones is expected and
+ * reported honestly — a recall with a confidence interval beats a planted
+ * 100%.
+ */
 export function standardValidationSet(seed = 1234): WorldBundle[] {
-  return [
-    buildHabitat({ worldId: "syn-clean", seed }),
-    buildHabitat({ worldId: "syn-hole", seed, colliderHole: true }),
-    buildHabitat({ worldId: "syn-sill", seed, raisedSillM: 0.15 }),
-    buildHabitat({ worldId: "syn-phantom", seed, phantomBarrier: true }),
-    buildHabitat({ worldId: "syn-visual-lie", seed, visualOnlyWall: true }),
-    buildHabitat({ worldId: "syn-mis-scaled", seed, scaleError: 2 }),
-    buildHabitat({ worldId: "syn-kitchen-sink", seed, colliderHole: true, raisedSillM: 0.15, visualOnlyWall: true }),
-  ];
+  const worlds: WorldBundle[] = [];
+  // core classes x 3 seeds
+  for (const s of [seed, seed + 7717, seed + 24851]) {
+    const tag = s === seed ? "" : `-s${s % 1000}`;
+    worlds.push(
+      buildHabitat({ worldId: `syn-clean${tag}`, seed: s }),
+      buildHabitat({ worldId: `syn-hole${tag}`, seed: s, colliderHole: true }),
+      buildHabitat({ worldId: `syn-sill${tag}`, seed: s, raisedSillM: 0.15 }),
+      buildHabitat({ worldId: `syn-phantom${tag}`, seed: s, phantomBarrier: true }),
+      buildHabitat({ worldId: `syn-visual-lie${tag}`, seed: s, visualOnlyWall: true }),
+      buildHabitat({ worldId: `syn-mis-scaled${tag}`, seed: s, scaleError: 2 }),
+      buildHabitat({ worldId: `syn-kitchen-sink${tag}`, seed: s, colliderHole: true, raisedSillM: 0.15, visualOnlyWall: true }),
+    );
+  }
+  // adversarial / at-the-floor worlds (single seed)
+  worlds.push(
+    buildHabitat({ worldId: "syn-frame-mismatch", seed, frameMismatch: true }),
+    buildHabitat({ worldId: "syn-local-scale", seed, localScaleYRoomB: 1.4 }),
+    buildHabitat({ worldId: "syn-small-hole", seed, holeRect: { x0: 2.4, x1: 2.75, z0: 5.4, z1: 5.75 } }),
+    buildHabitat({ worldId: "syn-low-sill", seed, raisedSillM: 0.05 }),
+    buildHabitat({
+      worldId: "syn-multi-hole",
+      seed,
+      colliderHole: true,
+      extraHoles: [{ x0: 7.0, x1: 7.9, z0: 1.5, z1: 2.4 }],
+    }),
+    buildHabitat({ worldId: "syn-shrunk", seed, scaleError: 0.55 }),
+  );
+  return worlds;
 }
