@@ -12,9 +12,11 @@
     "certify": "tsx scripts/certify.ts",
     "self-validate": "tsx scripts/self-validate.ts",
     "marble": "tsx scripts/marble.ts",
+    "repair-agent": "tsx scripts/repair-agent.ts",
     "mcp": "tsx mcp/server.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.110.0",
     "@dimforge/rapier3d-compat": "^0.14.0",
     "@gltf-transform/core": "^4.1.0",
     "@gltf-transform/functions": "^4.1.0",

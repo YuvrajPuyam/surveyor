@@ -1,6 +1,8 @@
 # Repair-loop tool API — the complete action space
 
-Nine tools. This menu is closed: the agent has no other way to touch the
+Ten tools (the nine from the plan plus an explicit `accept_defect`, so the
+"no action is the correct action" outcome is a recorded tool call rather than
+implicit prose). This menu is closed: the agent has no other way to touch the
 world. All ACT tools are deterministic, parameterized, and reversible via the
 operation stack. Schemas live in `src/core/types.ts` (`RepairToolInputs`);
 declare every tool with `strict: true`.
