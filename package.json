@@ -1,0 +1,29 @@
+{
+  "name": "surveyor",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Inspection and repair shop for AI-generated 3D worlds. Headless certify core: probe rain, virtual LiDAR, metrology with uncertainty, per-robot verdicts, repair operations, self-validation.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "make:synthetic": "tsx scripts/make-synthetic.ts",
+    "certify": "tsx scripts/certify.ts",
+    "self-validate": "tsx scripts/self-validate.ts",
+    "mcp": "tsx mcp/server.ts"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "^0.14.0",
+    "@gltf-transform/core": "^4.1.0",
+    "@gltf-transform/functions": "^4.1.0",
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  }
+}
