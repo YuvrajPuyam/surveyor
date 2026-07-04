@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "repair": {
+      "command": "npx",
+      "args": [
+        "tsx",
+        "mcp/repair-server.ts",
+        "--world",
+        "assets/marble/7188e250-e2ff-43e7-babb-73834c22e932",
+        "--probes",
+        "800"
+      ]
+    }
+  }
+}
