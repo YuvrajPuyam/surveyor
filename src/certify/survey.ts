@@ -182,6 +182,10 @@ export async function runSurvey(
   }
 
   // ------------------------------------------- divergence, both directions
+  // With no visual data at all (collider-only bundle, e.g. SPZ parse failed)
+  // both divergence passes are skipped: absence of visuals is not evidence
+  // of phantom geometry.
+  const hasVisuals = visualPoints.length > 0;
   const threshold = opts.divergenceThresholdM;
   let visualNoPhys = 0;
   for (let i = 0; i < visualPoints.length; i += 3) {
@@ -195,7 +199,7 @@ export async function runSurvey(
   }
 
   const sampleRng = mulberry32(hashSeed(opts.seed, "collider-samples"));
-  const colliderSamples = sampleMeshSurface(collider, 30, sampleRng);
+  const colliderSamples = hasVisuals ? sampleMeshSurface(collider, 30, sampleRng) : new Float32Array(0);
   const visualHash = new PointHash(visualPoints, 0.25);
   let physNoVisual = 0;
   const nearRadius = 0.2;
