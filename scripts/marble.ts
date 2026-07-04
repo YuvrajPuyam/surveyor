@@ -34,7 +34,11 @@ const flag = (name: string) => {
 };
 const has = (name: string) => args.includes(`--${name}`);
 
-const client = new MarbleClient(process.env.MARBLE_API_KEY ?? "");
+let _client: MarbleClient | null = null;
+function client(): MarbleClient {
+  if (!_client) _client = new MarbleClient(process.env.MARBLE_API_KEY ?? "");
+  return _client;
+}
 const MARBLE_ROOT = join(process.cwd(), "assets", "marble");
 
 /** Recursively find keys that look like scale / ground-plane metadata. */
@@ -64,12 +68,12 @@ async function downloadWorld(world: MarbleWorld): Promise<string> {
   console.log(`pano: ${panoUrl ? "yes" : "no"}`);
 
   if (colliderUrl) {
-    writeFileSync(join(dir, "collider.glb"), await client.downloadAsset(colliderUrl));
+    writeFileSync(join(dir, "collider.glb"), await client().downloadAsset(colliderUrl));
     console.log(`collider.glb downloaded`);
   }
   const spzKey = spzUrls["100k"] ? "100k" : Object.keys(spzUrls)[0];
   if (spzKey) {
-    const spzBuf = await client.downloadAsset(spzUrls[spzKey]);
+    const spzBuf = await client().downloadAsset(spzUrls[spzKey]);
     writeFileSync(join(dir, `splat-${spzKey}.spz`), spzBuf);
     console.log(`splat-${spzKey}.spz downloaded (${(spzBuf.length / 1e6).toFixed(1)} MB)`);
     // splat centers -> visual points for the divergence checks
@@ -89,7 +93,7 @@ async function downloadWorld(world: MarbleWorld): Promise<string> {
   } else {
     writeFileSync(join(dir, "visual-points.f32"), Buffer.alloc(0));
   }
-  if (panoUrl) writeFileSync(join(dir, "pano.jpg"), await client.downloadAsset(panoUrl));
+  if (panoUrl) writeFileSync(join(dir, "pano.jpg"), await client().downloadAsset(panoUrl));
 
   const metaKeys = findMetadataKeys(world);
   console.log(`\nscale/ground metadata keys found in response:`);
@@ -114,11 +118,11 @@ switch (cmd) {
   case "generate": {
     const prompt = flag("prompt");
     if (!prompt) throw new Error("--prompt required");
-    const op = await client.generateFromText(prompt, { model: flag("model"), displayName: flag("name") });
+    const op = await client().generateFromText(prompt, { model: flag("model"), displayName: flag("name") });
     const opId = operationIdOf(op);
     console.log(`operation started: ${opId}`);
     if (has("wait")) {
-      const world = await client.waitForOperation(opId, (s) => console.log(`  ...generating (${s.toFixed(0)} s)`));
+      const world = await client().waitForOperation(opId, (s) => console.log(`  ...generating (${s.toFixed(0)} s)`));
       await downloadWorld(world);
     } else {
       console.log(`poll with: npx tsx scripts/marble.ts wait ${opId}`);
@@ -128,11 +132,11 @@ switch (cmd) {
   case "pano": {
     const uri = flag("uri");
     if (!uri) throw new Error("--uri required (public URL of an equirectangular panorama)");
-    const op = await client.generateFromImage({ uri }, { model: flag("model"), textPrompt: flag("prompt"), isPano: true });
+    const op = await client().generateFromImage({ uri }, { model: flag("model"), textPrompt: flag("prompt"), isPano: true });
     const opId = operationIdOf(op);
     console.log(`operation started: ${opId}`);
     if (has("wait")) {
-      const world = await client.waitForOperation(opId, (s) => console.log(`  ...generating (${s.toFixed(0)} s)`));
+      const world = await client().waitForOperation(opId, (s) => console.log(`  ...generating (${s.toFixed(0)} s)`));
       await downloadWorld(world);
     } else {
       console.log(`poll with: npx tsx scripts/marble.ts wait ${opId}`);
@@ -142,20 +146,20 @@ switch (cmd) {
   case "wait": {
     const opId = args[1];
     if (!opId) throw new Error("usage: wait <operationId>");
-    const world = await client.waitForOperation(opId, (s) => console.log(`  ...generating (${s.toFixed(0)} s)`));
+    const world = await client().waitForOperation(opId, (s) => console.log(`  ...generating (${s.toFixed(0)} s)`));
     await downloadWorld(world);
     break;
   }
   case "get": {
     const worldId = args[1];
     if (!worldId) throw new Error("usage: get <worldId>");
-    console.log(JSON.stringify(await client.getWorld(worldId), null, 2));
+    console.log(JSON.stringify(await client().getWorld(worldId), null, 2));
     break;
   }
   case "download": {
     const worldId = args[1];
     if (!worldId) throw new Error("usage: download <worldId>");
-    await downloadWorld(await client.getWorld(worldId));
+    await downloadWorld(await client().getWorld(worldId));
     break;
   }
   case "gate-d1": {
@@ -166,8 +170,8 @@ switch (cmd) {
       flag("prompt") ??
       "small space habitat interior, two rooms connected by a doorway with a raised metal sill at the threshold, industrial floor";
     console.log(`GATE D1: generating with model=${model}...`);
-    const op = await client.generateFromText(prompt, { model, displayName: `gate-d1 ${model}` });
-    const world = await client.waitForOperation(operationIdOf(op), (s) => console.log(`  ...generating (${s.toFixed(0)} s)`));
+    const op = await client().generateFromText(prompt, { model, displayName: `gate-d1 ${model}` });
+    const world = await client().waitForOperation(operationIdOf(op), (s) => console.log(`  ...generating (${s.toFixed(0)} s)`));
     const dir = await downloadWorld(world);
     if (world.assets?.mesh?.collider_mesh_url) {
       console.log(`\nGATE D1 PASS for ${model} — collider shipped. Now certify it:`);
