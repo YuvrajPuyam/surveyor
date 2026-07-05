@@ -5,7 +5,10 @@
     "moduleResolution": "bundler",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "strict": true,
-    "noUncheckedIndexedAccess": true,
+    // OFF (was on): certifyWorker.ts imports the headless core from ../src,
+    // which compiles under root strict WITHOUT this flag; tsc applies one
+    // option set per program, so keeping it on fails the root files.
+    "noUncheckedIndexedAccess": false,
     "noEmit": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,

@@ -8,7 +8,14 @@ import type { Grid2D } from "../core/grid.js";
 import type { TrustCellState, TrustSummary } from "../core/types.js";
 
 export interface TrustMap {
+  /** per-cell states, row-major: index = row * cols + col (fully structured-clone/JSON serializable) */
   states: TrustCellState[];
+  cols: number;
+  rows: number;
+  /** cell edge length, metres */
+  cellSize: number;
+  /** world-space XZ of the min corner of cell (col 0, row 0) */
+  origin: { x: number; z: number };
   summary: TrustSummary;
 }
 
@@ -44,6 +51,10 @@ export function buildTrustMap(grid: Grid2D): TrustMap {
   const known = grid.size - counts.unknown;
   return {
     states,
+    cols: grid.cols,
+    rows: grid.rows,
+    cellSize: grid.cellSize,
+    origin: { x: grid.x0, z: grid.z0 },
     summary: {
       cellSizeM: grid.cellSize,
       cols: grid.cols,
