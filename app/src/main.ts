@@ -841,18 +841,33 @@ async function main(): Promise<void> {
       new THREE.MeshBasicMaterial({ color: 0x3bd6c6, wireframe: true, transparent: true, opacity: 0.35 }),
     );
     wireframe.name = "collider-wireframe";
+    wireframe.visible = false; // pretty world first — W is the Beat-1 reveal
     worldGroup.add(wireframe);
     colliderWireframe = wireframe;
 
-    // Frame the camera on the collider.
+    // Start the camera INSIDE the world at eye height — splat worlds are
+    // captured from within; from outside you see the dark backs of the
+    // gaussians and only the wireframe reads. Key I toggles inside/orbit.
     const bb = new THREE.Box3().setFromBufferAttribute(wfGeom.getAttribute("position") as THREE.BufferAttribute);
     const center = bb.getCenter(new THREE.Vector3());
-    const radius = bb.getSize(new THREE.Vector3()).length() / 2 || 5;
-    controls.target.copy(center);
-    camera.position.copy(center).add(new THREE.Vector3(radius * 0.9, radius * 0.7, radius * 0.9));
+    const size = bb.getSize(new THREE.Vector3());
+    const radius = size.length() / 2 || 5;
+    const eyeY = bb.min.y + Math.min(1.6, size.y * 0.6); // eye height, clamped for dollhouse-scale worlds
+    const longAxis = size.x >= size.z ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 0, 1);
+    const inside = new THREE.Vector3(center.x, eyeY, center.z).addScaledVector(longAxis, -Math.max(size.x, size.z) * 0.25);
+    const orbit = center.clone().add(new THREE.Vector3(radius * 0.9, radius * 0.7, radius * 0.9));
+    camera.position.copy(inside);
+    controls.target.copy(new THREE.Vector3(center.x, eyeY, center.z).addScaledVector(longAxis, Math.max(size.x, size.z) * 0.2));
     camera.near = Math.max(radius / 1000, 0.01);
     camera.far = radius * 20;
     camera.updateProjectionMatrix();
+    let insideView = true;
+    addEventListener("keydown", (e) => {
+      if (e.key.toLowerCase() !== "i") return;
+      insideView = !insideView;
+      camera.position.copy(insideView ? inside : orbit);
+      controls.target.copy(insideView ? new THREE.Vector3(center.x, eyeY, center.z).addScaledVector(longAxis, Math.max(size.x, size.z) * 0.2) : center);
+    });
 
     startPhysics(soup);
   } catch (err) {
