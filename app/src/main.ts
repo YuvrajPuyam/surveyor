@@ -311,7 +311,11 @@ function addRegionBox(
 function buildStaticDefectBoxes(cert: Certificate): THREE.Group {
   const group = new THREE.Group();
   group.name = "defects-static";
-  for (const d of cert.defects ?? []) {
+  const RANK: Record<string, number> = { critical: 0, major: 1, minor: 2 };
+  const capped = [...(cert.defects ?? [])]
+    .sort((a, b) => (RANK[a.severity] ?? 3) - (RANK[b.severity] ?? 3))
+    .slice(0, 200);
+  for (const d of capped) {
     addRegionBox(
       group,
       d.region.min,
@@ -325,7 +329,7 @@ function buildStaticDefectBoxes(cert: Certificate): THREE.Group {
 
 let staticDefectGroup: THREE.Group | undefined;
 let liveDefectGroup: THREE.Group | undefined;
-let defectBoxesVisible = true;
+let defectBoxesVisible = false; // pretty world by default — B opts into the overlay
 
 /**
  * Live overlay from the certify worker (engine coords → scene root).
@@ -884,13 +888,27 @@ async function main(): Promise<void> {
       if (hit) surfaceHits.push(hit.point.y);
     }
     surfaceHits.sort((a, b) => a - b);
-    const surfaceY = surfaceHits.length > 0 ? surfaceHits[Math.floor(surfaceHits.length / 2)] : bb.min.y;
+    // Prefer the WORLD ORIGIN: Marble generates every world around (0,0,0) —
+    // the capture viewpoint — and splat fidelity decays away from it. Probe
+    // the surface at the origin first; AABB-center probes are the fallback.
+    surfaceProbe.set(new THREE.Vector3(0, bb.max.y + 1, 0), new THREE.Vector3(0, -1, 0));
+    const originHit = surfaceProbe.intersectObject(wireframe, false)[0];
+    const surfaceY =
+      originHit?.point.y ??
+      (surfaceHits.length > 0 ? surfaceHits[Math.floor(surfaceHits.length / 2)] : bb.min.y);
     const eyeY = surfaceY + Math.min(1.6, size.y * 0.6); // eye height above the REAL surface
     const longAxis = size.x >= size.z ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 0, 1);
-    const inside = new THREE.Vector3(center.x, eyeY, center.z).addScaledVector(longAxis, -Math.max(size.x, size.z) * 0.25);
+    // stand at the capture origin, look toward the world's content
+    const inside = new THREE.Vector3(0, eyeY, 0);
+    const lookDir = new THREE.Vector3(center.x, 0, center.z);
+    if (lookDir.lengthSq() < 0.25) lookDir.copy(longAxis); // content centered on origin — look down the long axis
+    lookDir.normalize();
     const orbit = center.clone().add(new THREE.Vector3(radius * 0.9, radius * 0.7, radius * 0.9));
+    // splat fidelity decays away from the capture region — keep orbiting
+    // inside it instead of letting the camera fly out to where gaussians smear
+    controls.maxDistance = Math.max(3, radius * 0.6);
     camera.position.copy(inside);
-    controls.target.copy(new THREE.Vector3(center.x, eyeY, center.z).addScaledVector(longAxis, Math.max(size.x, size.z) * 0.2));
+    controls.target.copy(new THREE.Vector3(0, eyeY, 0).addScaledVector(lookDir, Math.max(3, radius * 0.3)));
     camera.near = Math.max(radius / 1000, 0.01);
     camera.far = radius * 20;
     camera.updateProjectionMatrix();
@@ -899,7 +917,7 @@ async function main(): Promise<void> {
       if (e.key.toLowerCase() !== "i") return;
       insideView = !insideView;
       camera.position.copy(insideView ? inside : orbit);
-      controls.target.copy(insideView ? new THREE.Vector3(center.x, eyeY, center.z).addScaledVector(longAxis, Math.max(size.x, size.z) * 0.2) : center);
+      controls.target.copy(insideView ? new THREE.Vector3(0, eyeY, 0).addScaledVector(lookDir, Math.max(3, radius * 0.3)) : center);
     });
 
     startPhysics(soup);
