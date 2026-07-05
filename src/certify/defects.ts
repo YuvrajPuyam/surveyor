@@ -143,7 +143,7 @@ export function synthesizeDefects(survey: SurveyResult, metrology: MetrologyResu
         },
       ],
       description:
-        "Visual surface with no physics behind it: looks solid, is not. Training episodes touching it learn a lie.",
+        "Ghost geometry: a visual surface with no physics behind it — looks solid, is not. Training episodes touching it learn an affordance that does not exist.",
     });
   }
 

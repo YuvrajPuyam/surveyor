@@ -64,7 +64,7 @@ export const REPAIR_TOOLS: AgentToolDef[] = [
   {
     name: "quarantine",
     description:
-      "Exclude defect regions from the navigable area and record outcome=quarantined. Call for visual lies that cannot be repaired (visual_only_surface) so no training episode touches the lie, or after 2 failed repair attempts. Accepts one defectId or a defectIds array for bulk resolution of a shared diagnosis.",
+      "Exclude defect regions from the navigable area and record outcome=quarantined. Call for ghost geometry that cannot be repaired (visual_only_surface) so no training episode touches the divergent region, or after 2 failed repair attempts. Accepts one defectId or a defectIds array for bulk resolution of a shared diagnosis.",
     input_schema: obj(
       {
         defectId: { type: "string" },

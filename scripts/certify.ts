@@ -31,7 +31,7 @@ const { certificate } = await certifyWorld(
 const dt = ((performance.now() - t0) / 1000).toFixed(1);
 
 console.log(`\nGRADE ${certificate.grade} — ${certificate.gradeRationale}`);
-console.log(`trust: ${certificate.trust.verifiedPct.toFixed(1)}% verified, ${certificate.trust.lyingPct.toFixed(1)}% lying`);
+console.log(`trust: ${certificate.trust.verifiedPct.toFixed(1)}% confirmed, ${certificate.trust.lyingPct.toFixed(1)}% divergent`);
 console.log(`defects: ${certificate.defects.length}`);
 for (const d of certificate.defects) console.log(`  [${d.severity}] ${d.type} (conf ${d.confidence.toFixed(2)}): ${d.description.slice(0, 100)}`);
 console.log(`\nper-robot verdicts:`);

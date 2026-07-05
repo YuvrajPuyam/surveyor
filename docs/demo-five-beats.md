@@ -7,9 +7,9 @@ anyone else.
 
 ## Opening line (creative-tech panel sentence — Poeia XR / Machine Cinema / FBRC.AI hold scorecards)
 
-> "A world that lies about its physics breaks presence the moment a foot
-> goes through the floor. We built the instrument that catches the lie
-> before anyone — human or robot — steps in."
+> "A world whose pixels don't match its physics breaks presence the moment
+> a foot goes through the floor. We built the instrument that catches
+> ghost geometry before anyone — human or robot — steps in."
 
 Plus one sentence of disclosure, said with pride, hour-zero commits on screen:
 
@@ -19,7 +19,7 @@ Plus one sentence of disclosure, said with pride, hour-zero commits on screen:
 ## Beat 1 — Wireframe reveal (~20s)
 
 Walk the photoreal world. Toggle the physics shell. The two files disagree
-on screen before a word of pitch. **Lead with the visual lie, not the
+on screen before a word of pitch. **Lead with the ghost geometry, not the
 hole**: "this wall you're seeing? Physics says it isn't there. A vision
 policy trained here learns an affordance that doesn't exist — and no
 training run ever crashes to tell you."
@@ -27,8 +27,8 @@ training run ever crashes to tell you."
 ## Beat 2 — Survey (~40s)
 
 Scripted sweep shown as ablation, then the agent directs the marginal probe
-budget with the live reasoning log. Trust map paints: verified / observed /
-lying. Certificate line lands on screen:
+budget with the live reasoning log. Trust map paints: confirmed / observed /
+divergent. Certificate line lands on screen:
 
 > recall 96.8% (95% CI ≥ 85.6%, n=31) on planted defects — the certifier
 > ships its own error bars.
@@ -55,7 +55,7 @@ happened un-staged on the first real Marble world; cassette in traces/.)
 
 Re-certified grade on screen (F → A, 81/81 defect outcomes recorded). Rover
 spawns at a verified point, drives OVER the patch, routes AROUND the
-quarantined lie. Label: "navmesh waypoint-following." Certificate line:
+quarantined ghost geometry. Label: "navmesh waypoint-following." Certificate line:
 "grade predicts navmesh-level traversability under the disclosed model
 class — not policy transfer."
 

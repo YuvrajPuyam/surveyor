@@ -111,7 +111,7 @@ export async function certifyWorld(input: CertifyInput, opts: CertifyOptions = {
         return `Detection floor: at this coverage (ray grid ${surveyOpts.rayCellSize} m, ~${Number.isFinite(probeSpacing) ? probeSpacing.toFixed(2) : "n/a"} m probe spacing over ${domainArea.toFixed(0)} m²), 'verified' rules out collider holes with footprint ≥ ~${floor.toFixed(2)} m; smaller defects are below the instrument's floor.`;
       })(),
       survey.divergence.noiseFloorCalibrated
-        ? `Divergence 'lying' threshold self-calibrated to this world's simplification noise floor: ${survey.divergence.noiseFloorM.toFixed(3)} m (1.5x the p99 splat-to-collider distance on probe-verified cells). 'Lying' means divergence beyond the vendor's own demonstrated simplification tolerance.`
+        ? `Divergence threshold self-calibrated to this world's simplification noise floor: ${survey.divergence.noiseFloorM.toFixed(3)} m (1.5x the p99 splat-to-collider distance on probe-verified cells). 'Divergent' means splat/collider disagreement beyond the vendor's own demonstrated simplification tolerance.`
         : `Divergence threshold: default ${survey.divergence.noiseFloorM.toFixed(2)} m (insufficient probe-verified visual samples for self-calibration).`,
       "Single-level survey: one walkable surface per column; multi-level worlds are unsupported in this version.",
       "Scope of the grade: it predicts navmesh-level traversability under the disclosed model class. It does not predict policy transfer or visual-domain fidelity.",

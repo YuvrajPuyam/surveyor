@@ -10,7 +10,7 @@
  *  - friction DR range  <- Measurement uncertainty (wide uncertainty -> wide
  *                          randomization; the honest consumption of an error bar)
  *  - reset poses        <- verified spawn points only
- *  - termination mask   <- quarantined regions: no training step touches a lie
+ *  - termination mask   <- quarantined regions: no training step touches ghost geometry
  *  - camera regions     <- trust-verified cells only (SDG placement)
  *
  * Friction honesty (pipeline-v2 §5): values are ASSIGNED PRIORS with
@@ -82,7 +82,7 @@ export function certificateToIsaac(
   const python = `"""Surveyor training contract — GENERATED, do not hand-edit.
 world: ${cert.worldId}
 certificate grade ${cert.grade} at ${cert.createdAt} (seed ${cert.seed})
-trust: ${cert.trust.verifiedPct.toFixed(1)}% verified / ${cert.trust.lyingPct.toFixed(1)}% lying
+trust: ${cert.trust.verifiedPct.toFixed(1)}% confirmed / ${cert.trust.lyingPct.toFixed(1)}% divergent
 Every value below traces to a certificate field; uncertainty ranges become
 domain-randomization bands. The certificate is the contract.
 """
