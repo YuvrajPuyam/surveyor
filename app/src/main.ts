@@ -932,19 +932,32 @@ async function main(): Promise<void> {
   // on worlds whose content is offset)
   const pointsForCam = await fetchVisualPoints(dir);
   if (pointsForCam && pointsForCam.length >= 3) {
-    let cx = 0, cy = 0, cz = 0;
-    const n = pointsForCam.length / 3;
-    for (let i = 0; i < pointsForCam.length; i += 3) { cx += pointsForCam[i]; cy += pointsForCam[i + 1]; cz += pointsForCam[i + 2]; }
-    cx /= n; cy /= n; cz /= n;
-    const wf = worldGroup.getObjectByName("collider-wireframe");
-    let groundY = cy;
-    if (wf) {
-      const rc = new THREE.Raycaster(new THREE.Vector3(cx, cy + 20, cz), new THREE.Vector3(0, -1, 0));
-      const hit = rc.intersectObject(wf, false)[0];
-      if (hit) groundY = hit.point.y;
+    // densest vertical slab = the ground mass (naive centroids get dragged
+    // under the surface by sky/background splats)
+    let yMin = Infinity, yMax = -Infinity;
+    for (let i = 1; i < pointsForCam.length; i += 3) {
+      if (pointsForCam[i] < yMin) yMin = pointsForCam[i];
+      if (pointsForCam[i] > yMax) yMax = pointsForCam[i];
     }
-    camera.position.set(cx, groundY + 1.5, cz);
-    controls.target.set(cx + 3, groundY + 1.2, cz);
+    const BINS = 40;
+    const binH = Math.max(1e-6, (yMax - yMin) / BINS);
+    const counts = new Array(BINS).fill(0);
+    for (let i = 1; i < pointsForCam.length; i += 3) {
+      counts[Math.min(BINS - 1, Math.floor((pointsForCam[i] - yMin) / binH))]++;
+    }
+    const mode = counts.indexOf(Math.max(...counts));
+    const y0 = yMin + (mode - 1) * binH, y1 = yMin + (mode + 2) * binH;
+    let cx = 0, cz = 0, gy = 0, n = 0;
+    for (let i = 0; i < pointsForCam.length; i += 3) {
+      const y = pointsForCam[i + 1];
+      if (y < y0 || y > y1) continue;
+      cx += pointsForCam[i]; gy += y; cz += pointsForCam[i + 2]; n++;
+    }
+    if (n > 50) {
+      cx /= n; gy /= n; cz /= n;
+      camera.position.set(cx, gy + 1.6, cz);
+      controls.target.set(cx + 3, gy + 1.2, cz);
+    }
   }
 
   splatObject = await loadSplats(dir);
