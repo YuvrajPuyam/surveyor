@@ -808,6 +808,14 @@ async function loadSplats(dir: string): Promise<THREE.Object3D | undefined> {
   if (!url) return undefined;
   try {
     const spark = await import("@sparkjsdev/spark");
+    // Spark's renderer must be in the scene BEFORE splat meshes render —
+    // auto-insertion can never trigger (three skips onBeforeRender for
+    // empty meshes), so we add it explicitly per the Spark quickstart.
+    if (!scene.getObjectByName("spark-renderer")) {
+      const sparkRenderer = new spark.SparkRenderer({ renderer });
+      sparkRenderer.name = "spark-renderer";
+      scene.add(sparkRenderer);
+    }
     const splat = new spark.SplatMesh({ url });
     await splat.initialized;
     hud.visualMode = `splats (${url.split("/").pop()})`;
@@ -876,6 +884,7 @@ async function main(): Promise<void> {
 
   // --- visuals: splats, else points ---
   splatObject = await loadSplats(dir);
+  (window as unknown as Record<string, unknown>).__dbg = { scene, worldGroup, camera, renderer, get splat() { return splatObject; } };
   if (splatObject) {
     worldGroup.add(splatObject);
   } else {
