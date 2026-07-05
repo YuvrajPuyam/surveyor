@@ -1,0 +1,317 @@
+<title>Surveyor — UI Proposal: The Five-Beat Flow</title>
+<style>
+  :root{
+    --ground:#10141c; --panel:#1a2029; --panel-2:#151a23; --line:#2c3543;
+    --ink:#e8ecf4; --dim:#8b95a8; --faint:#5a6478;
+    --instrument:#4fd8c4;
+    --verified:#59c98a; --warn:#e8b64c; --critical:#e06055; --quarantine:#b48ce8;
+    --mono:ui-monospace,"Cascadia Code","SF Mono",Consolas,monospace;
+    --disp:"Avenir Next","Futura","Segoe UI",system-ui,sans-serif;
+    --body:system-ui,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55}
+  ::selection{background:rgba(79,216,196,.25)}
+  button{font:inherit;cursor:pointer}
+  button:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--instrument);outline-offset:2px}
+
+  header.masthead{display:flex;align-items:baseline;gap:18px;padding:20px 28px 14px;border-bottom:1px solid var(--line)}
+  .wordmark{font-family:var(--disp);font-weight:700;letter-spacing:.32em;font-size:15px}
+  .wordmark b{color:var(--instrument);font-weight:700}
+  .masthead .meta{font-family:var(--mono);font-size:12px;color:var(--dim)}
+  .masthead .tag{margin-left:auto;font-size:12px;color:var(--dim)}
+  .masthead .tag em{color:var(--warn);font-style:normal}
+
+  .frame{display:grid;grid-template-columns:200px minmax(320px,1fr) 400px;min-height:calc(100vh - 60px)}
+  @media (max-width:980px){.frame{grid-template-columns:1fr}.rail{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line)}.stage{min-height:340px}}
+
+  /* ---------------- stepper rail ---------------- */
+  .rail{display:flex;flex-direction:column;gap:2px;padding:22px 14px;border-right:1px solid var(--line)}
+  .rail .step{display:flex;gap:12px;align-items:flex-start;padding:12px 10px;border:0;background:none;color:var(--dim);text-align:left;border-radius:8px}
+  .rail .step:hover{background:var(--panel-2)}
+  .rail .step .n{font-family:var(--mono);font-size:11px;color:var(--faint);border:1px solid var(--line);border-radius:50%;width:22px;height:22px;display:grid;place-items:center;flex:none;margin-top:1px}
+  .rail .step .t{font-size:13px}
+  .rail .step .t small{display:block;font-size:11px;color:var(--faint)}
+  .rail .step.active{color:var(--ink);background:var(--panel)}
+  .rail .step.active .n{border-color:var(--instrument);color:var(--instrument)}
+  .rail .step.done .n{background:var(--instrument);border-color:var(--instrument);color:#0b2f29}
+  .rail .devnote{margin-top:auto;font-size:11px;color:var(--faint);padding:10px}
+  .rail .devnote kbd{font-family:var(--mono);border:1px solid var(--line);border-radius:4px;padding:0 5px}
+
+  /* ---------------- viewport mock ---------------- */
+  .stage{position:relative;overflow:hidden}
+  .moon{position:absolute;inset:0;background:
+    radial-gradient(120% 65% at 50% 108%, #b9b2a4 0%, #8f887b 34%, #6b655b 52%, #3a362f 68%, #0d0f14 76%),
+    #0b0d12}
+  .moon::after{content:"";position:absolute;inset:0;background:
+    radial-gradient(18% 7% at 38% 78%, rgba(20,18,14,.8), transparent 70%),
+    radial-gradient(10% 4% at 62% 70%, rgba(25,22,17,.7), transparent 70%),
+    radial-gradient(26% 9% at 74% 84%, rgba(226,220,206,.16), transparent 70%)}
+  .wire{position:absolute;inset:0;opacity:0;transition:opacity .5s;mix-blend-mode:screen;background:
+    repeating-linear-gradient(100deg, transparent 0 46px, rgba(79,216,196,.28) 46px 47px),
+    repeating-linear-gradient(8deg, transparent 0 60px, rgba(79,216,196,.22) 60px 61px);
+    clip-path:polygon(0 55%,100% 48%,100% 100%,0 100%)}
+  .wire.on{opacity:.8}
+  canvas#trust{position:absolute;left:6%;right:6%;bottom:4%;height:44%;width:88%;opacity:0;transition:opacity .6s}
+  canvas#trust.on{opacity:.92}
+  .stage .caption{position:absolute;left:24px;bottom:20px;max-width:46%;font-size:13px;color:var(--dim);background:rgba(13,16,22,.82);border:1px solid var(--line);border-radius:8px;padding:10px 14px;backdrop-filter:blur(4px)}
+  .stage .caption b{color:var(--ink)}
+  .rover{position:absolute;width:26px;height:16px;border-radius:4px;background:#dfe5ee;box-shadow:0 6px 10px rgba(0,0,0,.5);bottom:24%;left:-6%;opacity:0}
+  .rover::after{content:"";position:absolute;left:3px;right:3px;bottom:-5px;height:6px;border-radius:3px;background:#39404d}
+  .rover.go{opacity:1;animation:drive 14s linear infinite}
+  @keyframes drive{from{left:-6%}to{left:104%}}
+  @media (prefers-reduced-motion:reduce){.rover.go{animation:none;left:40%}}
+
+  /* ---------------- right panel ---------------- */
+  .dock{border-left:1px solid var(--line);padding:24px 24px 40px;overflow-y:auto;max-height:calc(100vh - 60px)}
+  .eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;color:var(--instrument);text-transform:uppercase;margin:0 0 6px}
+  h1.step-title{font-family:var(--disp);font-weight:600;font-size:24px;margin:0 0 8px;text-wrap:balance}
+  p.lede{color:var(--dim);font-size:14px;margin:0 0 18px;max-width:34em}
+  .actions{display:flex;gap:10px;margin-top:18px}
+  .btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:9px 16px;font-size:13.5px}
+  .btn:hover{border-color:var(--faint)}
+  .btn.primary{background:var(--instrument);border-color:var(--instrument);color:#0b2f29;font-weight:600}
+  .btn.primary:hover{filter:brightness(1.08)}
+  .btn[disabled]{opacity:.45;cursor:default}
+
+  .grade-seal{display:flex;align-items:center;gap:18px;margin:6px 0 18px}
+  .seal{width:84px;height:84px;border-radius:18px;display:grid;place-items:center;font-family:var(--mono);font-size:44px;font-weight:700;border:2px solid var(--critical);color:var(--critical);background:rgba(224,96,85,.08);transform:scale(.6);opacity:0;transition:transform .5s cubic-bezier(.2,1.6,.4,1),opacity .4s}
+  .seal.show{transform:scale(1);opacity:1}
+  .seal.good{border-color:var(--verified);color:var(--verified);background:rgba(89,201,138,.08)}
+  .grade-seal .sub{font-size:13px;color:var(--dim);max-width:16em}
+
+  details.card{border:1px solid var(--line);border-radius:10px;background:var(--panel);margin:0 0 10px;overflow:hidden}
+  details.card>summary{list-style:none;display:flex;gap:12px;align-items:center;padding:13px 16px;cursor:pointer;user-select:none}
+  details.card>summary::-webkit-details-marker{display:none}
+  details.card>summary .chev{margin-left:auto;color:var(--faint);transition:transform .2s;flex:none}
+  details.card[open]>summary .chev{transform:rotate(90deg)}
+  details.card>summary:hover{background:var(--panel-2)}
+  .card .body{padding:2px 16px 16px;border-top:1px solid var(--line);font-size:13.5px;color:var(--dim)}
+  .card .body b{color:var(--ink)}
+  .pill{font-family:var(--mono);font-size:11px;padding:2px 9px;border-radius:99px;flex:none}
+  .pill.crit{background:rgba(224,96,85,.14);color:var(--critical)}
+  .pill.warn{background:rgba(232,182,76,.14);color:var(--warn)}
+  .pill.ok{background:rgba(89,201,138,.14);color:var(--verified)}
+  .pill.q{background:rgba(180,140,232,.16);color:var(--quarantine)}
+  .sumline{font-size:13.5px}
+  .sumline small{display:block;color:var(--faint);font-size:12px}
+
+  .meter{display:flex;height:10px;border-radius:99px;overflow:hidden;background:#232a36;margin:10px 0 6px}
+  .meter i{display:block;height:100%}
+  .legend{display:flex;gap:16px;font-size:11.5px;color:var(--faint);font-family:var(--mono)}
+  .legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}
+
+  table.verdicts{width:100%;border-collapse:collapse;font-size:13px;margin-top:4px}
+  table.verdicts td{padding:7px 8px;border-top:1px solid var(--line)}
+  table.verdicts td:first-child{color:var(--ink)}
+  .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+  .rsteps{display:flex;flex-direction:column;gap:10px}
+  .rstep{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:13px 16px}
+  .rstep .row{display:flex;gap:12px;align-items:center}
+  .rstep .row .grow{flex:1}
+  .rstep h3{margin:0;font-size:14px;font-weight:600}
+  .rstep p{margin:5px 0 0;font-size:12.5px;color:var(--dim)}
+  .rstep.running{border-color:var(--instrument)}
+  .rstep.done{border-color:rgba(89,201,138,.4)}
+  .rstep.caught{border-color:var(--warn);background:rgba(232,182,76,.05)}
+  .banner{border:1px solid var(--warn);border-radius:10px;background:rgba(232,182,76,.08);padding:12px 16px;margin:12px 0;font-size:13px;display:none}
+  .banner.show{display:block;animation:pop .4s}
+  .banner b{color:var(--warn);letter-spacing:.08em;font-family:var(--mono);font-size:12px}
+  @keyframes pop{from{transform:translateY(6px);opacity:0}}
+
+  .before-after{display:flex;align-items:center;gap:16px;margin:8px 0 16px;font-family:var(--mono)}
+  .before-after .g{font-size:38px;font-weight:700}
+  .before-after .arrow{color:var(--faint);font-size:20px}
+  .g.bad{color:var(--critical)} .g.good{color:var(--verified)}
+
+  .note{border:1px dashed var(--faint);border-radius:8px;padding:9px 12px;font-size:12px;color:var(--dim);margin-top:16px}
+  .note::before{content:"design note";display:block;font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--instrument);margin-bottom:3px}
+  body.hide-notes .note{display:none}
+
+  .devhud{position:fixed;left:14px;bottom:14px;font-family:var(--mono);font-size:11.5px;color:#9adfd2;background:rgba(10,13,18,.92);border:1px solid var(--line);border-radius:8px;padding:10px 13px;white-space:pre;display:none;z-index:50}
+  .devhud.on{display:block}
+  .toolbar{position:fixed;right:16px;bottom:14px;display:flex;gap:8px;z-index:50}
+  .toolbar button{font-size:11.5px;font-family:var(--mono);background:var(--panel);border:1px solid var(--line);color:var(--dim);border-radius:6px;padding:6px 10px}
+</style>
+
+<header class="masthead">
+  <span class="wordmark">SURVE<b>Y</b>OR</span>
+  <span class="meta">world f1f4e6b3 · moon-base · gravity: earth</span>
+  <span class="tag">UI proposal v1 — <em>every string below is proposed final copy;</em> click through the beats</span>
+</header>
+
+<div class="frame">
+  <nav class="rail" id="rail" aria-label="Inspection steps"></nav>
+
+  <section class="stage" aria-label="3D viewport mock">
+    <div class="moon"></div>
+    <div class="wire" id="wire"></div>
+    <canvas id="trust"></canvas>
+    <div class="rover" id="rover"></div>
+    <div class="caption" id="caption"></div>
+  </section>
+
+  <aside class="dock" id="dock"></aside>
+</div>
+
+<div class="devhud" id="devhud">render 57 fps  physics 60 steps/s
+collider 82,342 tris   probes 2,000   seed 1234
+world f1f4e6b3-855d-4a73-b36c-2e082a508b50
+raw ids on · survey v2 · noise floor 0.121 m</div>
+
+<div class="toolbar">
+  <button id="toggleNotes">design notes: on</button>
+  <button id="toggleDev">dev mode (D): off</button>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const STEPS=[
+  {k:"meet",n:"1",t:"Meet the world",s:"pixels vs physics"},
+  {k:"survey",n:"2",t:"Survey",s:"2,000 probes"},
+  {k:"cert",n:"3",t:"Certificate",s:"the grade lands"},
+  {k:"repair",n:"4",t:"Repair",s:"watch it recover"},
+  {k:"done",n:"5",t:"Certified",s:"robot-ready"},
+];
+let current=0, surveyRan=false, repairDone=false;
+
+/* ------------------------------------------------ rail */
+function renderRail(){
+  $("#rail").innerHTML = STEPS.map((st,i)=>`
+    <button class="step ${i===current?"active":""} ${i<current?"done":""}" data-i="${i}">
+      <span class="n">${i<current?"✓":st.n}</span>
+      <span class="t">${st.t}<small>${st.s}</small></span>
+    </button>`).join("")
+    + `<div class="devnote">Judges never see raw ids or fps.<br>Press <kbd>D</kbd> or use the toggle for the old dev HUD.</div>`;
+  document.querySelectorAll(".rail .step").forEach(b=>b.onclick=()=>go(+b.dataset.i));
+}
+
+/* ------------------------------------------------ stage */
+function stage(step){
+  $("#wire").classList.toggle("on", step>=1 && step<=3);
+  $("#trust").classList.toggle("on", step>=2);
+  $("#rover").classList.toggle("go", step===4);
+  const caps=[
+    `You're standing on the moon base — exactly as the generator dreamed it. <b>It looks perfect. It isn't.</b>`,
+    `The teal mesh is the <b>physics shell</b> — the surface robots actually touch. Watch where it separates from the pixels.`,
+    `Green: physically confirmed. <b>Red: ghost geometry</b> — pixels with nothing solid behind them.`,
+    `Every repair is re-inspected before it counts. The instrument doesn't trust us either.`,
+    `The rover only drives on <b>certified ground</b> — over the patches, around the quarantined ghost geometry.`
+  ];
+  $("#caption").innerHTML=caps[step];
+}
+
+/* trust canvas */
+function paintTrust(animated){
+  const c=$("#trust"),x=c.getContext("2d");
+  c.width=c.offsetWidth*2; c.height=c.offsetHeight*2;
+  const COLS=46,ROWS=12,w=c.width/COLS,h=c.height/ROWS;
+  let cells=[];
+  for(let r=0;r<ROWS;r++)for(let col=0;col<COLS;col++){
+    const v=Math.random();
+    cells.push({col,r,color:v<.05?"rgba(89,201,138,.85)":v<.62?"rgba(224,96,85,.55)":v<.85?"rgba(232,182,76,.4)":"rgba(70,80,100,.25)"});
+  }
+  cells.sort(()=>Math.random()-.5);
+  const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(!animated||reduce){cells.forEach(cl=>{x.fillStyle=cl.color;x.fillRect(cl.col*w+1,cl.r*h+1,w-2,h-2);});return;}
+  let i=0;
+  (function tick(){
+    for(let k=0;k<14&&i<cells.length;k++,i++){const cl=cells[i];x.fillStyle=cl.color;x.fillRect(cl.col*w+1,cl.r*h+1,w-2,h-2);}
+    if(i<cells.length)requestAnimationFrame(tick);
+  })();
+}
+
+/* ------------------------------------------------ dock content per step */
+function dock(step){
+  const d=$("#dock");
+  if(step===0){d.innerHTML=`
+    <p class="eyebrow">Beat 1 · Meet the world</p>
+    <h1 class="step-title">This world was generated by AI. Nobody has checked it.</h1>
+    <p class="lede">It ships as two files: the <b>pixels</b> you're looking at, and an invisible <b>physics shell</b> robots stand on. Nothing guarantees they agree.</p>
+    <div class="actions">
+      <button class="btn" onclick="toggleWire()">Reveal the physics shell</button>
+      <button class="btn primary" onclick="go(1)">Begin inspection →</button>
+    </div>
+    <div class="note">One idea, one action. No panels, no numbers yet — the 3D world is the hero. "Reveal the physics shell" is the old W key, made discoverable.</div>`;}
+
+  if(step===1){d.innerHTML=`
+    <p class="eyebrow">Beat 2 · Survey</p>
+    <h1 class="step-title">Dropping 2,000 physics probes</h1>
+    <p class="lede">Marble-sized test bodies rain onto every reachable surface, while virtual laser sweeps compare the pixels against the physics. <b>The map paints itself as evidence arrives.</b></p>
+    <div class="meter"><i style="width:1%;background:var(--verified)"></i><i style="width:65%;background:var(--critical)"></i><i style="width:14%;background:var(--warn)"></i><i style="width:20%;background:#39424f"></i></div>
+    <div class="legend"><span><i style="background:var(--verified)"></i>confirmed</span><span><i style="background:var(--critical)"></i>ghost</span><span><i style="background:var(--warn)"></i>seen only</span><span><i style="background:#39424f"></i>untested</span></div>
+    <div class="actions"><button class="btn primary" id="surveyBtn" onclick="runSurvey()">${surveyRan?"Survey complete →":"Run the survey"}</button></div>
+    <div class="note">Progress is narrated in plain words, and the trust map painting IS the progress bar. No spinner, no jargon banner.</div>`;}
+
+  if(step===2){d.innerHTML=`
+    <p class="eyebrow">Beat 3 · Certificate</p>
+    <div class="grade-seal"><div class="seal" id="seal">F</div>
+      <div class="sub"><b>Not safe for robot training.</b><br>1,059 problems found before a single robot was risked.</div></div>
+
+    <details class="card"><summary><span class="pill crit">trust</span><span class="sumline">We could physically confirm only <b class="num">0.4%</b> of the ground<small>65% of the imaged ground diverges from the physics</small></span><span class="chev">›</span></summary>
+      <div class="body">The instrument only vouches for what it tested: at this coverage, "confirmed" rules out holes bigger than <span class="num">0.31 m</span>. Everything red failed a physical experiment — a probe fell through, or the geometry is a ghost: solid-looking pixels with no collision behind them.</div></details>
+
+    <details class="card"><summary><span class="pill crit">floor</span><span class="sumline"><b>56 places a robot falls through the floor</b><small>confirmed by dropped probes + laser cross-check</small></span><span class="chev">›</span></summary>
+      <div class="body">Each hole was confirmed twice: a probe physically fell through, <b>and</b> an independent laser found no surface. Engine glitches can't fake this — that's the instrument's core honesty rule.</div></details>
+
+    <details class="card"><summary><span class="pill warn">scale</span><span class="sumline">The whole world shipped <b>1.6× too small</b><small>the maker's own metadata admits it — one action fixes everything</small></span><span class="chev">›</span></summary>
+      <div class="body">The maker ships a correction factor (<span class="num">×1.615</span>) that almost nobody applies. Our independent doorway measurement currently <b>disagrees</b> (<span class="num">×0.85</span>) — so the certificate holds all meter-based verdicts until the fix is applied and re-measured. <b>Suspending judgment is a feature.</b></div></details>
+
+    <details class="card"><summary><span class="pill ok">robots</span><span class="sumline">Same world, different verdicts per robot<small>a step that stops a rover doesn't stop a quadruped</small></span><span class="chev">›</span></summary>
+      <div class="body"><table class="verdicts">
+        <tr><td>Can it drive the floor?</td><td>rover <span class="pill crit">FAIL</span></td><td>quadruped <span class="pill crit">FAIL</span></td></tr>
+        <tr><td>Fits through passages?</td><td colspan="2"><span class="pill warn">ON HOLD</span> until scale is fixed</td></tr>
+        <tr><td>Braking distance</td><td colspan="2"><span class="num">0.14 m</span> — and 6× longer on the Moon</td></tr>
+      </table></div></details>
+
+    <div class="actions"><button class="btn primary" onclick="go(3)">Repair this world →</button></div>
+    <div class="note">The grade is an animated <em>moment</em>, then everything is a collapsed card with a one-line human claim. Numbers keep error bars in the expanded body only. Raw ids (d-hole-0) exist only in dev mode.</div>`;
+    requestAnimationFrame(()=>setTimeout(()=>$("#seal").classList.add("show"),80));}
+
+  if(step===3){d.innerHTML=`
+    <p class="eyebrow">Beat 4 · Repair</p>
+    <h1 class="step-title">Three moves, each one re-inspected</h1>
+    <p class="lede">The repair agent never edits the world directly — it picks from a fixed menu, and <b>the certifier re-tests every action before it counts.</b></p>
+    <div class="rsteps" id="rsteps">
+      <div class="rstep" id="r0"><div class="row"><span class="pill warn" id="p0">1</span><div class="grow"><h3>Fix the scale — one action, whole world</h3><p>Apply the maker's ×1.615 correction, then re-measure everything. Most "narrow doorways" vanish.</p></div><button class="btn" id="b0" onclick="doStep(0)">Execute</button></div></div>
+      <div class="rstep" id="r1"><div class="row"><span class="pill warn" id="p1">2</span><div class="grow"><h3>Patch Hole #1 — quick fill first</h3><p>An invisible slab fitted to the pixels. Fast, but it can sit proud of the true floor…</p></div><button class="btn" id="b1" onclick="doStep(1)" disabled>Execute</button></div></div>
+      <div class="banner" id="banner"><b>⚠ CERTIFIER CAUGHT THE REPAIR</b><br>The quick patch created a new 10 cm step. Reverting and retrying with the conforming fill — <i>a repair doesn't exist until re-inspection passes it.</i></div>
+      <div class="rstep" id="r2"><div class="row"><span class="pill warn" id="p2">3</span><div class="grow"><h3>Rope off the unfixable ghosts</h3><p>4 ghost surfaces get quarantined — no training episode will ever touch them.</p></div><button class="btn" id="b2" onclick="doStep(2)" disabled>Execute</button></div></div>
+    </div>
+    <div class="actions"><button class="btn primary" id="finishBtn" onclick="go(4)" ${repairDone?"":"disabled"}>Re-certify →</button></div>
+    <div class="note">The failure beat is scripted INTO the flow with a proud banner, not hidden in a log. Two-second disclosure line for the stage: "here's a failure mode we love — watch it recover."</div>`;}
+
+  if(step===4){d.innerHTML=`
+    <p class="eyebrow">Beat 5 · Certified</p>
+    <div class="before-after"><span class="g bad">F</span><span class="arrow">→</span><span class="g good">A</span><span style="font-size:12.5px;color:var(--dim);max-width:15em">every one of 1,059 problems fixed, roped off, or accepted on the record</span></div>
+    <details class="card" open><summary><span class="pill ok">proof</span><span class="sumline">The rover is driving only on certified ground<small>over the patches · around the quarantined lies</small></span><span class="chev">›</span></summary>
+      <div class="body">This isn't an animation of the plan — the patrol reads the same certificate a robotics team would download. Label on stage: <b>"navmesh waypoint-following"</b> — we don't claim more than we built.</div></details>
+    <details class="card"><summary><span class="pill q">export</span><span class="sumline">Robot-ready bundle<small>repaired physics + certificate + spawn points + training config</small></span><span class="chev">›</span></summary>
+      <div class="body">One download: the repaired world, the certificate with every outcome recorded, verified spawn points, and a generated <b>NVIDIA Isaac training config</b> — gravity, friction ranges and no-go zones all traced to certificate lines.</div></details>
+    <div class="actions"><button class="btn primary">Export certified bundle</button><button class="btn" onclick="go(0)">Replay the story</button></div>
+    <div class="note">Ends on the thesis: the certificate is the contract. The export card name-drops the Isaac config because that's the closing beat of the stage demo.</div>`;}
+  stage(step);
+}
+
+/* ------------------------------------------------ interactions */
+function go(i){current=i;renderRail();dock(i);if(i===2&&!surveyRan){surveyRan=true;paintTrust(false);}}
+function toggleWire(){$("#wire").classList.toggle("on")}
+function runSurvey(){if(surveyRan){go(2);return}surveyRan=true;$("#trust").classList.add("on");paintTrust(true);$("#surveyBtn").textContent="Painting the trust map…";setTimeout(()=>{$("#surveyBtn").textContent="Survey complete →";$("#surveyBtn").onclick=()=>go(2)},2600)}
+function doStep(i){
+  const r=$("#r"+i),p=$("#p"+i),b=$("#b"+i);
+  r.classList.add("running");b.disabled=true;b.textContent="re-inspecting…";
+  setTimeout(()=>{
+    if(i===1){r.classList.remove("running");r.classList.add("caught");$("#banner").classList.add("show");b.textContent="retrying…";
+      setTimeout(()=>{r.classList.remove("caught");r.classList.add("done");p.className="pill ok";p.textContent="✓";b.textContent="Fixed";$("#b2").disabled=false;},2200);return}
+    r.classList.remove("running");r.classList.add("done");p.className="pill ok";p.textContent="✓";b.textContent="Done";
+    if(i===0)$("#b1").disabled=false;
+    if(i===2){repairDone=true;$("#finishBtn").removeAttribute("disabled")}
+  },1400);
+}
+$("#toggleNotes").onclick=e=>{document.body.classList.toggle("hide-notes");e.target.textContent=`design notes: ${document.body.classList.contains("hide-notes")?"off":"on"}`};
+$("#toggleDev").onclick=e=>{$("#devhud").classList.toggle("on");e.target.textContent=`dev mode (D): ${$("#devhud").classList.contains("on")?"on":"off"}`};
+addEventListener("keydown",e=>{if(e.key.toLowerCase()==="d")$("#toggleDev").click()});
+
+go(0);
+</script>
