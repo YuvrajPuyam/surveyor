@@ -833,6 +833,11 @@ async function loadSplats(dir: string): Promise<THREE.Object3D | undefined> {
     }
     const splat = new spark.SplatMesh({ url });
     await splat.initialized;
+    // SPZ declares y-down; Spark converts to y-up on load — but Marble's
+    // collider GLB (and our probe/trust frames) already match the RAW spz
+    // coordinates, so Spark's conversion flips the visuals relative to the
+    // physics. Rotate back so both files share one frame. Key F re-flips.
+    splat.rotateX(Math.PI);
     hud.visualMode = `splats (${url.split("/").pop()})`;
     return splat;
   } catch (err) {
