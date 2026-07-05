@@ -36,6 +36,22 @@ F. wire real bundle: assets/marble/7188e250... via vite publicDir
 fps HUD numbers on the demo laptop; five-beat dry run against
 docs/demo-five-beats.md; record backup video; commit tags.
 
+## No ceiling — after "running", stack the best-project layer (priority order)
+1. Live agent beat IN the browser: Surveyor agent reasoning log streaming
+   beside the trust map (summarized thinking via SDK), directing marginal
+   probes — the genuinely-agentic centerpiece, live not canned
+2. Gravity suite: Moon/Mars toggle precomputed for all 3 corpus worlds +
+   the falsification panel (bare-LLM guess vs measured verdict)
+3. Mars panorama pipeline: Mastcam-Z conversion script + first draft-tier
+   world (~150 credits each; budget allows ~15 iterations)
+4. Fleet beat: certify all corpus worlds in one command, ranked gallery
+   (the VC filter-pipeline story, live)
+5. Self-validation gallery page: 27-world bench, per-world results incl.
+   the honest miss, CI math shown
+6. MCP live beat rehearsed: Claude Desktop certifying over localhost
+Quality bar everywhere: the certificate is the product — every screen
+quotes uncertainty + methods lines verbatim from the JSON.
+
 ## Constraints that stay non-negotiable
 - tests stay green (npm test, 18)
 - determinism (seeded), uncertainty+methods lines on every number
