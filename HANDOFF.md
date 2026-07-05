@@ -134,6 +134,19 @@ is preserved at `docs/handoff/surveyor-ui-proposal.html` (already updated to
 ghost/divergent terminology). Existing keybinds that must not collide:
 W wireframe, B boxes, F flip, I inside/orbit, D dev, Space/Enter/arrows/N/1–5 stepper.
 
+## 6a. Standing system — advisory panel (criticizer / upgrader / resolver)
+
+Recurring three-agent review, set up 2026-07-05 at the user's request; run it
+**occasionally as the project moves** (feature landed, pivot, pre-demo), not on
+a schedule. Entry point: the `/panel` skill (`.claude/skills/panel/SKILL.md`),
+which launches `.claude/workflows/project-panel.workflow.js` via the Workflow
+tool. Criticizer (flaws in concept/feasibility/usability) and upgrader
+(hackathon/product/moonshot ambition) run in parallel; a resolver merges both
+into one plan aimed at a complete, polished product. Dated reports accumulate
+in `docs/panel/`; each run diffs against the previous report. Event context
+the panel reads: `docs/hackathon-context.md`. Reports are advisory — the user
+decides what enters PLAN.md.
+
 ## 7. Backlog (post the two active items)
 
 - Live agent beat in the browser (agent reasoning log streamed into the UI).
@@ -201,6 +214,10 @@ app/src/ui/{stepper,humanize,gradeReveal,certificatePanel,repairPanel}.ts
 scripts/{certify,self-validate,marble,repair-agent}.ts
 test/                      18 tests incl. the fail-and-adapt hero loop
 docs/handoff/              killed-workflow scripts + UI mockup (this handoff's annexes)
+docs/hackathon-context.md  event, tracks, prizes (panel agents read this)
+docs/panel/                dated advisory-panel reports (see §6a)
+.claude/workflows/project-panel.workflow.js  the panel orchestration
+.claude/skills/panel/      /panel skill — how to launch a panel run
 ```
 
 **Suggested first moves for the new session:** (1) `npm test` to confirm green;
