@@ -44,6 +44,36 @@ export interface MetrologyResult {
 const DOOR_HEIGHT_PRIOR_M = 2.03; // standard interior passage; basis stated on the measurement
 const DOOR_HEIGHT_PRIOR_SD = 0.1;
 
+/**
+ * Finite, claim-free stub used when the world cannot be surveyed at all
+ * (too few standable columns — axis-swapped collider, wall-only mesh).
+ * certifyWorld grades such worlds F by policy instead of crashing; nothing
+ * here is a measurement claim and none of it enters `measurements`.
+ */
+export function unsurveyableMetrology(rayGrid: Grid2D): MetrologyResult {
+  return {
+    floorPlane: {
+      y: 0,
+      tiltDeg: 0,
+      inlierRms: 0,
+      inliers: 0,
+      measurement: {
+        name: "floor_plane_height",
+        value: 0,
+        unit: "m",
+        uncertainty: { low: 0, high: 0, basis: "not measured — unsurveyable world" },
+        method: "no floor reference: too few standable columns; placeholder, not a claim",
+      },
+    },
+    doorways: [],
+    steps: [],
+    interiorVoids: [],
+    scaleEstimate: null,
+    measurements: [],
+    classes: rayGrid.channel("class"),
+  };
+}
+
 export function runMetrology(rayGrid: Grid2D, seed: number, metadata?: WorldMetadata): MetrologyResult {
   const hasHit = rayGrid.channel("hasHit");
   const surfaceY = rayGrid.channel("surfaceY");
@@ -101,6 +131,42 @@ export function runMetrology(rayGrid: Grid2D, seed: number, metadata?: WorldMeta
     }
   }
 
+  // Sloped-terrain fallback: on uniformly steep worlds every candidate plane
+  // fails the near-horizontal gate, RANSAC ends with zero inliers, and the
+  // default plane would make floorY/inlierRms NaN (a schema violation once
+  // serialized) with a false 0° tilt passing the slope verdict. Fit an
+  // unconstrained least-squares plane instead: it follows the dominant slope,
+  // so the tilt — and the slope verdict — stays honest, and the residual
+  // spread becomes the disclosed uncertainty.
+  let planeFallback = false;
+  if (bestInliers.length === 0) {
+    planeFallback = true;
+    let sxx = 0, sxz = 0, szz = 0, sx = 0, sz = 0, sxy = 0, szy = 0, sy = 0;
+    const n = hitIdx.length;
+    for (const i of hitIdx) {
+      const [x, z] = rayGrid.center(i);
+      const y = surfaceY[i];
+      sxx += x * x; sxz += x * z; szz += z * z;
+      sx += x; sz += z;
+      sxy += x * y; szy += z * y; sy += y;
+    }
+    // solve [sxx sxz sx; sxz szz sz; sx sz n] · [α β γ]ᵀ = [sxy szy sy]ᵀ for y = αx + βz + γ
+    const det = sxx * (szz * n - sz * sz) - sxz * (sxz * n - sz * sx) + sx * (sxz * sz - szz * sx);
+    let alpha = 0, beta = 0, gamma: number;
+    if (Math.abs(det) > 1e-9) {
+      alpha = (sxy * (szz * n - sz * sz) - sxz * (szy * n - sz * sy) + sx * (szy * sz - szz * sy)) / det;
+      beta = (sxx * (szy * n - sz * sy) - sxy * (sxz * n - sz * sx) + sx * (sxz * sy - szy * sx)) / det;
+      gamma = (sxx * (szz * sy - szy * sz) - sxz * (sxz * sy - szy * sx) + sxy * (sxz * sz - szz * sx)) / det;
+    } else {
+      // degenerate footprint (collinear columns): horizontal plane at the median height
+      const ys = hitIdx.map((i) => surfaceY[i]).sort((a, b) => a - b);
+      gamma = ys[Math.floor(ys.length / 2)];
+    }
+    const len = Math.hypot(alpha, 1, beta);
+    bestPlane = { a: -alpha / len, b: 1 / len, c: -beta / len, d: gamma / len };
+    bestInliers = hitIdx.slice();
+  }
+
   const planeYat = (x: number, z: number) => (bestPlane.d - bestPlane.a * x - bestPlane.c * z) / bestPlane.b;
   let rmsAcc = 0;
   let ySum = 0;
@@ -118,8 +184,16 @@ export function runMetrology(rayGrid: Grid2D, seed: number, metadata?: WorldMeta
     name: "floor_plane_height",
     value: floorY,
     unit: "m",
-    uncertainty: { low: floorY - 2 * inlierRms, high: floorY + 2 * inlierRms, basis: "2x RANSAC inlier RMS" },
-    method: `RANSAC plane fit on ${bestInliers.length} virtual-LiDAR returns (tol ${INLIER_TOL} m, 200 iters); tilt ${tiltDeg.toFixed(2)} deg`,
+    uncertainty: {
+      low: floorY - 2 * inlierRms,
+      high: floorY + 2 * inlierRms,
+      basis: planeFallback
+        ? "2x vertical residual RMS about the least-squares slope plane (terrain relief)"
+        : "2x RANSAC inlier RMS",
+    },
+    method: planeFallback
+      ? `least-squares slope-plane fit on ${bestInliers.length} virtual-LiDAR returns (no near-horizontal RANSAC consensus — sloped terrain); tilt ${tiltDeg.toFixed(2)} deg; mean surface height with relief-wide uncertainty`
+      : `RANSAC plane fit on ${bestInliers.length} virtual-LiDAR returns (tol ${INLIER_TOL} m, 200 iters); tilt ${tiltDeg.toFixed(2)} deg`,
     n: bestInliers.length,
   };
 

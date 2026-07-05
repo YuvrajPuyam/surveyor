@@ -5,8 +5,20 @@ Fixed and committed earlier:
 1. **HIGH — quarantine revert never removes zones** (object-identity filter). Fixed: quarantine keyed by defectId.
 2. **MEDIUM — L1 chamfer used as Euclidean clearance** (up to 1.41× inflated `clearanceM`, ~4 mm real margin for the rover preset). Fixed: diagonal (octile) chamfer.
 
-Triaged 2026-07-05 — all confirmed, scheduled with the outdoor-calibration fix
-(3 of 4 are outdoor-world failure mechanisms; fixing together keeps one bench run):
+Fixed 2026-07-05 (evening) — all four implemented with per-finding regression
+tests in `test/review-findings.test.ts` (22/22 green). Fixes as landed:
+
+3. LSQ slope-plane fallback when RANSAC has zero inliers (honest tilt → slope
+   verdict evaluates real terrain); `certifyWorld` catches the too-few-columns
+   throw into an F-grade "Unsurveyable" certificate with the reason disclosed.
+4. Tunneling cross-check ray now spans dropY → killY (the probe's full travel).
+5. `maxGridCells` budget (default 1.5M): cell size coarsens proportionally,
+   certificate discloses the coarser detection floor. Never crashes.
+6. Explicit AABB-footprint check before the claim-zone test: out-of-AABB exits
+   are "left the world", never fall-throughs.
+
+27-world bench acceptance (recall/precision CIs) runs together with the
+outdoor-calibration change — one bench run covers both. Original findings:
 
 3. **MEDIUM — zero-inlier RANSAC → NaN floor plane + false-pass slope verdict.**
    `metrology.ts:89,113-115`. `|ny| < 0.95` rejects every candidate plane on a

@@ -27,12 +27,22 @@ export interface SurveyOptions {
   /** visual point flagged as "physics missing" beyond this distance to any collider */
   divergenceThresholdM: number;
   /**
+   * Cap on cells per survey grid. A mis-scaled export (the scale-defect class
+   * itself, e.g. centimeter units read as meters) would otherwise allocate
+   * hundreds of millions of cells before the scale defect could ever be
+   * synthesized. Above the cap the cell size coarsens proportionally; the
+   * certificate discloses the coarser detection floor.
+   */
+  maxGridCells?: number;
+  /**
    * Regional re-certification: concentrate the probe rain over this AABB
    * (expanded margin included by the caller). Rays and divergence stay
    * world-wide — they are cheap and catch global regressions.
    */
   focusRegion?: { min: { x: number; z: number }; max: { x: number; z: number } };
 }
+
+const MAX_GRID_CELLS_DEFAULT = 1_500_000;
 
 export const DEFAULT_SURVEY: SurveyOptions = {
   seed: 1234,
@@ -84,8 +94,17 @@ export async function runSurvey(
   pw.step(); // one step so the query pipeline indexes the static collider before raycasting
 
   const aabb = aabbOfPositions(collider.positions);
-  const trustGrid = new Grid2D(aabb, opts.cellSize);
-  const rayGrid = new Grid2D(aabb, opts.rayCellSize);
+  const extentX = aabb.max.x - aabb.min.x;
+  const extentZ = aabb.max.z - aabb.min.z;
+  const maxCells = opts.maxGridCells ?? MAX_GRID_CELLS_DEFAULT;
+  const guardedCell = (requested: number): number => {
+    const cells = Math.ceil(extentX / requested) * Math.ceil(extentZ / requested);
+    return cells <= maxCells ? requested : Math.sqrt((extentX * extentZ) / maxCells);
+  };
+  const cellSize = guardedCell(opts.cellSize);
+  const rayCellSize = guardedCell(opts.rayCellSize);
+  const trustGrid = new Grid2D(aabb, cellSize);
+  const rayGrid = new Grid2D(aabb, rayCellSize);
   const topY = aabb.max.y + 0.5;
   const worldHeight = aabb.max.y - aabb.min.y;
 
@@ -206,7 +225,7 @@ export async function runSurvey(
       }
     }
     let head = 0;
-    const maxDepth = Math.round(0.6 / opts.rayCellSize);
+    const maxDepth = Math.round(0.6 / rayCellSize);
     while (head < queue.length) {
       const i = queue[head++];
       if (dist[i] >= maxDepth) continue;
@@ -237,7 +256,7 @@ export async function runSurvey(
   }
   const visualBand = rayGrid.channel("visualFloorBand");
   const visualTotal = rayGrid.channel("visualTotal");
-  const win = Math.max(1, Math.round(0.25 / opts.rayCellSize));
+  const win = Math.max(1, Math.round(0.25 / rayCellSize));
   for (let r = 0; r < rayGrid.rows; r++) {
     for (let c = 0; c < rayGrid.cols; c++) {
       let band = 0;
@@ -364,7 +383,7 @@ export async function runSurvey(
   // dilated claim zone (evidence within 0.3 m of reachable space counts)
   const claimZone = rayGrid.channel("claimZone");
   {
-    const rad = Math.max(1, Math.round(0.3 / opts.rayCellSize));
+    const rad = Math.max(1, Math.round(0.3 / rayCellSize));
     for (let r = 0; r < rayGrid.rows; r++) {
       for (let c = 0; c < rayGrid.cols; c++) {
         if (!reachable[r * rayGrid.cols + c]) continue;
@@ -391,15 +410,22 @@ export async function runSurvey(
       // cross-check at the probe's EXIT column (it may have rolled before
       // falling), from its drop height — casting from above the AABB would
       // hit the roof of an interior world and misread every genuine hole as
-      // a tunneling artifact
-      const ray = pw.castDown(pos.x, p.dropY, pos.z, worldHeight + 1.0);
+      // a tunneling artifact. The ray spans the probe's full travel down to
+      // the kill plane: a worldHeight-based length stops above the surface
+      // on low-relief worlds and lets tunneling masquerade as a hole.
+      const ray = pw.castDown(pos.x, p.dropY, pos.z, p.dropY - killY);
       if (ray) {
         artifacts++; // engine tunneling — surface exists; excluded from hole evidence
-      } else if (inClaimZone(pos.x, pos.z)) {
+      } else if (
+        pos.x >= aabb.min.x && pos.x <= aabb.max.x &&
+        pos.z >= aabb.min.z && pos.z <= aabb.max.z &&
+        inClaimZone(pos.x, pos.z)
+      ) {
         trustGrid.add("fallConfirmed", pos.x, pos.z);
       }
-      // falls outside the claim zone: probe rolled off the world's edge —
-      // not evidence about reachable space
+      // exits beyond the AABB footprint (grid indexing would clamp them onto
+      // rim cells) or outside the claim zone: the probe rolled off the
+      // world's open edge — it left the world; never fall-through evidence
     } else {
       rested++;
       trustGrid.add("probeContact", pos.x, pos.z);
