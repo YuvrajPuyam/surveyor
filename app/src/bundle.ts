@@ -87,7 +87,7 @@ export async function fetchVisualPoints(dir: string): Promise<Float32Array | und
   }
 }
 
-const SPLAT_CANDIDATES = ["splat-100k.spz", "splat-500k.spz", "splat-full.spz", "splat.spz", "visual.spz"];
+const SPLAT_CANDIDATES = ["splat-full.spz", "splat-500k.spz", "splat-100k.spz", "splat.spz", "visual.spz"]; // highest fidelity first
 
 /** Find a splat file in the bundle (no directory listing over HTTP, so probe known names). */
 export async function findSplatUrl(dir: string): Promise<string | undefined> {

@@ -926,6 +926,27 @@ async function main(): Promise<void> {
   }
 
   // --- visuals: splats, else points ---
+  // re-anchor the camera to the splat-density centroid: worlds are captured
+  // around their content, and standing where the visual mass is guarantees
+  // we are inside the fidelity envelope (origin/AABB heuristics both failed
+  // on worlds whose content is offset)
+  const pointsForCam = await fetchVisualPoints(dir);
+  if (pointsForCam && pointsForCam.length >= 3) {
+    let cx = 0, cy = 0, cz = 0;
+    const n = pointsForCam.length / 3;
+    for (let i = 0; i < pointsForCam.length; i += 3) { cx += pointsForCam[i]; cy += pointsForCam[i + 1]; cz += pointsForCam[i + 2]; }
+    cx /= n; cy /= n; cz /= n;
+    const wf = worldGroup.getObjectByName("collider-wireframe");
+    let groundY = cy;
+    if (wf) {
+      const rc = new THREE.Raycaster(new THREE.Vector3(cx, cy + 20, cz), new THREE.Vector3(0, -1, 0));
+      const hit = rc.intersectObject(wf, false)[0];
+      if (hit) groundY = hit.point.y;
+    }
+    camera.position.set(cx, groundY + 1.5, cz);
+    controls.target.set(cx + 3, groundY + 1.2, cz);
+  }
+
   splatObject = await loadSplats(dir);
   (window as unknown as Record<string, unknown>).__dbg = { scene, worldGroup, camera, renderer, get splat() { return splatObject; } };
   if (splatObject) {
