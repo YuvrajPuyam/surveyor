@@ -262,8 +262,29 @@ export function runMetrology(rayGrid: Grid2D, seed: number, metadata?: WorldMeta
     }
   }
   const stepRegions = rayGrid.regions((i) => stepEdge[i] > 0);
-  const steps: StepInfo[] = [];
+  // Natural terrain produces THOUSANDS of step edges (every rock and crater
+  // lip); a certificate with 1,500 sill defects is noise, not measurement.
+  // Merge step regions that lie within 0.5 m of each other — one terrain
+  // feature, one region — before emitting.
+  const merged: Aabb[] = [];
+  const GAP = 0.5;
   for (const r of stepRegions) {
+    const near = merged.find(
+      (m) =>
+        r.min.x <= m.max.x + GAP && r.max.x >= m.min.x - GAP &&
+        r.min.z <= m.max.z + GAP && r.max.z >= m.min.z - GAP,
+    );
+    if (near) {
+      near.min.x = Math.min(near.min.x, r.min.x);
+      near.min.z = Math.min(near.min.z, r.min.z);
+      near.max.x = Math.max(near.max.x, r.max.x);
+      near.max.z = Math.max(near.max.z, r.max.z);
+    } else {
+      merged.push({ min: { ...r.min }, max: { ...r.max } });
+    }
+  }
+  const steps: StepInfo[] = [];
+  for (const r of merged) {
     let maxH = 0;
     for (let i = 0; i < rayGrid.size; i++) {
       const [x, z] = rayGrid.center(i);
@@ -278,7 +299,7 @@ export function runMetrology(rayGrid: Grid2D, seed: number, metadata?: WorldMeta
         value: maxH,
         unit: "m",
         uncertainty: { low: maxH - 0.02, high: maxH + 0.02, basis: "adjacent-cell surface delta quantization" },
-        method: `max surface discontinuity between adjacent traversable cells (${cell} m grid)`,
+        method: `max surface discontinuity between adjacent traversable cells (${cell} m grid; nearby edges merged within ${GAP} m)`,
       },
     });
   }

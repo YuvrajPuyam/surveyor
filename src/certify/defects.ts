@@ -148,12 +148,17 @@ export function synthesizeDefects(survey: SurveyResult, metrology: MetrologyResu
   }
 
   // ------------------------------------------------------- raised sills
+  // Severity is robot-relative: a step no robot in the fleet can be stopped
+  // by is terrain texture, not a hazard. Below the largest preset envelope
+  // (quadruped, 0.25 m) a step is MINOR — natural terrain stays walkable
+  // without producing pages of major defects for every crater lip.
+  const LARGEST_ENVELOPE_STEP_M = 0.25;
   for (const s of metrology.steps) {
     defects.push({
       id: nextId("sill"),
       type: "raised_sill",
       region: toRegion(s.region, floorY, floorY + s.heightM.value + 0.05),
-      severity: s.heightM.value >= 0.1 ? "major" : "minor",
+      severity: s.heightM.value >= LARGEST_ENVELOPE_STEP_M ? "major" : "minor",
       confidence: 0.85,
       evidence: [
         {

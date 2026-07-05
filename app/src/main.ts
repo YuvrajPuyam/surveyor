@@ -339,7 +339,18 @@ function updateLiveDefects(defects: DefectSummary[]): void {
 
   const group = new THREE.Group();
   group.name = "defects-live";
-  for (const d of defects) {
+  // never let a pathological certificate bury the world: render the most
+  // severe boxes only, and say how many are hidden
+  const SEVERITY_RANK: Record<string, number> = { critical: 0, major: 1, minor: 2 };
+  const MAX_BOXES = 200;
+  const sorted = [...defects].sort(
+    (a, b) => (SEVERITY_RANK[a.severity] ?? 3) - (SEVERITY_RANK[b.severity] ?? 3),
+  );
+  const shown = sorted.slice(0, MAX_BOXES);
+  if (defects.length > MAX_BOXES) {
+    hud.status = `defect boxes: showing ${MAX_BOXES} most severe of ${defects.length}`;
+  }
+  for (const d of shown) {
     if (!d.region) continue;
     const outcome = d.outcome && d.outcome !== "OPEN" ? String(d.outcome) : "OPEN";
     if (outcome === "fixed") continue;
