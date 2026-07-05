@@ -247,3 +247,244 @@
   color: #ff453a; font-weight: 800; letter-spacing: 0.04em;
   text-transform: uppercase;
 }
+.sv-log-line { flex-wrap: wrap; }
+.sv-log-raw { color: #4a5368; font-size: 10px; }
+
+/* ==================================================== dev-mode annotations
+   Raw ids/formats/log lines hide by default and reveal with body.sv-dev;
+   the human bracket format (.sv-hum) hides when dev is on. D never changes
+   layout — it only reveals annotations. */
+
+.sv-raw { display: none; }
+body.sv-dev .sv-raw { display: inline; }
+body.sv-dev .sv-raw.sv-raw-block, body.sv-dev .sv-log-raw { display: block; flex-basis: 100%; }
+body.sv-dev .sv-hum { display: none; }
+
+/* ================================================================ stepper */
+
+.sv-stepper {
+  position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+  z-index: 30; display: flex; flex-direction: column; align-items: center;
+  gap: 4px; pointer-events: none;
+  font: 12px/1.4 ui-monospace, Consolas, "SF Mono", monospace;
+}
+.sv-stepper-rail {
+  display: flex; align-items: center; gap: 2px;
+  background: rgba(10, 13, 20, 0.82); border: 1px solid #2a3142;
+  border-radius: 22px; padding: 5px 14px; pointer-events: auto;
+}
+.sv-stepper-item {
+  display: flex; align-items: center; gap: 6px;
+  background: none; border: none; cursor: pointer; padding: 2px 8px;
+  font: inherit; color: #5b6478;
+}
+.sv-stepper-item:not(:first-child)::before {
+  content: ""; width: 26px; height: 1px; background: #2a3142;
+  margin-right: 8px; flex: none;
+}
+.sv-stepper-dot {
+  width: 10px; height: 10px; border-radius: 50%; flex: none;
+  border: 2px solid #5b6478; background: transparent; box-sizing: border-box;
+}
+.sv-stepper-label { font-size: 11px; letter-spacing: 0.04em; white-space: nowrap; }
+.sv-stepper-current { color: #eef2fa; font-weight: 700; }
+.sv-stepper-current .sv-stepper-dot { border-color: #eef2fa; background: #eef2fa; }
+.sv-stepper-done { color: #34d975; }
+.sv-stepper-done .sv-stepper-dot { border-color: #34d975; background: #34d975; }
+.sv-stepper-armed { animation: sv-arm-pulse 1s ease-in-out infinite; border-color: #34d975; }
+@keyframes sv-arm-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(52, 217, 117, 0.7); }
+  50% { box-shadow: 0 0 0 6px rgba(52, 217, 117, 0); }
+}
+.sv-stepper-hint {
+  color: #8a93a8; font-size: 11px; letter-spacing: 0.04em;
+  background: rgba(10, 13, 20, 0.72); border-radius: 10px; padding: 2px 12px;
+}
+
+/* =============================================================== narrator */
+
+.sv-narrator {
+  position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+  z-index: 30; max-width: 44vw;
+  font: 12px/1.5 ui-monospace, Consolas, monospace; font-weight: 700;
+  letter-spacing: 0.04em; color: #ffd60a;
+  background: rgba(10, 13, 20, 0.9); border: 1px solid rgba(255, 214, 10, 0.45);
+  border-radius: 6px; padding: 6px 14px; pointer-events: none;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* ============================================================= intro card */
+
+.sv-intro {
+  position: fixed; left: 14px; bottom: 76px; z-index: 25; max-width: 340px;
+  font: 13px/1.55 ui-monospace, Consolas, monospace; color: #d5dbe8;
+  background: rgba(10, 13, 20, 0.9); border: 1px solid #2a3142;
+  border-radius: 8px; padding: 14px;
+}
+.sv-intro-line { margin-bottom: 10px; }
+.sv-intro-line em { color: #ffd60a; font-style: italic; }
+.sv-intro-world { color: #8a93a8; font-size: 10.5px; letter-spacing: 0.06em; margin-bottom: 6px; }
+
+/* =========================================================== trust legend */
+
+.sv-legend {
+  position: fixed; left: 14px; bottom: 76px; z-index: 25;
+  display: flex; flex-direction: column; gap: 5px;
+  font: 11px/1.4 ui-monospace, Consolas, monospace; color: #d5dbe8;
+  background: rgba(10, 13, 20, 0.85); border: 1px solid #2a3142;
+  border-radius: 8px; padding: 10px 12px;
+}
+.sv-legend-chip { display: flex; align-items: center; gap: 7px; }
+.sv-legend-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.sv-legend-verified .sv-legend-dot { background: #34d975; }
+.sv-legend-observed .sv-legend-dot { background: #ffd60a; }
+.sv-legend-lying .sv-legend-dot { background: #ff453a; }
+.sv-legend-count { color: #8a93a8; margin-left: auto; padding-left: 10px; }
+
+/* =========================================================== grade reveal */
+
+.sv-reveal {
+  position: fixed; inset: 0; z-index: 40; pointer-events: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px; background: transparent;
+}
+.sv-reveal-letters {
+  display: flex; align-items: center; gap: 3vw;
+  opacity: 0; transform: scale(0.5);
+  transition: transform 0.4s cubic-bezier(0.2, 1.4, 0.4, 1), opacity 0.3s ease;
+  cursor: pointer;
+}
+.sv-reveal-in .sv-reveal-letters { opacity: 1; transform: scale(1); }
+.sv-reveal-letter {
+  font: 800 min(28vw, 260px)/1 ui-monospace, Consolas, monospace;
+  text-shadow: 0 0 60px currentColor;
+  background: none !important; border: none !important;
+  width: auto !important; height: auto !important;
+}
+.sv-reveal-arrow { font: 800 min(10vw, 90px)/1 ui-monospace, Consolas, monospace; color: #8a93a8; }
+.sv-reveal-story {
+  font: 700 15px/1.5 ui-monospace, Consolas, monospace; color: #eef2fa;
+  background: rgba(10, 13, 20, 0.85); border-radius: 8px; padding: 6px 16px;
+  max-width: 70vw; text-align: center;
+  opacity: 0; transition: opacity 0.4s ease 0.25s;
+}
+.sv-reveal-in .sv-reveal-story { opacity: 1; }
+.sv-reveal-out .sv-reveal-letters {
+  transition: transform 0.42s cubic-bezier(0.5, 0, 0.7, 0.4), opacity 0.42s ease;
+  opacity: 0.15;
+}
+.sv-reveal-out .sv-reveal-story { opacity: 0; transition: opacity 0.2s ease; }
+
+/* ==================================================== collapsible sections */
+
+.sv-collapse { margin-bottom: 8px; }
+.sv-collapse-head {
+  display: flex; align-items: baseline; gap: 6px; width: 100%;
+  background: none; border: none; border-bottom: 1px solid #2a3142;
+  padding: 3px 0; cursor: pointer; text-align: left;
+  font: inherit; color: inherit;
+}
+.sv-collapse-head:hover .sv-collapse-title { color: #eef2fa; }
+.sv-collapse-chev { color: #5b6478; flex: none; font-size: 10px; }
+.sv-collapse-title {
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; color: #8a93a8;
+  flex: none;
+}
+.sv-collapse-summary {
+  color: #6b7487; font-size: 10.5px; font-weight: 400;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1;
+  min-width: 0;
+}
+.sv-open .sv-collapse-summary { white-space: normal; }
+.sv-collapse-body { padding-top: 6px; }
+
+/* the Beat-3 marquee: pulse the verdicts section while collapsed */
+.sv-collapse-marquee:not(.sv-open) .sv-collapse-head {
+  border-bottom-color: #ffd60a; animation: sv-marquee 1.4s ease-in-out infinite;
+  border-radius: 4px;
+}
+@keyframes sv-marquee {
+  0%, 100% { background: rgba(255, 214, 10, 0.0); }
+  50% { background: rgba(255, 214, 10, 0.12); }
+}
+
+/* ---------------------------------------------- certificate header extras */
+
+.sv-cert-story { color: #c3cadb; font-size: 11px; margin-top: 4px; }
+.sv-trust-line { color: #c3cadb; font-size: 11px; margin-bottom: 3px; }
+.sv-trust-line-dim { color: #6b7487; }
+.sv-rationale-raw { color: #4a5368; font-size: 10px; margin-top: 3px; }
+.sv-defect-id { color: #5b6478; font-size: 9.5px; }
+.sv-defect-raw { color: #4a5368; font-size: 10px; margin-top: 2px; }
+.sv-scale-block { margin-bottom: 8px; border-bottom: 1px dashed #1c2334; padding-bottom: 6px; }
+.sv-scale-derived { color: #8a93a8; font-size: 10px; margin-top: 2px; }
+.sv-scale-derived.sv-scale-disagree { color: #ff9500; }
+
+/* ------------------------------------------------ compact (slim) header */
+
+.sv-compact-head {
+  display: none; align-items: center; gap: 10px; width: 100%;
+  background: none; border: none; cursor: pointer; padding: 4px 2px;
+  font: inherit; color: inherit; text-align: left;
+  position: sticky; top: 0;
+}
+.sv-grade-mini {
+  width: 28px !important; height: 28px !important; font-size: 16px !important;
+  border-width: 2px; border-radius: 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-style: solid; flex: none;
+}
+.sv-compact-story { color: #c3cadb; font-size: 11px; flex: 1; min-width: 0; }
+.sv-panel-certificate.sv-compact { flex: 0 0 auto !important; min-height: 48px; }
+.sv-panel-certificate.sv-compact .sv-cert-full { display: none; }
+.sv-panel-certificate.sv-compact .sv-compact-head { display: flex; }
+
+/* ------------------------------------------------------------ plan cards */
+
+.sv-card {
+  border: 1px solid #2a3142; border-radius: 6px;
+  padding: 7px 9px; margin-bottom: 7px; background: rgba(255, 255, 255, 0.02);
+}
+.sv-card.sv-step-row-running { border-color: #ffd60a; }
+.sv-card.sv-step-row-caught, .sv-card.sv-card-adapting { border-color: #ff453a; }
+.sv-card-body { color: #aab3c7; font-size: 10.5px; margin-top: 4px; line-height: 1.5; }
+.sv-card-subs { margin-top: 2px; }
+.sv-card-sub {
+  font-size: 10.5px; margin-top: 4px; padding: 3px 6px 3px 14px; position: relative;
+  border-left: 2px solid #3a4358; color: #aab3c7;
+  animation: sv-sub-in 0.3s ease;
+}
+.sv-card-sub::before { content: "↳"; position: absolute; left: 3px; color: #5b6478; }
+.sv-card-sub-warn { color: #ff9500; border-left-color: #ff9500; }
+.sv-card-sub-ok { color: #34d975; border-left-color: #34d975; }
+@keyframes sv-sub-in { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; } }
+
+.sv-loghead { border-bottom: none; border-top: 1px solid #2a3142; margin-top: 4px; padding-top: 6px; }
+
+/* ---------------------------------------------------- before/after card */
+
+.sv-beforeafter {
+  font: 12px/1.5 ui-monospace, Consolas, monospace; color: #d5dbe8;
+  background: rgba(10, 13, 20, 0.88); border: 1px solid #2a3142;
+  border-radius: 8px; padding: 14px; box-sizing: border-box; width: 380px;
+  text-align: center;
+}
+.sv-beforeafter-grades {
+  display: flex; align-items: center; justify-content: center; gap: 18px;
+  margin-bottom: 2px;
+}
+.sv-beforeafter-letter {
+  font-size: 44px; font-weight: 800; line-height: 1; text-shadow: 0 0 24px currentColor;
+  background: none !important; border: none !important;
+  width: auto !important; height: auto !important;
+}
+.sv-beforeafter-arrow { font-size: 22px; color: #8a93a8; }
+.sv-beforeafter-sub {
+  display: flex; justify-content: center; gap: 52px;
+  color: #5b6478; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.sv-beforeafter-found { color: #eef2fa; font-weight: 700; margin-bottom: 4px; }
+.sv-beforeafter-breakdown { color: #8a93a8; font-size: 10.5px; margin-bottom: 10px; }
+.sv-beforeafter-disclosure { color: #6b7487; font-size: 10px; font-style: italic; margin-bottom: 10px; }
+.sv-beforeafter-buttons { display: flex; justify-content: center; gap: 8px; }

@@ -3,18 +3,51 @@
  * (summarizeCertificate shape from src/agent/tools.ts, or the raw
  * certificate.json — both are accepted).
  *
- * Quality bar: the certificate is the product. Every number is shown with
- * its [low..high] range and its methods line VERBATIM. Verdict pairs where
- * the same check fails one robot and passes another (rover-FAIL /
- * quadruped-PASS) are contrast-highlighted — "sim-readiness is relative to
- * the robot".
+ * Redesigned per docs/ui-redesign-spec.md: five collapsible sections
+ * (Trust, Robot verdicts, Defects, Measurements, Fine print), each a single
+ * human summary line when collapsed; expanding keeps the existing VERBATIM
+ * rendering (values, ranges, methods lines) intact. Raw ids/formats are
+ * annotated in `.sv-raw` spans revealed by the D dev toggle; the human
+ * bracket format lives in `.sv-hum` spans hidden in dev mode.
+ *
+ * Quality bar: the certificate is the product. Verdict pairs where the same
+ * check fails one robot and passes another (rover-FAIL / quadruped-PASS) are
+ * contrast-highlighted — "sim-readiness is relative to the robot".
  */
 import "./panels.css";
 import type { CertificateSummary, DefectSummary, MeasurementLike, VerdictSummary } from "./protocol";
+import {
+  basisLine,
+  checkName,
+  confidencePhrase,
+  CONFIDENCE_TOOLTIP,
+  CONTRAST_TAG,
+  defectDisplayName,
+  defectExplainer,
+  defectsSummary,
+  fmtMeasurementHuman,
+  fmtMeasurementRaw,
+  gradeStory,
+  measurementName,
+  measurementsSummary,
+  MEASUREMENTS_SCALE_ONLY_SUMMARY,
+  outcomeChip,
+  rationaleStory,
+  requirementLine,
+  scaleAgreement,
+  scaleVendorLine,
+  SECTION,
+  trustSummary,
+  verdictsSummary,
+} from "./humanize";
 
 export interface CertificatePanelHandle {
   el: HTMLElement;
   update(cert: CertificateSummary): void;
+  /** Beat-4 slim sticky header; click on it restores the full panel. */
+  setCompact(on: boolean): void;
+  /** Force a section open (fail-and-adapt auto-expands "defects"). */
+  expandSection(key: string): void;
   destroy(): void;
 }
 
@@ -31,78 +64,30 @@ function el<K extends keyof HTMLElementTagNameMap>(
   return e;
 }
 
-function num(v: number): string {
-  const a = Math.abs(v);
-  const d = a >= 100 ? 0 : a >= 10 ? 1 : a >= 1 ? 2 : 3;
-  return v.toFixed(d);
-}
-
-function rangeOf(m: MeasurementLike): [number, number] | undefined {
-  if (m.uncertainty) return [m.uncertainty.low, m.uncertainty.high];
-  if (m.range && m.range.length >= 2) {
-    const lo = m.range[0];
-    const hi = m.range[1];
-    if (lo !== undefined && hi !== undefined) return [lo, hi];
-  }
-  return undefined;
-}
-
-/** "0.30 m [0.20..0.40]" */
-function fmtMeasurement(m: MeasurementLike): string {
-  const r = rangeOf(m);
-  const base = `${num(m.value)} ${m.unit}`;
-  return r ? `${base}  [${num(r[0])}..${num(r[1])}]` : base;
+/** value in both formats: human "(confident: a–b)" + raw "[a..b]" (dev). */
+function measurementSpan(m: MeasurementLike, cls: string): HTMLElement {
+  const wrap = el("span", cls);
+  wrap.appendChild(el("span", "sv-hum", fmtMeasurementHuman(m)));
+  wrap.appendChild(el("span", "sv-raw", fmtMeasurementRaw(m)));
+  return wrap;
 }
 
 function outcomeOf(d: DefectSummary): string {
-  return d.outcome && d.outcome !== "OPEN" ? d.outcome : "OPEN";
+  return d.outcome && d.outcome !== "OPEN" ? String(d.outcome) : "OPEN";
 }
 
-// ---------------------------------------------------------------- section
-
-function section(title: string, hint?: string): { root: HTMLElement; body: HTMLElement } {
-  const root = el("section", "sv-section");
-  const h = el("div", "sv-section-title", title);
-  if (hint) h.appendChild(el("span", "sv-section-hint", hint));
-  root.appendChild(h);
-  const body = el("div", "sv-section-body");
-  root.appendChild(body);
-  return { root, body };
+function robotOf(v: VerdictSummary): string {
+  return v.robot ?? v.robotId ?? "?";
 }
 
-// ----------------------------------------------------------------- render
+// ------------------------------------------------------------ body renders
+// Each render*Body fills the EXPANDED body of one collapsible section.
 
-function renderHeader(cert: CertificateSummary): HTMLElement {
-  const head = el("div", "sv-cert-head");
-
-  const left = el("div", "sv-cert-head-left");
-  left.appendChild(el("div", "sv-cert-title", "PHYSICS CERTIFICATE"));
-  const gravity = typeof cert.gravity === "string" ? cert.gravity : cert.gravity?.name;
-  left.appendChild(
-    el("div", "sv-cert-world", `${cert.worldId}${gravity ? `  ·  gravity: ${gravity}` : ""}`),
-  );
-  head.appendChild(left);
-
-  const badge = el("div", `sv-grade sv-grade-${cert.grade}`, cert.grade);
-  badge.title = cert.gradeRationale ?? "";
-  head.appendChild(badge);
-
-  return head;
-}
-
-function renderTrust(cert: CertificateSummary): HTMLElement {
-  const { root, body } = section("TRUST");
-  const row = el("div", "sv-trust-row");
-
-  const mk = (cls: string, label: string, pct: number) => {
-    const chip = el("div", `sv-trust-chip ${cls}`);
-    chip.appendChild(el("div", "sv-trust-pct", `${pct.toFixed(1)}%`));
-    chip.appendChild(el("div", "sv-trust-label", label));
-    return chip;
-  };
-  row.appendChild(mk("sv-trust-verified", "verified", cert.trust.verifiedPct));
-  row.appendChild(mk("sv-trust-lying", "lying", cert.trust.lyingPct));
-  body.appendChild(row);
+function renderTrustBody(cert: CertificateSummary, body: HTMLElement): void {
+  const t = trustSummary(cert.trust);
+  body.appendChild(el("div", "sv-trust-line", t.tested));
+  body.appendChild(el("div", "sv-trust-line", t.lying));
+  body.appendChild(el("div", "sv-trust-line sv-trust-line-dim", t.untested));
 
   // proportional bar: verified green, lying red, remainder dim (observed/unknown)
   const bar = el("div", "sv-trust-bar");
@@ -114,17 +99,12 @@ function renderTrust(cert: CertificateSummary): HTMLElement {
   bar.appendChild(l);
   body.appendChild(bar);
 
-  if (cert.gradeRationale) body.appendChild(el("div", "sv-rationale", cert.gradeRationale));
-  return root;
+  body.appendChild(el("div", "sv-rationale", rationaleStory(cert)));
+  // the raw rationale string moved here (and to the grade badge tooltip)
+  if (cert.gradeRationale) body.appendChild(el("div", "sv-rationale sv-rationale-raw", cert.gradeRationale));
 }
 
-function robotOf(v: VerdictSummary): string {
-  return v.robot ?? v.robotId ?? "?";
-}
-
-function renderVerdicts(cert: CertificateSummary): HTMLElement {
-  const { root, body } = section("ROBOT VERDICTS", "per-robot, per-check");
-
+function renderVerdictsBody(cert: CertificateSummary, body: HTMLElement): void {
   // Group by check so a rover-FAIL / quadruped-PASS split is visible as a pair.
   const groups = new Map<string, VerdictSummary[]>();
   for (const v of cert.robotVerdicts) {
@@ -139,13 +119,13 @@ function renderVerdicts(cert: CertificateSummary): HTMLElement {
     const contrast = hasFail && hasPass;
 
     const group = el("div", `sv-verdict-group${contrast ? " sv-verdict-contrast" : ""}`);
-    const gh = el("div", "sv-verdict-check", check.replace(/_/g, " "));
-    if (contrast) gh.appendChild(el("span", "sv-contrast-tag", "same world · two verdicts"));
+    const gh = el("div", "sv-verdict-check", checkName(check));
+    gh.title = check;
+    if (contrast) gh.appendChild(el("span", "sv-contrast-tag", CONTRAST_TAG));
     group.appendChild(gh);
 
     for (const v of verdicts) {
-      const passCls =
-        v.pass === true ? "sv-pass" : v.pass === false ? "sv-fail" : "sv-noteval";
+      const passCls = v.pass === true ? "sv-pass" : v.pass === false ? "sv-fail" : "sv-noteval";
       const row = el(
         "div",
         `sv-verdict-row ${passCls}${contrast ? (v.pass === true ? " sv-contrast-pass" : v.pass === false ? " sv-contrast-fail" : "") : ""}`,
@@ -160,41 +140,49 @@ function renderVerdicts(cert: CertificateSummary): HTMLElement {
           v.pass === true ? "PASS" : v.pass === false ? "FAIL" : "NOT EVALUATED",
         ),
       );
-      if (v.measured) top.appendChild(el("span", "sv-verdict-measured", fmtMeasurement(v.measured)));
+      if (v.measured) top.appendChild(measurementSpan(v.measured, "sv-verdict-measured"));
       row.appendChild(top);
 
-      row.appendChild(el("div", "sv-verdict-req", `requires: ${v.requirement}`));
+      const req = el("div", "sv-verdict-req", requirementLine(v.requirement));
+      req.title = `requires: ${v.requirement}`;
+      row.appendChild(req);
       if (v.measured?.method) row.appendChild(el("div", "sv-method", v.measured.method));
       if (v.gravityNote) row.appendChild(el("div", "sv-gravity-note", v.gravityNote));
       group.appendChild(row);
     }
     body.appendChild(group);
   }
-  return root;
 }
 
-function renderDefects(cert: CertificateSummary): HTMLElement {
-  const bySev = { critical: 0, major: 0, minor: 0 } as Record<string, number>;
-  for (const d of cert.defects) bySev[d.severity] = (bySev[d.severity] ?? 0) + 1;
-  const { root, body } = section(
-    `DEFECTS (${cert.defects.length})`,
-    `${bySev.critical ?? 0} critical · ${bySev.major ?? 0} major · ${bySev.minor ?? 0} minor`,
-  );
-
+function renderDefectsBody(cert: CertificateSummary, body: HTMLElement): void {
+  const ordinals = new Map<string, number>(); // per-type counters, display order
   for (const d of cert.defects) {
+    const ord = (ordinals.get(d.type) ?? 0) + 1;
+    ordinals.set(d.type, ord);
+
     const row = el("div", `sv-defect sv-sev-${d.severity}`);
 
     const top = el("div", "sv-defect-top");
     top.appendChild(el("span", `sv-sev-dot sv-sev-${d.severity}`));
-    top.appendChild(el("span", "sv-defect-type", d.type.replace(/_/g, " ")));
-    top.appendChild(el("span", "sv-defect-conf", `conf ${(d.confidence * 100).toFixed(0)}%`));
+    const name = el("span", "sv-defect-type", defectDisplayName(d, ord));
+    name.title = `${d.id} · ${d.type}`;
+    top.appendChild(name);
+    top.appendChild(el("span", "sv-defect-id sv-raw", d.id));
+    const conf = el("span", "sv-defect-conf", confidencePhrase(d.confidence));
+    conf.title = CONFIDENCE_TOOLTIP;
+    top.appendChild(conf);
     const outcome = outcomeOf(d);
-    const chip = el("span", `sv-outcome sv-outcome-${outcome.toLowerCase()}`, outcome);
-    if (d.outcomeNote) chip.title = d.outcomeNote;
+    const chipCopy = outcomeChip(outcome);
+    const chip = el("span", `sv-outcome sv-outcome-${outcome.toLowerCase()}`, chipCopy.label);
+    chip.title = d.outcomeNote ? `${chipCopy.tooltip} — ${d.outcomeNote}` : chipCopy.tooltip;
     top.appendChild(chip);
     row.appendChild(top);
 
-    if (d.description) row.appendChild(el("div", "sv-defect-desc", d.description));
+    const explainer = defectExplainer(d);
+    if (explainer) row.appendChild(el("div", "sv-defect-desc", explainer));
+    if (d.description && d.description !== explainer) {
+      row.appendChild(el("div", "sv-defect-raw sv-raw sv-raw-block", `raw: ${d.description}`));
+    }
 
     if (d.evidence && d.evidence.length > 0) {
       const ev = el("div", "sv-evidence");
@@ -207,55 +195,79 @@ function renderDefects(cert: CertificateSummary): HTMLElement {
     }
     body.appendChild(row);
   }
-  return root;
 }
 
-function renderScale(cert: CertificateSummary): HTMLElement | undefined {
+function renderMeasurementsBody(cert: CertificateSummary, body: HTMLElement): void {
+  // --- scale block first (§2.6): vendor line, estimate, agreement verbatim
   const s = cert.scale;
-  if (!s) return undefined;
-  const { root, body } = section("METRIC SCALE");
-  body.appendChild(
-    el(
+  if (s) {
+    const block = el("div", "sv-scale-block");
+    block.appendChild(el("div", "sv-scale-row", scaleVendorLine(s)));
+    if (s.estimated) {
+      const row = el("div", "sv-measure");
+      const top = el("div", "sv-measure-top");
+      const nm = el("span", "sv-measure-name", measurementName(s.estimated.name ?? "metric_scale_factor_estimate"));
+      nm.title = s.estimated.name ?? "";
+      top.appendChild(nm);
+      top.appendChild(measurementSpan(s.estimated, "sv-measure-value"));
+      row.appendChild(top);
+      if (s.estimated.method) row.appendChild(el("div", "sv-method", s.estimated.method));
+      block.appendChild(row);
+    }
+    // the certificate's own agreement sentence, VERBATIM
+    if (s.agreement) block.appendChild(el("div", "sv-scale-agreement", s.agreement));
+    // dev mode shows both: our derived comparison next to the verbatim line
+    const derived = scaleAgreement(s);
+    const derivedEl = el(
       "div",
-      "sv-scale-row",
-      `vendor factor: ${s.vendorFactor !== undefined ? num(s.vendorFactor) : "n/a"} · applied: ${s.vendorFactorApplied ? "YES" : "NO"}`,
-    ),
-  );
-  if (s.estimated) {
-    body.appendChild(
-      el("div", "sv-scale-row", `independent estimate: ${fmtMeasurement(s.estimated)}`),
+      `sv-scale-derived sv-raw sv-raw-block${derived.agrees === false ? " sv-scale-disagree" : ""}`,
+      `derived: ${derived.headline}`,
     );
-    if (s.estimated.method) body.appendChild(el("div", "sv-method", s.estimated.method));
+    block.appendChild(derivedEl);
+    body.appendChild(block);
   }
-  if (s.agreement) body.appendChild(el("div", "sv-scale-agreement", s.agreement));
-  return root;
-}
 
-function renderMeasurements(cert: CertificateSummary): HTMLElement | undefined {
   const ms = cert.measurements;
-  if (!ms || ms.length === 0) return undefined;
-  const { root, body } = section(`MEASUREMENTS (${ms.length})`, "value [low..high] · methods verbatim");
+  if (!ms || ms.length === 0) return;
   for (const m of ms) {
     const row = el("div", "sv-measure");
     const top = el("div", "sv-measure-top");
-    top.appendChild(el("span", "sv-measure-name", m.name));
-    top.appendChild(el("span", "sv-measure-value", fmtMeasurement(m)));
+    const nm = el("span", "sv-measure-name", measurementName(m.name));
+    nm.title = m.name;
+    top.appendChild(nm);
+    top.appendChild(measurementSpan(m, "sv-measure-value"));
     row.appendChild(top);
     const basis = m.uncertainty?.basis ?? m.basis;
-    if (basis) row.appendChild(el("div", "sv-measure-basis", `uncertainty basis: ${basis}`));
+    if (basis) row.appendChild(el("div", "sv-measure-basis", basisLine(basis)));
     if (m.method) row.appendChild(el("div", "sv-method", m.method));
     body.appendChild(row);
   }
-  return root;
 }
 
-function renderDisclosures(cert: CertificateSummary): HTMLElement | undefined {
-  const ds = cert.disclosures;
-  if (!ds || ds.length === 0) return undefined;
-  const footer = el("footer", "sv-disclosures");
-  footer.appendChild(el("div", "sv-section-title", "DISCLOSURES"));
-  for (const d of ds) footer.appendChild(el("div", "sv-disclosure", d));
-  return footer;
+function renderFinePrintBody(cert: CertificateSummary, body: HTMLElement): void {
+  for (const d of cert.disclosures ?? []) body.appendChild(el("div", "sv-disclosure", d));
+}
+
+// ------------------------------------------------------------------ header
+
+function renderHeader(cert: CertificateSummary): HTMLElement {
+  const head = el("div", "sv-cert-head");
+
+  const left = el("div", "sv-cert-head-left");
+  left.appendChild(el("div", "sv-cert-title", "PHYSICS CERTIFICATE"));
+  const gravity = typeof cert.gravity === "string" ? cert.gravity : cert.gravity?.name;
+  left.appendChild(
+    el("div", "sv-cert-world", `${cert.worldId}${gravity ? `  ·  gravity: ${gravity}` : ""}`),
+  );
+  const story = gradeStory(cert.grade);
+  if (story) left.appendChild(el("div", "sv-cert-story", story));
+  head.appendChild(left);
+
+  const badge = el("div", `sv-grade sv-grade-${cert.grade}`, cert.grade);
+  badge.title = cert.gradeRationale ?? "";
+  head.appendChild(badge);
+
+  return head;
 }
 
 // ------------------------------------------------------------------ mount
@@ -272,18 +284,111 @@ export function mountCertificatePanel(
   if (parent === document.body) panel.classList.add("sv-float-tr");
   parent.appendChild(panel);
 
+  /** Open-state survives update() re-renders. Collapsed by default. */
+  const openSections = new Set<string>();
+  let lastCert: CertificateSummary | undefined;
+  let compact = false;
+
+  function collapsible(
+    key: string,
+    title: string,
+    summary: string,
+    buildBody: (body: HTMLElement) => void,
+    extraClass?: string,
+  ): HTMLElement {
+    const open = openSections.has(key);
+    const root = el("section", `sv-collapse${open ? " sv-open" : ""}${extraClass ? ` ${extraClass}` : ""}`);
+    const head = el("button", "sv-collapse-head") as HTMLButtonElement;
+    head.appendChild(el("span", "sv-collapse-chev", open ? "▾" : "▸"));
+    head.appendChild(el("span", "sv-collapse-title", title));
+    head.appendChild(el("span", "sv-collapse-summary", summary));
+    root.appendChild(head);
+    const body = el("div", "sv-collapse-body");
+    root.appendChild(body);
+    if (open) buildBody(body); // lazy: collapsed sections carry no body DOM
+    else body.style.display = "none";
+    head.addEventListener("click", () => {
+      head.blur(); // Space stays a stepper key
+      if (openSections.has(key)) openSections.delete(key);
+      else openSections.add(key);
+      rerender();
+    });
+    return root;
+  }
+
   function render(c: CertificateSummary): void {
+    lastCert = c;
     panel.replaceChildren();
-    panel.appendChild(renderHeader(c));
-    panel.appendChild(renderTrust(c));
-    panel.appendChild(renderVerdicts(c));
-    panel.appendChild(renderDefects(c));
-    const scale = renderScale(c);
-    if (scale) panel.appendChild(scale);
-    const measures = renderMeasurements(c);
-    if (measures) panel.appendChild(measures);
-    const disc = renderDisclosures(c);
-    if (disc) panel.appendChild(disc);
+
+    // --- compact (Beat-4) slim sticky header — CSS shows exactly one of the two
+    const compactHead = el("button", "sv-compact-head") as HTMLButtonElement;
+    const miniBadge = el("span", `sv-grade sv-grade-mini sv-grade-${c.grade}`, c.grade);
+    miniBadge.title = c.gradeRationale ?? "";
+    compactHead.appendChild(miniBadge);
+    compactHead.appendChild(el("span", "sv-compact-story", gradeStory(c.grade) || "PHYSICS CERTIFICATE"));
+    compactHead.title = "show the full certificate";
+    compactHead.addEventListener("click", () => {
+      compactHead.blur();
+      setCompact(false);
+    });
+    panel.appendChild(compactHead);
+
+    // --- full panel
+    const full = el("div", "sv-cert-full");
+    full.appendChild(renderHeader(c));
+
+    full.appendChild(collapsible("trust", SECTION.trust, trustSummary(c.trust).line, (b) => renderTrustBody(c, b)));
+
+    const hasContrast = (() => {
+      const byCheck = new Map<string, { pass: boolean; fail: boolean }>();
+      for (const v of c.robotVerdicts) {
+        const g = byCheck.get(v.check) ?? { pass: false, fail: false };
+        if (v.pass === true) g.pass = true;
+        if (v.pass === false) g.fail = true;
+        byCheck.set(v.check, g);
+      }
+      for (const g of byCheck.values()) if (g.pass && g.fail) return true;
+      return false;
+    })();
+    full.appendChild(
+      collapsible(
+        "verdicts",
+        SECTION.verdicts,
+        verdictsSummary(c),
+        (b) => renderVerdictsBody(c, b),
+        hasContrast ? "sv-collapse-marquee" : undefined,
+      ),
+    );
+
+    full.appendChild(collapsible("defects", SECTION.defects, defectsSummary(c), (b) => renderDefectsBody(c, b)));
+
+    if (c.scale || (c.measurements && c.measurements.length > 0)) {
+      const summary =
+        c.measurements && c.measurements.length > 0
+          ? measurementsSummary(c.measurements.length)
+          : MEASUREMENTS_SCALE_ONLY_SUMMARY;
+      full.appendChild(
+        collapsible("measurements", SECTION.measurements, summary, (b) => renderMeasurementsBody(c, b)),
+      );
+    }
+
+    if (c.disclosures && c.disclosures.length > 0) {
+      full.appendChild(
+        collapsible("fineprint", SECTION.finePrint, SECTION.finePrintSummary, (b) => renderFinePrintBody(c, b)),
+      );
+    }
+
+    panel.appendChild(full);
+    panel.classList.toggle("sv-compact", compact);
+  }
+
+  function rerender(): void {
+    if (lastCert) render(lastCert);
+  }
+
+  function setCompact(on: boolean): void {
+    compact = on;
+    panel.classList.toggle("sv-compact", on);
   }
 
   if (cert) render(cert);
@@ -292,6 +397,12 @@ export function mountCertificatePanel(
   return {
     el: panel,
     update: render,
+    setCompact,
+    expandSection(key: string): void {
+      if (openSections.has(key)) return;
+      openSections.add(key);
+      rerender();
+    },
     destroy: () => panel.remove(),
   };
 }

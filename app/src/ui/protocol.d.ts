@@ -106,8 +106,14 @@ export type RepairStepKind = "apply_vendor_scale" | "patch_hole" | "quarantine" 
 export interface RepairStep {
   id: string;
   kind: RepairStepKind;
+  /** Human card title (humanize.repairCardCopy). */
   label: string;
+  /** Human card body copy. */
   detail: string;
+  /** Machine label (dev mode / raw footer), e.g. "Apply vendor scale ×1.615". */
+  rawLabel?: string;
+  /** Machine detail (dev mode / raw footer). */
+  rawDetail?: string;
   defectIds: string[];
   method?: "fitted_slab" | "mesh_fill";
   reason?: string;

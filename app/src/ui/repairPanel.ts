@@ -1,15 +1,20 @@
 /**
  * Repair panel — proposes a scripted repair plan from a certificate summary
  * (scale first if scale_error present, then hole patches, then quarantine of
- * visual lies, then acceptance of robot-relative sills), drives a
+ * ghost geometry, then acceptance of robot-relative sills), drives a
  * RepairDriver (worker-backed in the integrated app), and renders the live
- * log.
+ * log behind a collapsed "Show the work" expander.
+ *
+ * Steps render as cards with human copy (humanize.repairCardCopy); the copy
+ * bug where the scale step asserted "they agree" regardless of the numbers
+ * is fixed at the source: proposePlan derives the agreement text from
+ * humanize.scaleAgreement (vendorFactor vs the estimate's 2-SD band).
  *
  * THE fail-and-adapt moment: when a driver's regional recertify returns
  * newDefects, the certifier caught the repair — the panel renders it LOUD
- * (pulsing banner) and, for a fitted_slab patch, automatically reverts and
- * retries with mesh_fill (the exact sequence from the first real Marble
- * world, un-staged).
+ * (pulsing banner + timed sub-rows on the card) and, for a fitted_slab
+ * patch, automatically reverts and retries with mesh_fill (the exact
+ * sequence from the first real Marble world, un-staged).
  */
 import "./panels.css";
 import type {
@@ -20,6 +25,16 @@ import type {
   RepairStep,
   StepResult,
 } from "./protocol";
+import {
+  BTN,
+  caughtBanner,
+  humanizeLogLine,
+  repairCardCopy,
+  scaleAgreement,
+  SHOW_THE_WORK,
+  statusChipLabel,
+  SUBROW,
+} from "./humanize";
 
 export interface RepairPanelOptions {
   driver: RepairDriver;
@@ -32,6 +47,8 @@ export interface RepairPanelOptions {
    * outcomes and trigger the final recertify.
    */
   onRunAllComplete?: () => void;
+  /** Called when the certifier catches a repair (fail-and-adapt starts). */
+  onCaught?: (newDefects: DefectSummary[]) => void;
 }
 
 export interface RepairPanelHandle {
@@ -40,6 +57,10 @@ export interface RepairPanelHandle {
   setPlan(cert: CertificateSummary): void;
   /** Append a line to the live log ("info" | "ok" | "warn" | "loud"). */
   log(line: string, kind?: LogKind): void;
+  /** Run the whole plan (Space in Beat 4 drives this — no synthetic clicks). */
+  runAll(): void;
+  /** Expand/collapse the "Show the work" raw log. */
+  expandLog(on: boolean): void;
   destroy(): void;
 }
 
@@ -73,67 +94,93 @@ function isOpen(d: DefectSummary): boolean {
  *  1. apply_vendor_scale if any open scale_error (one transform can resolve
  *     every scale-dependent defect — always evaluated first)
  *  2. patch_hole fitted_slab per open collider_hole
- *  3. quarantine visual lies (visual_only_surface + phantom_collider) in bulk
+ *  3. quarantine ghost geometry (visual_only_surface + phantom_collider) in bulk
  *  4. accept_defect for raised sills (robot-relative; the verdict stands)
+ *
+ * label/detail carry the HUMAN card copy (humanize); rawLabel/rawDetail keep
+ * the machine strings for dev mode. Agreement copy is DERIVED from the
+ * numbers — never asserted.
  */
 export function proposePlan(cert: CertificateSummary): RepairStep[] {
   const open = (type: string) => cert.defects.filter((d) => d.type === type && isOpen(d));
   const steps: RepairStep[] = [];
-  let n = 0;
 
   const scaleDefects = open("scale_error");
   if (scaleDefects.length > 0 && !cert.scale?.vendorFactorApplied) {
-    n += 1;
     const vf = cert.scale?.vendorFactor;
     const est = cert.scale?.estimated?.value;
-    steps.push({
+    const agr = scaleAgreement(cert.scale);
+    const step: RepairStep = {
       id: "step-scale",
       kind: "apply_vendor_scale",
-      label: `${n}. Apply vendor scale${vf !== undefined ? ` ×${vf.toFixed(3)}` : ""}`,
-      detail:
+      label: "",
+      detail: "",
+      rawLabel: `Apply vendor scale${vf !== undefined ? ` ×${vf.toFixed(3)}` : ""}`,
+      rawDetail:
         vf !== undefined && est !== undefined
-          ? `vendor ${vf.toFixed(3)} vs independent estimate ${est.toFixed(2)} — they agree; one transform re-measures the whole world`
+          ? `vendor ${vf.toFixed(3)} vs independent estimate ${est.toFixed(2)} — ${agr.agrees ? "they agree" : "they DISAGREE"}; one transform re-measures the whole world`
           : "vendor metric scale factor shipped but never applied",
       defectIds: scaleDefects.map((d) => d.id),
-    });
+    };
+    const copy = repairCardCopy(step, cert);
+    step.label = copy.title;
+    step.detail = copy.body;
+    steps.push(step);
   }
 
   for (const hole of open("collider_hole")) {
-    n += 1;
-    steps.push({
+    const step: RepairStep = {
       id: `step-patch-${hole.id}`,
       kind: "patch_hole",
-      label: `${n}. Patch hole ${hole.id} (fitted_slab)`,
-      detail: hole.description ?? "collider hole under visually intact surface",
+      label: "",
+      detail: "",
+      rawLabel: `Patch hole ${hole.id} (fitted_slab)`,
+      rawDetail: hole.description ?? "collider hole under visually intact surface",
       defectIds: [hole.id],
       method: "fitted_slab",
-    });
+    };
+    const copy = repairCardCopy(step, cert);
+    step.label = copy.title;
+    step.detail = copy.body;
+    steps.push(step);
   }
 
-  const lies = [...open("visual_only_surface"), ...open("phantom_collider")];
-  if (lies.length > 0) {
-    n += 1;
-    steps.push({
-      id: "step-quarantine-lies",
+  const ghosts = [...open("visual_only_surface"), ...open("phantom_collider")];
+  if (ghosts.length > 0) {
+    const step: RepairStep = {
+      id: "step-quarantine-ghosts",
       kind: "quarantine",
-      label: `${n}. Quarantine ${lies.length} visual lie${lies.length === 1 ? "" : "s"}`,
-      detail: "surfaces whose visuals and physics disagree and cannot be reconciled — excluded so no training episode touches the lie",
-      defectIds: lies.map((d) => d.id),
+      label: "",
+      detail: "",
+      rawLabel: `Quarantine ${ghosts.length} ghost surface${ghosts.length === 1 ? "" : "s"}`,
+      rawDetail:
+        "surfaces whose visuals and physics disagree and cannot be reconciled — excluded so no training episode touches the divergent region",
+      defectIds: ghosts.map((d) => d.id),
       reason: "visual/physics disagreement is unrepairable; region excluded from the navigable area",
-    });
+    };
+    const copy = repairCardCopy(step, cert);
+    step.label = copy.title;
+    step.detail = copy.body;
+    steps.push(step);
   }
 
   const sills = open("raised_sill");
   if (sills.length > 0) {
-    n += 1;
-    steps.push({
+    const step: RepairStep = {
       id: "step-accept-sills",
       kind: "accept_defect",
-      label: `${n}. Accept ${sills.length} raised sill${sills.length === 1 ? "" : "s"}`,
-      detail: "negotiability is robot-relative: fails the rover, passes the quadruped — the verdict stands, no repair needed",
+      label: "",
+      detail: "",
+      rawLabel: `Accept ${sills.length} raised sill${sills.length === 1 ? "" : "s"}`,
+      rawDetail:
+        "negotiability is robot-relative: fails the rover, passes the quadruped — the verdict stands, no repair needed",
       defectIds: sills.map((d) => d.id),
       reason: "genuinely raised sill; robot-relative verdict stands (rover FAIL / quadruped PASS)",
-    });
+    };
+    const copy = repairCardCopy(step, cert);
+    step.label = copy.title;
+    step.detail = copy.body;
+    steps.push(step);
   }
 
   return steps;
@@ -147,6 +194,8 @@ interface StepView {
   actionId?: string;
   row: HTMLElement;
   statusChip: HTMLElement;
+  subRows: HTMLElement;
+  rawFooter: HTMLElement;
   execBtn: HTMLButtonElement;
   revertBtn: HTMLButtonElement;
 }
@@ -163,7 +212,7 @@ export function mountRepairPanel(parent: HTMLElement, opts: RepairPanelOptions):
   // ---- header
   const head = el("div", "sv-cert-head");
   head.appendChild(el("div", "sv-cert-title", "REPAIR PLAN"));
-  const runAllBtn = el("button", "sv-btn sv-btn-primary", "Run All") as HTMLButtonElement;
+  const runAllBtn = el("button", "sv-btn sv-btn-primary", BTN.runAll) as HTMLButtonElement;
   head.appendChild(runAllBtn);
   panel.appendChild(head);
 
@@ -175,11 +224,27 @@ export function mountRepairPanel(parent: HTMLElement, opts: RepairPanelOptions):
   const planList = el("div", "sv-plan-list");
   panel.appendChild(planList);
 
-  // ---- live log
-  const logTitle = el("div", "sv-section-title", "LIVE LOG");
-  panel.appendChild(logTitle);
+  // ---- live log behind a collapsed "Show the work" expander
+  const logHead = el("button", "sv-collapse-head sv-loghead") as HTMLButtonElement;
+  const logChev = el("span", "sv-collapse-chev", "▸");
+  logHead.appendChild(logChev);
+  logHead.appendChild(el("span", "sv-collapse-title", SHOW_THE_WORK));
+  panel.appendChild(logHead);
   const logArea = el("div", "sv-log");
   panel.appendChild(logArea);
+
+  let logOpen = false;
+  function expandLog(on: boolean): void {
+    logOpen = on;
+    logArea.style.display = on ? "" : "none";
+    logChev.textContent = on ? "▾" : "▸";
+    if (on) logArea.scrollTop = logArea.scrollHeight;
+  }
+  expandLog(false);
+  logHead.addEventListener("click", () => {
+    logHead.blur();
+    expandLog(!logOpen);
+  });
 
   let views: StepView[] = [];
   let busy = false;
@@ -193,7 +258,12 @@ export function mountRepairPanel(parent: HTMLElement, opts: RepairPanelOptions):
     const ts = `${String(t.getHours()).padStart(2, "0")}:${String(t.getMinutes()).padStart(2, "0")}:${String(t.getSeconds()).padStart(2, "0")}`;
     const row = el("div", `sv-log-line sv-log-${kind}`);
     row.appendChild(el("span", "sv-log-ts", ts));
-    row.appendChild(el("span", "sv-log-text", line));
+    const human = humanizeLogLine(line);
+    row.appendChild(el("span", "sv-log-text", human ?? line));
+    // dev mode: the raw machine line in dim text underneath
+    if (human !== undefined && human !== line) {
+      row.appendChild(el("span", "sv-log-raw sv-raw sv-raw-block", line));
+    }
     logArea.appendChild(row);
     logArea.scrollTop = logArea.scrollHeight;
   }
@@ -204,21 +274,23 @@ export function mountRepairPanel(parent: HTMLElement, opts: RepairPanelOptions):
 
   function showCaughtBanner(rec: RecertifyResult): void {
     banner?.remove();
+    const copy = caughtBanner(rec.newDefects);
     banner = el("div", "sv-adapt-banner");
-    banner.appendChild(el("div", "sv-adapt-title", "CERTIFIER CAUGHT THE REPAIR"));
-    for (const d of rec.newDefects) {
-      banner.appendChild(
-        el(
-          "div",
-          "sv-adapt-defect",
-          `NEW ${d.severity} ${d.type.replace(/_/g, " ")}: ${d.description ?? d.id}`,
-        ),
-      );
+    banner.appendChild(el("div", "sv-adapt-title", copy.title));
+    for (let i = 0; i < copy.lines.length; i++) {
+      const line = el("div", "sv-adapt-defect", copy.lines[i]);
+      const d = rec.newDefects[i];
+      if (d) {
+        line.title = `${d.id} · ${d.type}`;
+        line.appendChild(
+          el("span", "sv-raw sv-raw-block", `NEW ${d.severity} ${d.type}: ${d.description ?? d.id}`),
+        );
+      }
+      banner.appendChild(line);
     }
-    banner.appendChild(
-      el("div", "sv-adapt-note", "repaired is never invisible to this instrument"),
-    );
+    banner.appendChild(el("div", "sv-adapt-note", copy.footnote));
     bannerSlot.replaceChildren(banner);
+    opts.onCaught?.(rec.newDefects);
   }
 
   function resolveBanner(text: string): void {
@@ -229,15 +301,40 @@ export function mountRepairPanel(parent: HTMLElement, opts: RepairPanelOptions):
 
   // ----------------------------------------------------------- step state
 
+  function refreshRawFooter(view: StepView): void {
+    const bits: string[] = [];
+    if (view.step.rawLabel) bits.push(view.step.rawLabel);
+    if (view.step.defectIds.length > 0) {
+      bits.push(
+        `defects: ${view.step.defectIds.slice(0, 6).join(", ")}${view.step.defectIds.length > 6 ? ` +${view.step.defectIds.length - 6} more` : ""}`,
+      );
+    }
+    if (view.actionId) bits.push(`action: ${view.actionId}`);
+    view.rawFooter.textContent = bits.join(" · ");
+  }
+
   function setStatus(view: StepView, status: StepStatus): void {
     view.status = status;
-    view.statusChip.textContent = status.toUpperCase();
+    view.statusChip.textContent = statusChipLabel(status);
     view.statusChip.className = `sv-step-status sv-step-${status}`;
+    view.statusChip.title = status.toUpperCase();
     view.row.classList.toggle("sv-step-row-running", status === "running");
     view.row.classList.toggle("sv-step-row-caught", status === "caught");
     view.execBtn.disabled = status === "running" || status === "done";
     view.revertBtn.style.display =
       view.actionId && (status === "done" || status === "caught") ? "" : "none";
+    refreshRawFooter(view);
+  }
+
+  /** Timed sub-row on the card — the inline fail-and-adapt drama. */
+  function addSubRow(view: StepView, text: string, kind: "info" | "ok" | "warn" = "info"): void {
+    const row = el("div", `sv-card-sub sv-card-sub-${kind}`, text);
+    view.subRows.appendChild(row);
+    view.row.classList.add("sv-card-adapting");
+  }
+
+  function clearAdapting(view: StepView): void {
+    view.row.classList.remove("sv-card-adapting");
   }
 
   // -------------------------------------------------------------- execute
@@ -311,6 +408,7 @@ export function mountRepairPanel(parent: HTMLElement, opts: RepairPanelOptions):
 
     // ---------------- the fail-and-adapt moment: render it LOUD ----------
     showCaughtBanner(rec);
+    expandLog(true); // "Show the work" auto-expands during the drama
     log(
       `CERTIFIER CAUGHT THE REPAIR — ${rec.newDefects.length} new defect${rec.newDefects.length === 1 ? "" : "s"} created by the repair itself`,
       "loud",
@@ -324,6 +422,7 @@ export function mountRepairPanel(parent: HTMLElement, opts: RepairPanelOptions):
     }
 
     // revert the offending action, retry with mesh_fill
+    addSubRow(view, SUBROW.reverting, "warn");
     log(`reverting action ${res.actionId} …`, "warn");
     try {
       const rev = await opts.driver.revert(res.actionId as string);
@@ -334,6 +433,7 @@ export function mountRepairPanel(parent: HTMLElement, opts: RepairPanelOptions):
       setStatus(view, "caught");
       return "caught";
     }
+    addSubRow(view, SUBROW.retrying);
     log("retrying with mesh_fill (conforming watertight fill) …");
 
     const retryStep: RepairStep = { ...view.step, method: "mesh_fill" };
@@ -350,13 +450,17 @@ export function mountRepairPanel(parent: HTMLElement, opts: RepairPanelOptions):
     if (res2.ok && res2.recertify && res2.recertify.newDefects.length === 0) {
       reportRecertify(res2.recertify);
       log("mesh_fill holds — the certifier caught our own repair, and the retry passed", "ok");
-      resolveBanner("→ adapted: revert + mesh_fill — repair holds");
+      addSubRow(view, SUBROW.retryHolds, "ok");
+      resolveBanner(SUBROW.retryHolds);
       view.step.method = "mesh_fill";
-      view.execBtn.textContent = "Execute";
+      view.execBtn.textContent = BTN.run;
       setStatus(view, "done");
+      clearAdapting(view);
+      expandLog(false); // the drama is over — re-collapse the raw log
       return "done";
     }
     if (res2.recertify) reportRecertify(res2.recertify);
+    addSubRow(view, SUBROW.bothFailed, "warn");
     log(
       "mesh_fill did not pass recertify either — 2 failed repair attempts: quarantine per policy",
       "warn",
@@ -385,8 +489,10 @@ export function mountRepairPanel(parent: HTMLElement, opts: RepairPanelOptions):
     const qStep: RepairStep = {
       id: `${view.step.id}-quarantine`,
       kind: "quarantine",
-      label: `Quarantine ${view.step.defectIds.join(", ")} (after 2 failed repairs)`,
-      detail: "fitted_slab and mesh_fill both failed regional recertify",
+      label: "Rope off the area (after 2 failed repairs)",
+      detail: "Two repair methods failed inspection — the region is excluded instead.",
+      rawLabel: `Quarantine ${view.step.defectIds.join(", ")} (after 2 failed repairs)`,
+      rawDetail: "fitted_slab and mesh_fill both failed regional recertify",
       defectIds: view.step.defectIds,
       reason:
         "2 failed repair attempts (fitted_slab, mesh_fill) — region excluded from the navigable area per policy",
@@ -406,9 +512,12 @@ export function mountRepairPanel(parent: HTMLElement, opts: RepairPanelOptions):
       return "caught";
     }
     view.actionId = res.actionId ?? view.actionId;
-    log("region quarantined — no training episode touches the lie", "ok");
-    resolveBanner("→ adapted: revert ×2 + quarantine — the region is excluded, honestly");
+    log("region quarantined — no training episode touches the divergent region", "ok");
+    addSubRow(view, SUBROW.quarantined, "ok");
+    resolveBanner(SUBROW.quarantined);
     setStatus(view, "done");
+    clearAdapting(view);
+    expandLog(false); // the drama is over — re-collapse the raw log
     return "done";
   }
 
@@ -433,34 +542,36 @@ export function mountRepairPanel(parent: HTMLElement, opts: RepairPanelOptions):
   function renderPlan(steps: RepairStep[]): void {
     planList.replaceChildren();
     views = steps.map((step) => {
-      const row = el("div", "sv-step-row");
+      const row = el("div", "sv-card");
 
       const top = el("div", "sv-step-top");
-      const statusChip = el("span", "sv-step-status sv-step-pending", "PENDING");
+      const statusChip = el("span", "sv-step-status sv-step-pending", statusChipLabel("pending"));
+      statusChip.title = "PENDING";
       top.appendChild(statusChip);
-      top.appendChild(el("span", "sv-step-label", step.label));
+      const title = el("span", "sv-step-label", step.label);
+      if (step.rawLabel) title.title = step.rawLabel;
+      top.appendChild(title);
 
-      const execBtn = el("button", "sv-btn", "Execute") as HTMLButtonElement;
-      const revertBtn = el("button", "sv-btn sv-btn-danger", "Revert") as HTMLButtonElement;
+      const execBtn = el("button", "sv-btn", BTN.run) as HTMLButtonElement;
+      const revertBtn = el("button", "sv-btn sv-btn-danger", BTN.undo) as HTMLButtonElement;
       revertBtn.style.display = "none";
       top.appendChild(execBtn);
       top.appendChild(revertBtn);
       row.appendChild(top);
 
-      row.appendChild(el("div", "sv-step-detail", step.detail));
-      if (step.defectIds.length > 0) {
-        row.appendChild(
-          el(
-            "div",
-            "sv-step-defects",
-            `defects: ${step.defectIds.slice(0, 6).join(", ")}${step.defectIds.length > 6 ? ` +${step.defectIds.length - 6} more` : ""}`,
-          ),
-        );
-      }
+      row.appendChild(el("div", "sv-card-body", step.detail));
+
+      const subRows = el("div", "sv-card-subs");
+      row.appendChild(subRows);
+
+      const rawFooter = el("div", "sv-step-defects sv-raw sv-raw-block");
+      row.appendChild(rawFooter);
       planList.appendChild(row);
 
-      const view: StepView = { step, status: "pending", row, statusChip, execBtn, revertBtn };
+      const view: StepView = { step, status: "pending", row, statusChip, subRows, rawFooter, execBtn, revertBtn };
+      refreshRawFooter(view);
       execBtn.addEventListener("click", () => {
+        execBtn.blur();
         if (busy) return;
         busy = true;
         void executeStep(view)
@@ -471,7 +582,10 @@ export function mountRepairPanel(parent: HTMLElement, opts: RepairPanelOptions):
             busy = false;
           });
       });
-      revertBtn.addEventListener("click", () => void revertStep(view));
+      revertBtn.addEventListener("click", () => {
+        revertBtn.blur();
+        void revertStep(view);
+      });
       return view;
     });
 
@@ -480,7 +594,7 @@ export function mountRepairPanel(parent: HTMLElement, opts: RepairPanelOptions):
     }
   }
 
-  runAllBtn.addEventListener("click", () => {
+  function runAll(): void {
     if (busy) return;
     busy = true;
     runAllBtn.disabled = true;
@@ -515,19 +629,27 @@ export function mountRepairPanel(parent: HTMLElement, opts: RepairPanelOptions):
         // is one click; the countdown clock can't tell and neither can anyone.
         handleReplan();
         log("continuing Run All on the rebuilt plan…");
-        setTimeout(() => runAllBtn.click(), 30);
+        setTimeout(() => runAll(), 30);
       } else if (completed) {
         opts.onRunAllComplete?.();
       }
     })();
+  }
+
+  runAllBtn.addEventListener("click", () => {
+    runAllBtn.blur();
+    runAll();
   });
 
   return {
     el: panel,
     setPlan(cert: CertificateSummary): void {
+      lastCert = cert;
       renderPlan(proposePlan(cert));
     },
     log,
+    runAll,
+    expandLog,
     destroy: () => panel.remove(),
   };
 }

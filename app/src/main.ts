@@ -5,7 +5,7 @@
  *   load bundle (?world=/marble/<id>) → spawn the certify worker (the REAL
  *   headless certify/repair core in the browser) → progress overlay while the
  *   survey runs → trust map paints as instanced quads at floor height
- *   (green verified / yellow observed / red lying / dark unknown) →
+ *   (green confirmed / yellow observed / red divergent / dark unknown) →
  *   certificate + repair panels mount in the right sidebar → Run All drives
  *   the repair plan through the worker engine (fail-and-adapt rendered LOUD)
  *   → when every defect has an outcome: final full recertify, navmesh spawns
@@ -14,7 +14,13 @@
  * Also still renders the original Gate-A layers: splat/point visuals,
  * collider wireframe, 2000-ball Rapier probe rain in its own worker.
  *
- * Keys: [W] wireframe  [T] trust map  [P] patrol  [B] defect boxes  [F] flip splats
+ * The UI is staged as the five-beat story (docs/ui-redesign-spec.md): a
+ * bottom-center stepper drives Meet → Survey → Certificate → Repair →
+ * Certified; the survey starts when Beat 2 is entered (not at boot) so the
+ * trust-map paint is always witnessed.
+ *
+ * Keys: [1-5]/[→←]/[Space] five-beat stepper  [D] dev overlay
+ *       [W] wireframe  [T] trust map  [P] patrol  [B] defect boxes  [F] flip splats  [I] camera
  */
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
@@ -28,7 +34,7 @@ import {
   type Certificate,
 } from "./bundle";
 import type { InitMsg, WorkerToMain } from "./protocol";
-import { CertifyWorkerClient, type CertifyPhase, type SpawnPoint } from "./workerClient";
+import { CertifyWorkerClient, type SpawnPoint } from "./workerClient";
 import { mountCertificatePanel } from "./ui/certificatePanel";
 import { mountRepairPanel } from "./ui/repairPanel";
 import type {
@@ -41,6 +47,20 @@ import type {
 } from "./ui/protocol";
 import { startPatrol, type Aabb as PatrolAabb, type PatrolHandle } from "./patrol";
 import { TrustLayer } from "./trustLayer";
+import { mountStepper, type Beat } from "./ui/stepper";
+import { showGradeReveal, skipGradeReveal } from "./ui/gradeReveal";
+import {
+  beforeAfterSummary,
+  BTN,
+  gradeStory,
+  HINT,
+  INTRO,
+  MODEL_CLASS_DISCLOSURE,
+  NARRATE,
+  phaseLine,
+  TRUST_LEGEND,
+} from "./ui/humanize";
+import type { TrustMapPayload } from "./workerClient";
 
 const PROBE_COUNT = 2000;
 const PROBE_RADIUS = 0.04;
@@ -138,53 +158,38 @@ function renderHud(): void {
     `collider ${hud.triangles.toLocaleString()} tris   probes ${hud.probes}\n` +
     `grade    ${hud.grade}   open defects ${hud.defects}\n` +
     `${hud.status}\n` +
-    `[W] wireframe  [T] trust map  [P] patrol  [B] defect boxes  [F] flip splats`;
+    `[1-5] beats  [Space] action  [→/←] step  [D] dev\n` +
+    `[W] wireframe  [T] trust  [P] patrol  [B] boxes  [F] flip  [I] camera`;
 }
 setInterval(renderHud, 250);
 
-// -------------------------------------------------------- survey overlay
+// ---------------------------------------------------------- dev mode (D)
+// One boolean, default OFF, persisted. Reveals the raw HUD and every .sv-raw
+// annotation (ids, seeds, actionIds, raw log lines, [low..high] format).
+// It never changes layout — toggling it live on stage is safe.
 
-const surveyOverlay = document.createElement("div");
-Object.assign(surveyOverlay.style, {
-  position: "fixed",
-  top: "10px",
-  left: "50%",
-  transform: "translateX(-50%)",
-  zIndex: "30",
-  font: "12px/1.5 ui-monospace, Consolas, monospace",
-  fontWeight: "700",
-  letterSpacing: "0.04em",
-  color: "#ffd60a",
-  background: "rgba(10, 13, 20, 0.9)",
-  border: "1px solid rgba(255, 214, 10, 0.45)",
-  borderRadius: "6px",
-  padding: "6px 14px",
-  display: "none",
-  pointerEvents: "none",
-  maxWidth: "44vw",
-  whiteSpace: "nowrap",
-  overflow: "hidden",
-  textOverflow: "ellipsis",
-} satisfies Partial<CSSStyleDeclaration>);
-document.body.appendChild(surveyOverlay);
+const DEV_KEY = "sv-dev";
+let devMode = false;
 
-function showSurveyOverlay(text: string): void {
-  surveyOverlay.textContent = `◐ ${text}`;
-  surveyOverlay.style.display = "block";
-}
-function hideSurveyOverlay(): void {
-  surveyOverlay.style.display = "none";
+function setDevMode(on: boolean): void {
+  devMode = on;
+  document.body.classList.toggle("sv-dev", on);
+  hudEl.style.display = on ? "block" : "none";
+  try {
+    localStorage.setItem(DEV_KEY, on ? "1" : "0");
+  } catch {
+    /* private mode — the toggle just won't persist */
+  }
+  if (on) repairPanel.expandLog(true); // dev: the raw log is always open
 }
 
-const PHASE_LABEL: Record<CertifyPhase, string> = {
-  "fetching-collider": "fetching collider.glb",
-  "parsing-collider": "parsing collider",
-  "fetching-visual-points": "fetching visual points",
-  "physics-init": "building physics world",
-  certifying: "SURVEY RUNNING",
-  recertifying: "RE-CERTIFYING",
-  ready: "ready",
-};
+/** Never steal keys from a focused control (spec §1.3 guard). */
+function isUiKeyTarget(e: KeyboardEvent): boolean {
+  const t = e.target as HTMLElement | null;
+  if (!t) return false;
+  const tag = t.tagName;
+  return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || tag === "BUTTON" || t.isContentEditable;
+}
 
 // ------------------------------------------------- certify worker + panels
 
@@ -200,7 +205,7 @@ Object.assign(sidebar.style, {
   right: "10px",
   bottom: "10px",
   width: "384px",
-  display: "flex",
+  display: "none", // hidden until Beat 3 — the grade reveal is its entrance
   flexDirection: "column",
   gap: "10px",
   zIndex: "20",
@@ -214,6 +219,12 @@ const repairPanel = mountRepairPanel(sidebar, {
   driver: makeRepairDriver(client),
   onCertificate: applyCertificate,
   onRunAllComplete: () => void sweepRemaining(),
+  onCaught: () => {
+    // fail-and-adapt: flash the new defect's box in the world and show the
+    // defect appear in the (auto-expanded) Defects section.
+    certificatePanel.expandSection("defects");
+    flashDefectBoxes(3000);
+  },
 });
 Object.assign(repairPanel.el.style, { flex: "1 1 45%", minHeight: "0", width: "100%" });
 repairPanel.log("waiting for survey…");
@@ -228,19 +239,29 @@ let viewerScale = 1;
 let scaleActionId: string | undefined;
 let colliderWireframe: THREE.Object3D | undefined;
 let splatObject: THREE.Object3D | undefined;
+// --- beat-flow state
+let bundleDir: string | undefined;
+let certStarted = false;
+let certDone = false;
+let introRevealed = false;
+let beforeGrade: string | undefined; // first live grade — the Beat-5 "before"
 
 client.onPhase = (phase, detail) => {
-  if (phase === "ready") {
-    hideSurveyOverlay();
-    return;
+  hud.status = phase === "ready" ? "ready" : `${phase.replace(/-/g, " ")}${detail ? ` — ${detail}` : ""}`;
+  // narrator: humanized phase lines while the survey (Beat 2) or a Beat-4
+  // recertify is running; other beats own their narration.
+  if (stepper.current === 2 && !certDone) {
+    narrateStanding(phaseLine(phase, PROBE_COUNT));
+  } else if (stepper.current === 4) {
+    if (phase === "recertifying") narrateStanding(phaseLine(phase, PROBE_COUNT));
+    else if (phase === "ready") narrateStanding("");
   }
-  const label = PHASE_LABEL[phase] ?? phase;
-  showSurveyOverlay(detail ? `${label} — ${detail}` : label);
-  hud.status = label.toLowerCase();
 };
 
 client.onTrustMap = (tm) => {
   trustLayer.paint(tm);
+  setTrustDim(stepper.current === 5); // repaint resets the material opacity
+  updateLegend(tm);
 };
 
 client.onDefects = (ev) => {
@@ -248,6 +269,301 @@ client.onDefects = (ev) => {
   hud.defects = ev.openDefectIds.length;
   updateLiveDefects(ev.defects);
 };
+
+// ----------------------------------------------------- beat 1: intro card
+
+const introCard = document.createElement("div");
+introCard.className = "sv-intro";
+const introWorld = document.createElement("div");
+introWorld.className = "sv-intro-world";
+introCard.appendChild(introWorld);
+const introLine = document.createElement("div");
+introLine.className = "sv-intro-line";
+introLine.innerHTML = INTRO.line1Html; // static copy from humanize — safe
+introCard.appendChild(introLine);
+const introBtn = document.createElement("button");
+introBtn.className = "sv-btn sv-btn-primary";
+introBtn.textContent = INTRO.btn1;
+introBtn.addEventListener("click", () => {
+  introBtn.blur();
+  onPrimaryBeat1();
+});
+introCard.appendChild(introBtn);
+document.body.appendChild(introCard);
+
+function onPrimaryBeat1(): void {
+  if (!introRevealed) {
+    introRevealed = true;
+    if (colliderWireframe) colliderWireframe.visible = true;
+    introLine.innerHTML = INTRO.line2Html;
+    introBtn.textContent = INTRO.btn2;
+    stepper.setPrimaryHint(HINT.startSurvey);
+  } else {
+    stepper.advance();
+  }
+}
+
+// -------------------------------------------------- beat 2: trust legend
+
+const legend = document.createElement("div");
+legend.className = "sv-legend";
+legend.style.display = "none";
+function legendChip(cls: string, label: string): HTMLElement {
+  const chip = document.createElement("div");
+  chip.className = `sv-legend-chip ${cls}`;
+  const dot = document.createElement("span");
+  dot.className = "sv-legend-dot";
+  chip.appendChild(dot);
+  const lab = document.createElement("span");
+  lab.textContent = label;
+  chip.appendChild(lab);
+  const count = document.createElement("span");
+  count.className = "sv-legend-count";
+  chip.appendChild(count);
+  legend.appendChild(chip);
+  return count;
+}
+const legendVerified = legendChip("sv-legend-verified", TRUST_LEGEND.verified);
+const legendObserved = legendChip("sv-legend-observed", TRUST_LEGEND.observed);
+const legendLying = legendChip("sv-legend-lying", TRUST_LEGEND.lying);
+document.body.appendChild(legend);
+
+function updateLegend(tm: TrustMapPayload): void {
+  let verified = 0;
+  let observed = 0;
+  let lying = 0;
+  for (const s of tm.states) {
+    if (s === "verified") verified += 1;
+    else if (s === "observed") observed += 1;
+    else if (s === "lying") lying += 1;
+  }
+  legendVerified.textContent = verified.toLocaleString();
+  legendObserved.textContent = observed.toLocaleString();
+  legendLying.textContent = lying.toLocaleString();
+}
+
+// ---------------------------------------- beat 5: before/after + export
+
+const beforeAfterCard = document.createElement("div");
+beforeAfterCard.className = "sv-beforeafter";
+beforeAfterCard.style.display = "none";
+Object.assign(beforeAfterCard.style, { width: "100%", flex: "none" } satisfies Partial<CSSStyleDeclaration>);
+sidebar.appendChild(beforeAfterCard);
+
+function buildBeforeAfterCard(): void {
+  beforeAfterCard.replaceChildren();
+  if (!latestCert) return;
+  const after = latestCert.grade;
+  const before = beforeGrade ?? after;
+
+  const grades = document.createElement("div");
+  grades.className = "sv-beforeafter-grades";
+  const b = document.createElement("span");
+  b.className = `sv-beforeafter-letter sv-grade-${before}`;
+  b.textContent = before;
+  grades.appendChild(b);
+  const arrow = document.createElement("span");
+  arrow.className = "sv-beforeafter-arrow";
+  arrow.textContent = "→";
+  grades.appendChild(arrow);
+  const a = document.createElement("span");
+  a.className = `sv-beforeafter-letter sv-grade-${after}`;
+  a.textContent = after;
+  grades.appendChild(a);
+  beforeAfterCard.appendChild(grades);
+
+  const sub = document.createElement("div");
+  sub.className = "sv-beforeafter-sub";
+  for (const t of ["before", "after"]) {
+    const s = document.createElement("span");
+    s.textContent = t;
+    sub.appendChild(s);
+  }
+  beforeAfterCard.appendChild(sub);
+
+  const summary = beforeAfterSummary(latestCert);
+  const found = document.createElement("div");
+  found.className = "sv-beforeafter-found";
+  found.textContent = summary.found;
+  beforeAfterCard.appendChild(found);
+  if (summary.breakdown) {
+    const breakdown = document.createElement("div");
+    breakdown.className = "sv-beforeafter-breakdown";
+    breakdown.textContent = summary.breakdown;
+    beforeAfterCard.appendChild(breakdown);
+  }
+
+  const disclosure = document.createElement("div");
+  disclosure.className = "sv-beforeafter-disclosure";
+  disclosure.textContent = MODEL_CLASS_DISCLOSURE;
+  beforeAfterCard.appendChild(disclosure);
+
+  const buttons = document.createElement("div");
+  buttons.className = "sv-beforeafter-buttons";
+  const exportBtn = document.createElement("button");
+  exportBtn.className = "sv-btn sv-btn-primary";
+  exportBtn.textContent = BTN.export;
+  exportBtn.addEventListener("click", () => {
+    exportBtn.blur();
+    downloadCertificate();
+  });
+  buttons.appendChild(exportBtn);
+  beforeAfterCard.appendChild(buttons);
+}
+
+function downloadCertificate(): void {
+  if (!latestCert) return;
+  const blob = new Blob([JSON.stringify(latestCert, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `certificate-${latestCert.worldId}.json`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+// -------------------------------------------------- narrator + trust force
+
+let standingNarration = "";
+/** The line the narrator returns to after a flash. */
+function narrateStanding(text: string): void {
+  standingNarration = text;
+  stepper.narrate(text);
+}
+let narrateFlashTimer: number | undefined;
+/** 1.5s narrator flash (e.g. a refused forward jump), then restore. */
+function flashNarrate(text: string): void {
+  stepper.narrate(text);
+  clearTimeout(narrateFlashTimer);
+  narrateFlashTimer = window.setTimeout(() => stepper.narrate(standingNarration), 1500);
+}
+
+function setTrustVisible(on: boolean): void {
+  if (trustLayer.visible !== on) trustLayer.toggle();
+}
+
+/** Beat 5 dims the trust map so the rover reads; repaints re-apply it. */
+function setTrustDim(dim: boolean): void {
+  const mesh = scene.getObjectByName("trust-map") as THREE.Mesh | undefined;
+  if (!mesh) return;
+  (mesh.material as THREE.MeshBasicMaterial).opacity = dim ? 0.17 : 0.42;
+}
+
+function ensureCertificationStarted(): void {
+  if (certStarted || !bundleDir) return;
+  certStarted = true;
+  void startCertification(bundleDir);
+}
+
+// ------------------------------------------------------------ the stepper
+
+const stepper = mountStepper(document.body, {
+  canEnter(beat) {
+    if (beat <= 2) return true;
+    if (beat <= 4) {
+      if (!certDone) {
+        flashNarrate(NARRATE.stillSurveying);
+        return false;
+      }
+      return true;
+    }
+    if (!finalized) {
+      flashNarrate(NARRATE.finishRepairsFirst);
+      return false;
+    }
+    return true;
+  },
+  onPrimary(beat) {
+    switch (beat) {
+      case 1:
+        onPrimaryBeat1();
+        break;
+      case 2:
+        if (certDone) stepper.advance();
+        else flashNarrate(NARRATE.stillSurveying);
+        break;
+      case 3:
+        if (!skipGradeReveal()) stepper.advance();
+        break;
+      case 4:
+        if (finalized) stepper.advance();
+        else repairPanel.runAll();
+        break;
+      case 5:
+        togglePatrol();
+        break;
+    }
+  },
+  onEnter(beat, from) {
+    applyBeat(beat, from);
+  },
+});
+
+/** Visibility matrix per beat (spec §3.1). Called on every beat change. */
+function applyBeat(beat: Beat, from: Beat): void {
+  introCard.style.display = beat === 1 ? "" : "none";
+  legend.style.display = beat === 2 ? "" : "none";
+  sidebar.style.display = beat >= 3 ? "flex" : "none";
+  repairPanel.el.style.display = beat === 4 ? "" : "none";
+  beforeAfterCard.style.display = beat === 5 ? "" : "none";
+  certificatePanel.setCompact(beat >= 4);
+
+  // trust map per beat; the T key stays a free toggle within a beat
+  setTrustVisible(beat !== 1);
+  setTrustDim(beat === 5);
+
+  switch (beat) {
+    case 1:
+      narrateStanding("");
+      stepper.setPrimaryHint(introRevealed ? HINT.startSurvey : HINT.revealPhysics);
+      break;
+    case 2:
+      ensureCertificationStarted();
+      if (certDone) {
+        narrateStanding(NARRATE.surveyDone);
+        stepper.setPrimaryHint(HINT.seeCertificate);
+        stepper.armAdvance(true);
+      } else {
+        narrateStanding(phaseLine("certifying", PROBE_COUNT));
+        stepper.setPrimaryHint("");
+      }
+      break;
+    case 3:
+      narrateStanding("");
+      stepper.setPrimaryHint(HINT.proposeRepairs);
+      if (from < 3 && latestCert) {
+        // the sidebar appears when the grade letter flies into it
+        sidebar.style.display = "none";
+        void showGradeReveal(latestCert.grade, gradeStory(latestCert.grade)).then(() => {
+          if (stepper.current >= 3) sidebar.style.display = "flex";
+        });
+      }
+      break;
+    case 4:
+      narrateStanding("");
+      if (finalized) {
+        stepper.setPrimaryHint(HINT.seeVerdict);
+        stepper.armAdvance(true);
+      } else {
+        stepper.setPrimaryHint(HINT.runPlan);
+      }
+      break;
+    case 5:
+      buildBeforeAfterCard();
+      narrateStanding(NARRATE.patrol);
+      stepper.setPrimaryHint(HINT.patrol);
+      if (!patrolHandle && spawnsCache) beginPatrol();
+      break;
+  }
+}
+
+// boot: Beat 1's visibility, then restore the persisted dev toggle
+applyBeat(1, 1);
+try {
+  if (localStorage.getItem(DEV_KEY) === "1") setDevMode(true);
+} catch {
+  /* no persistence available */
+}
 
 // ------------------------------------------------------ certificate apply
 
@@ -370,10 +686,24 @@ function updateLiveDefects(defects: DefectSummary[]): void {
   liveDefectGroup = group;
 }
 
+function setDefectBoxes(on: boolean): void {
+  defectBoxesVisible = on;
+  if (staticDefectGroup) staticDefectGroup.visible = on;
+  if (liveDefectGroup) liveDefectGroup.visible = on;
+}
+
 function toggleDefectBoxes(): void {
-  defectBoxesVisible = !defectBoxesVisible;
-  if (staticDefectGroup) staticDefectGroup.visible = defectBoxesVisible;
-  if (liveDefectGroup) liveDefectGroup.visible = defectBoxesVisible;
+  setDefectBoxes(!defectBoxesVisible);
+}
+
+let defectFlashTimer: number | undefined;
+
+/** Fail-and-adapt: force the boxes on for a beat so the new defect reads. */
+function flashDefectBoxes(ms: number): void {
+  if (defectBoxesVisible) return; // the user already has them on — leave them
+  setDefectBoxes(true);
+  clearTimeout(defectFlashTimer);
+  defectFlashTimer = window.setTimeout(() => setDefectBoxes(false), ms);
 }
 
 // -------------------------------------------------------------- rescaling
@@ -455,7 +785,7 @@ function makeRepairDriver(c: CertifyWorkerClient): RepairDriver {
           actionIds = r.actionIds;
           actionId = r.actionIds[r.actionIds.length - 1];
           log.push(
-            `quarantined ${r.defectIds.length} region(s) — excluded from the navigable area; no training episode touches the lie`,
+            `quarantined ${r.defectIds.length} region(s) — excluded from the navigable area; no training episode touches the divergent region`,
           );
           break;
         }
@@ -553,6 +883,7 @@ const MAX_FINALIZE_PASSES = 3;
 
 async function finalizeAndPatrol(): Promise<void> {
   try {
+    if (stepper.current === 4) narrateStanding(NARRATE.resolving);
     repairPanel.log("all defects have outcomes — final FULL recertify to grade the repaired world…");
     const rec = await client.recertify("full");
     await refreshFloorY();
@@ -581,6 +912,11 @@ async function finalizeAndPatrol(): Promise<void> {
     spawnsCache = sp.spawns;
     repairPanel.log(`navmesh + spawns rebuilt: ${sp.spawns.length} verified spawn points`, "ok");
     beginPatrol();
+    if (stepper.current === 4) {
+      narrateStanding(NARRATE.recertified);
+      stepper.setPrimaryHint(HINT.seeVerdict);
+      stepper.armAdvance(true);
+    }
   } catch (err) {
     repairPanel.log(`finalize failed: ${err instanceof Error ? err.message : String(err)}`, "warn");
     finalized = false;
@@ -610,6 +946,7 @@ function beginPatrol(): void {
     showLabel: false, // sidebar owns the bottom-right corner; HUD carries the honesty line
   });
   hud.status = "rover patrol: navmesh waypoint-following (not a learned policy)";
+  if (stepper.current === 5) narrateStanding(NARRATE.patrol);
   repairPanel.log(
     `rover patrol started — ${patrolHandle.waypoints.length} waypoints, over patches, around ${quarantine.length} quarantined region(s) [P toggles]`,
     "ok",
@@ -624,6 +961,7 @@ async function startCertification(dir: string): Promise<void> {
     const res = await client.initBundle(dir, { seed: CERTIFY_SEED, probeCount: PROBE_COUNT });
     const cert: CertificateSummary = res.certificate;
     applyCertificate(cert);
+    if (beforeGrade === undefined) beforeGrade = cert.grade; // the Beat-5 "before"
     repairPanel.setPlan(cert);
     const open = cert.defects.filter(isOpenDefect).length;
     repairPanel.log(
@@ -633,11 +971,17 @@ async function startCertification(dir: string): Promise<void> {
     if (open > 0) repairPanel.log("review the proposed plan below, then Run All (or execute step by step)");
     await refreshFloorY();
     hud.status = "survey complete — certificate panel is live";
+    certDone = true;
+    if (stepper.current === 2) {
+      narrateStanding(NARRATE.surveyDone);
+      stepper.setPrimaryHint(HINT.seeCertificate);
+      stepper.armAdvance(true);
+    }
     maybeFinalize(cert);
   } catch (err) {
-    hideSurveyOverlay();
     const msg = err instanceof Error ? err.message : String(err);
     hud.status = `certification failed: ${msg}`;
+    narrateStanding(NARRATE.surveyFailed);
     repairPanel.log(`certification failed: ${msg}`, "warn");
   }
 }
@@ -780,11 +1124,38 @@ function startPhysics(soup: TriSoup): void {
 }
 
 // ------------------------------------------------------------------- keys
+// W/T/P/B/F/I are unchanged; the stepper owns →/←/N/1-5/Space/Enter; D is
+// the dev overlay. All handlers ignore events aimed at focused controls.
+
+function togglePatrol(): void {
+  if (patrolHandle) {
+    patrolHandle.stop();
+    patrolHandle = undefined;
+    hud.status = "patrol stopped";
+    if (stepper.current === 5) narrateStanding(NARRATE.patrolStopped);
+  } else if (spawnsCache) {
+    beginPatrol();
+  } else {
+    hud.status = "building navmesh spawns for patrol…";
+    client
+      .rebuildSpawns()
+      .then((sp) => {
+        spawnsCache = sp.spawns;
+        beginPatrol();
+      })
+      .catch((err: unknown) => {
+        hud.status = `spawns failed: ${err instanceof Error ? err.message : String(err)}`;
+      });
+  }
+}
 
 addEventListener("keydown", (e) => {
+  if (isUiKeyTarget(e)) return;
   const k = e.key.toLowerCase();
   if (k === "w") {
     if (colliderWireframe) colliderWireframe.visible = !colliderWireframe.visible;
+  } else if (k === "d") {
+    setDevMode(!devMode);
   } else if (k === "b") {
     toggleDefectBoxes();
   } else if (k === "f") {
@@ -795,24 +1166,7 @@ addEventListener("keydown", (e) => {
     const on = trustLayer.toggle();
     hud.status = `trust map ${on ? "on" : "off"}${trustLayer.painted ? "" : " (paints when the survey streams states)"}`;
   } else if (k === "p") {
-    if (patrolHandle) {
-      patrolHandle.stop();
-      patrolHandle = undefined;
-      hud.status = "patrol stopped";
-    } else if (spawnsCache) {
-      beginPatrol();
-    } else {
-      hud.status = "building navmesh spawns for patrol…";
-      client
-        .rebuildSpawns()
-        .then((sp) => {
-          spawnsCache = sp.spawns;
-          beginPatrol();
-        })
-        .catch((err: unknown) => {
-          hud.status = `spawns failed: ${err instanceof Error ? err.message : String(err)}`;
-        });
-    }
+    togglePatrol();
   }
 });
 
@@ -848,10 +1202,12 @@ async function loadSplats(dir: string): Promise<THREE.Object3D | undefined> {
 
 async function main(): Promise<void> {
   const dir = resolveBundleDir();
+  bundleDir = dir; // Beat 2 owns startCertification(dir)
   hud.worldId = dir.split("/").pop() ?? dir;
 
   const [metadata, certificate] = await Promise.all([fetchMetadata(dir), fetchCertificate(dir)]);
   if (metadata?.worldId) hud.worldId = metadata.worldId.slice(0, 8);
+  introWorld.textContent = hud.worldId;
 
   // --- collider ---
   try {
@@ -869,7 +1225,9 @@ async function main(): Promise<void> {
       new THREE.MeshBasicMaterial({ color: 0x3bd6c6, wireframe: true, transparent: true, opacity: 0.35 }),
     );
     wireframe.name = "collider-wireframe";
-    wireframe.visible = false; // pretty world first — W is the Beat-1 reveal
+    // pretty world first — the Beat-1 "Reveal the physics" (or W) shows it;
+    // honor a reveal that happened while the collider was still loading
+    wireframe.visible = introRevealed;
     worldGroup.add(wireframe);
     colliderWireframe = wireframe;
 
@@ -919,6 +1277,7 @@ async function main(): Promise<void> {
     camera.updateProjectionMatrix();
     let insideView = true;
     addEventListener("keydown", (e) => {
+      if (isUiKeyTarget(e)) return;
       if (e.key.toLowerCase() !== "i") return;
       insideView = !insideView;
       camera.position.copy(insideView ? inside : orbit);
@@ -1010,19 +1369,18 @@ async function main(): Promise<void> {
       grid.position.y = floor.value;
       worldGroup.add(grid);
     }
-    // Show the shipped certificate immediately; the live survey replaces it.
-    if (certificate.grade && certificate.trust) {
-      certificatePanel.update(certificate as unknown as CertificateSummary);
-    }
+    // Keep the shipped certificate's data (grid, floor, static boxes) but do
+    // NOT feed the panel — the grade reveal is Beat 3's moment, and only the
+    // live survey's certificate (Beat 2) is ever displayed.
   } else {
     hud.grade = "no certificate.json";
     trustLayer.setFloorY(metadata?.groundPlaneY ?? 0);
   }
 
-  if (hud.status === "loading bundle…") hud.status = "bundle loaded — starting survey";
+  if (hud.status === "loading bundle…") hud.status = "bundle loaded — Beat 2 starts the survey";
 
-  // --- live certification in the certify worker (does not block the viewer) ---
-  void startCertification(dir);
+  // NOTE: the live certification no longer starts at boot — Beat 2's onEnter
+  // calls ensureCertificationStarted() so the trust-map paint is witnessed.
 }
 
 // ------------------------------------------------------------- render loop
