@@ -947,16 +947,29 @@ async function main(): Promise<void> {
     }
     const mode = counts.indexOf(Math.max(...counts));
     const y0 = yMin + (mode - 1) * binH, y1 = yMin + (mode + 2) * binH;
-    let cx = 0, cz = 0, gy = 0, n = 0;
+    // 2D density peak within the ground band: averages get pulled to the
+    // center of ring-shaped background shells (empty space); the argmax
+    // XZ cell is on the actual terrain by construction
+    const cellsXZ = new Map<string, { n: number; sx: number; sy: number; sz: number }>();
+    const CELL = 1.0;
     for (let i = 0; i < pointsForCam.length; i += 3) {
       const y = pointsForCam[i + 1];
       if (y < y0 || y > y1) continue;
-      cx += pointsForCam[i]; gy += y; cz += pointsForCam[i + 2]; n++;
+      const k = `${Math.floor(pointsForCam[i] / CELL)},${Math.floor(pointsForCam[i + 2] / CELL)}`;
+      let c = cellsXZ.get(k);
+      if (!c) { c = { n: 0, sx: 0, sy: 0, sz: 0 }; cellsXZ.set(k, c); }
+      c.n++; c.sx += pointsForCam[i]; c.sy += y; c.sz += pointsForCam[i + 2];
     }
-    if (n > 50) {
-      cx /= n; gy /= n; cz /= n;
+    let best: { n: number; sx: number; sy: number; sz: number } | undefined;
+    for (const c of cellsXZ.values()) if (!best || c.n > best.n) best = c;
+    if (best && best.n > 30) {
+      const cx = best.sx / best.n, gy = best.sy / best.n, cz = best.sz / best.n;
       camera.position.set(cx, gy + 1.6, cz);
-      controls.target.set(cx + 3, gy + 1.2, cz);
+      // look toward the overall band mass so the view faces the content
+      let tx = 0, tz = 0, tn = 0;
+      for (const c of cellsXZ.values()) { tx += c.sx; tz += c.sz; tn += c.n; }
+      controls.target.set(tn > 0 ? tx / tn : cx + 3, gy + 1.2, tn > 0 ? tz / tn : cz);
+      if (camera.position.distanceTo(controls.target) < 1) controls.target.set(cx + 3, gy + 1.2, cz);
     }
   }
 
