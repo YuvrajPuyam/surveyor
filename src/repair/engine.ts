@@ -71,7 +71,7 @@ export class RepairEngine {
   private seq = 0;
   /** defect ledger: every defect ever seen, with its (eventual) outcome */
   private ledger = new Map<string, Defect>();
-  private quarantined: { region: Region; reason: string }[] = [];
+  private quarantined: { defectId: string; region: Region; reason: string }[] = [];
   private lastResult: CertifyResult | null = null;
   private spawns: SpawnPoint[] = [];
 
@@ -243,7 +243,7 @@ export class RepairEngine {
   quarantine(defectId: string, reason: string): { actionId: string } {
     const defect = this.getDefect(defectId);
     const action = this.push("quarantine", { defectId, reason });
-    this.quarantined.push({ region: defect.region, reason });
+    this.quarantined.push({ defectId, region: defect.region, reason });
     defect.outcome = "quarantined";
     defect.outcomeNote = reason;
     return { actionId: action.actionId };
@@ -262,17 +262,26 @@ export class RepairEngine {
     const INF = 1e9;
     const dist = new Float64Array(rayGrid.size).fill(INF);
     for (let i = 0; i < rayGrid.size; i++) if (classes[i] !== 1) dist[i] = 0;
+    // chamfer with diagonal neighbors approximates Euclidean clearance to
+    // within ~8% (pure 4-neighbor passes compute city-block distance, which
+    // overestimates diagonal clearance by up to sqrt(2) and can spawn a
+    // wide robot overlapping a corner)
+    const DIAG = cell * Math.SQRT2;
     for (let r = 0; r < rayGrid.rows; r++)
       for (let c = 0; c < rayGrid.cols; c++) {
         const i = r * rayGrid.cols + c;
         if (c > 0) dist[i] = Math.min(dist[i], dist[i - 1] + cell);
         if (r > 0) dist[i] = Math.min(dist[i], dist[i - rayGrid.cols] + cell);
+        if (c > 0 && r > 0) dist[i] = Math.min(dist[i], dist[i - rayGrid.cols - 1] + DIAG);
+        if (c < rayGrid.cols - 1 && r > 0) dist[i] = Math.min(dist[i], dist[i - rayGrid.cols + 1] + DIAG);
       }
     for (let r = rayGrid.rows - 1; r >= 0; r--)
       for (let c = rayGrid.cols - 1; c >= 0; c--) {
         const i = r * rayGrid.cols + c;
         if (c < rayGrid.cols - 1) dist[i] = Math.min(dist[i], dist[i + 1] + cell);
         if (r < rayGrid.rows - 1) dist[i] = Math.min(dist[i], dist[i + rayGrid.cols] + cell);
+        if (c < rayGrid.cols - 1 && r < rayGrid.rows - 1) dist[i] = Math.min(dist[i], dist[i + rayGrid.cols + 1] + DIAG);
+        if (c > 0 && r < rayGrid.rows - 1) dist[i] = Math.min(dist[i], dist[i + rayGrid.cols - 1] + DIAG);
       }
 
     const inExcluded = (x: number, z: number): boolean => {
@@ -323,7 +332,7 @@ export class RepairEngine {
       }
       if (a.tool === "quarantine") {
         const args = a.args as { defectId: string };
-        this.quarantined = this.quarantined.filter((q) => q.region !== this.ledger.get(args.defectId)?.region);
+        this.quarantined = this.quarantined.filter((q) => q.defectId !== args.defectId);
         const d = this.ledger.get(args.defectId);
         if (d) {
           d.outcome = undefined;
