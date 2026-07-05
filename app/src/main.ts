@@ -860,7 +860,21 @@ async function main(): Promise<void> {
     const center = bb.getCenter(new THREE.Vector3());
     const size = bb.getSize(new THREE.Vector3());
     const radius = size.length() / 2 || 5;
-    const eyeY = bb.min.y + Math.min(1.6, size.y * 0.6); // eye height, clamped for dollhouse-scale worlds
+    // find the real walkable surface by raycasting down near the center —
+    // outdoor worlds carry background geometry far below the playable
+    // surface, so "AABB floor + eye height" can put the camera underground
+    const surfaceProbe = new THREE.Raycaster();
+    const surfaceHits: number[] = [];
+    for (const [fx, fz] of [[0.5, 0.5], [0.4, 0.5], [0.6, 0.5], [0.5, 0.4], [0.5, 0.6]] as const) {
+      const px = bb.min.x + size.x * fx;
+      const pz = bb.min.z + size.z * fz;
+      surfaceProbe.set(new THREE.Vector3(px, bb.max.y + 1, pz), new THREE.Vector3(0, -1, 0));
+      const hit = surfaceProbe.intersectObject(wireframe, false)[0];
+      if (hit) surfaceHits.push(hit.point.y);
+    }
+    surfaceHits.sort((a, b) => a - b);
+    const surfaceY = surfaceHits.length > 0 ? surfaceHits[Math.floor(surfaceHits.length / 2)] : bb.min.y;
+    const eyeY = surfaceY + Math.min(1.6, size.y * 0.6); // eye height above the REAL surface
     const longAxis = size.x >= size.z ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 0, 1);
     const inside = new THREE.Vector3(center.x, eyeY, center.z).addScaledVector(longAxis, -Math.max(size.x, size.z) * 0.25);
     const orbit = center.clone().add(new THREE.Vector3(radius * 0.9, radius * 0.7, radius * 0.9));
