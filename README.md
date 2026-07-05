@@ -4,60 +4,141 @@
 
 Generated worlds ship as two files that nobody checks against each other: a
 photoreal splat file and an invisible simplified physics shell. A floor can
-have a physics hole under perfect pixels; a door can be painted on. Robots
-train in these worlds anyway. Surveyor runs physical experiments inside a
-world — seeded probe rain, virtual LiDAR, divergence analysis — and produces a
-**certificate** (which parts are trustworthy, which are lying, with
-uncertainty ranges and methods lines under every number) and a **repaired
-copy** (scale applied, holes patched, lies quarantined, verified spawn
-points), graded per robot: the same 0.15 m sill fails a small rover and
-passes a quadruped.
+have a physics hole under perfect pixels; a door can be painted on (ghost
+geometry), and solid collision can exist where nothing is visible (phantom
+colliders). Robots train in these worlds anyway. Surveyor runs physical
+experiments inside a world — seeded probe rain, virtual LiDAR, divergence
+analysis — and produces a **certificate** (every region graded
+confirmed / observed / divergent, every number with an uncertainty range and
+a methods line) and a **repaired copy** (scale applied, holes patched,
+divergent regions quarantined, verified spawn points), graded per robot: the
+same 0.15 m sill fails a small rover and passes a quadruped.
 
 Named for NASA's 1966–68 Surveyor program, which landed on the Moon to
 certify the ground before Apollo risked humans on it.
 
-## Status
+Built for the **Worlds in Action** hackathon (SIGGRAPH 2026).
 
-Pre-event core library for the Worlds in Action hackathon (SIGGRAPH 2026).
-Headless-first: everything here runs in Node with no browser and no network.
+## Quickstart
 
-```
+Requires Node 20+ and git. The core library is headless-first: everything
+except the viewer runs in Node with no browser and no network.
+
+```bash
+git clone git@github.com:YuvrajPuyam/surveyor.git
+cd surveyor
 npm install
-npm test                 # 8 regression tests incl. byte-identical determinism
-npm run make:synthetic   # write the planted-defect validation worlds to assets/generated/
-npm run self-validate    # certifier vs its own test bench: precision/recall
-npm run certify -- assets/generated/syn-kitchen-sink --gravity mars
-npm run mcp              # MCP server over stdio (Claude Desktop front door)
+cd app && npm install && cd ..   # the browser viewer has its own deps
+
+cp .env.example .env             # then fill in MARBLE_API_KEY (ask in the team channel)
+
+npm test                         # 18 regression tests incl. byte-identical determinism — should be green
 ```
 
-Current self-validation on the 27-world bench (31 planted defects, including
-adversarial classes outside the certifier's taxonomy — frame mismatch, local
-mis-scale — and defects at the detection floor):
-**recall 96.8% (95% CI ≥ 85.6%), precision 100% (95% CI ≥ 90.5%)**, zero
-false positives on clean controls, one honest miss (local sub-region
-mis-scale — disclosed as a scope limitation). Confidence intervals are
-one-sided Clopper-Pearson and ship on the certificate itself.
+Then generate the synthetic validation worlds and run your first
+certification:
 
-Field-validated: the first real Marble world's vendor scale factor (1.624)
-was independently recovered by door-height metrology at 1.60 [1.44..1.76],
-and a subscription-billed headless agent episode repaired the world F → A
-with all 81 defect outcomes recorded (cassette in `traces/`).
+```bash
+npm run make:synthetic           # writes planted-defect worlds to assets/generated/
+npm run certify -- assets/generated/syn-kitchen-sink --gravity mars
+npm run self-validate            # certifier vs its own test bench: precision/recall
+```
+
+## Everyday commands
+
+| Command | What it does |
+|---|---|
+| `npm test` | Full regression suite (keep it green — determinism is a demo claim) |
+| `npm run certify -- <bundle-dir>` | Certify a world bundle, write `certificate.json` |
+| `npm run make:synthetic` | Regenerate the planted-defect validation worlds |
+| `npm run self-validate` | Precision/recall of the certifier against the 27-world bench |
+| `npm run marble -- <subcommand>` | Marble API CLI: generate / wait / get / download / list |
+| `npm run repair-agent` | Claude agent repair episode against a certified world |
+| `npm run mcp` | MCP server over stdio (Claude Desktop front door) |
+| `npm run wt -- add <branch>` | New git worktree, ready to run (see below) |
+| `cd app && npm run dev` | Browser viewer on port 5173 |
+
+## The browser viewer
+
+```bash
+cd app && npm run dev
+# then open http://localhost:5173/?world=/marble/<world-id>
+```
+
+Five-beat staged demo flow (stepper: Space/Enter/arrows/N/1–5). Keybinds:
+`W` wireframe, `B` defect boxes, `F` flip splats, `I` inside/orbit camera,
+`D` dev mode (raw machine strings; the default UI is the humanized layer).
+
+## Getting worlds
+
+Real Marble world bundles (`assets/marble/`) and generated synthetic worlds
+(`assets/generated/`) are **gitignored** — they're hundreds of MB. To get
+them:
+
+- **Synthetic bench**: `npm run make:synthetic` regenerates it exactly
+  (seeded, deterministic).
+- **Real Marble worlds**: ask a teammate for the bundle folders, or download
+  with `npm run marble -- download <world-id>` (needs `MARBLE_API_KEY`).
+  **Generating new worlds spends shared credits (~1,000 left) — always ask
+  before generating.**
+
+One repaired real-world sample (the habitat world: collider, visual points,
+certificate) is committed under `assets/exports/` for reference.
+
+## Working in parallel: git worktrees
+
+Multiple people (and multiple Claude sessions) can work on this repo at once
+without stepping on each other's checkouts. Instead of `git checkout`-ing
+branches in place, give each branch its own directory:
+
+```bash
+npm run wt -- add feat/my-feature      # new branch off main, in .worktrees/feat-my-feature
+npm run wt -- add fix/thing origin/xyz # base it on something else
+npm run wt -- list                     # what's checked out where
+npm run wt -- remove feat/my-feature   # done (branch is kept)
+```
+
+The helper (`scripts/worktree.mjs`) puts every worktree under `.worktrees/`
+(gitignored), copies your `.env` in, and runs `npm install` in both the root
+and `app/` so the checkout is immediately runnable. Plain `git worktree`
+commands work too — the helper is just the batteries-included path.
+
+Rules of the road:
+
+- One branch = one worktree = one task. PRs into `main`.
+- Never commit from two worktrees to the same branch simultaneously.
+- `main` stays green: `npm test` before you push.
 
 ## Architecture
 
 ```
 src/core       schemas (zod), PRNG, geometry, grids     — every number is a Measurement
-src/ingest     GLB collider IO, synthetic defect worlds, bundle format
+src/ingest     GLB collider IO, SPZ parser, Marble client, bundle format
 src/physics    Rapier wrapper (deterministic fixed timestep, WASM)
 src/certify    survey (probes + rays + divergence) → metrology → defects → trust map → verdicts → certificate
+src/repair     11 closed repair tools, operation stack, revert, regional recertify
+src/agent      agent tool schemas + SDK episode loop
+src/export     certificate → Isaac Lab training contract
 src/validation self-validation: planted defects vs detections, precision/recall
 src/trace      replay cassette (JSONL, content-addressed blobs, frozen clocks)
-agents/        Surveyor + Repair agent prompts, 9-tool closed repair menu
-mcp/           MCP stdio server: list_worlds / certify_world / get_certificate
-docs/          rules email, 28-hour contingency scope
+app/           browser viewer (Vite + three + Spark splats + Rapier worker)
+agents/        Surveyor + Repair agent prompts
+mcp/           MCP stdio servers: certify + stateful repair
+scripts/       CLI entry points (certify, self-validate, marble, repair-agent…)
+docs/          demo script, pipeline v2, review triage, contingency scope
+test/          18 tests incl. the fail-and-adapt hero loop
 ```
 
-Honesty invariants (enforced in code, not prose):
+Current self-validation on the 27-world bench (31 planted defects, including
+adversarial classes outside the certifier's taxonomy and defects at the
+detection floor): **recall 96.8% (95% CI ≥ 85.6%), precision 100% (95% CI ≥
+90.5%)**, zero false positives on clean controls, one honest disclosed miss.
+Field-validated: the first real Marble world's vendor scale factor (1.624)
+was independently recovered by door-height metrology at 1.60 [1.44..1.76],
+and a live agent episode repaired that world F → A with all 81 defect
+outcomes recorded (cassette in `traces/`).
+
+## Honesty invariants (enforced in code, not prose)
 
 - A probe fall-through only counts as a hole if an independent raycast at the
   same point also passes through — engine tunneling can never masquerade as a
@@ -69,6 +150,30 @@ Honesty invariants (enforced in code, not prose):
   Mars) and the certificate says which is which.
 - Every certificate ships with the self-validation appendix: the certifier's
   own precision/recall on worlds with planted defects.
+- Certificates are byte-identical for the same seed. Determinism is a demo
+  claim; keep it true.
+
+## Where to read next
+
+- **[HANDOFF.md](HANDOFF.md)** — the deep state-of-the-project brief: active
+  work, gotchas that cost hours (Rapier, Spark, Marble API), working
+  agreements. **Read §2 (vocabulary) and §8 (gotchas) before touching code.**
+- [PLAN.md](PLAN.md) — execution plan.
+- [docs/demo-five-beats.md](docs/demo-five-beats.md) — the demo script.
+- [docs/pipeline-v2.md](docs/pipeline-v2.md) — the Isaac Lab pipeline frame.
+
+Vocabulary note: display language is **confirmed / observed / divergent**,
+**ghost geometry**, **phantom colliders** — never "lying". Some internal
+schema field names still use the old terms; that rename is deferred
+deliberately (saved certificates parse against them) — don't "fix" them
+casually.
+
+## Secrets & spending
+
+- `.env` holds `MARBLE_API_KEY`. It is gitignored — never print it, never
+  commit it. Copy `.env.example` to get started.
+- Marble generation spends the team's shared credits. Agent repair episodes
+  bill a Claude subscription. **Ask before spending either.**
 
 ## Attribution
 

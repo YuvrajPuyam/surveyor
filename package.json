@@ -13,7 +13,8 @@
     "self-validate": "tsx scripts/self-validate.ts",
     "marble": "tsx scripts/marble.ts",
     "repair-agent": "tsx scripts/repair-agent.ts",
-    "mcp": "tsx mcp/server.ts"
+    "mcp": "tsx mcp/server.ts",
+    "wt": "node scripts/worktree.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.110.0",

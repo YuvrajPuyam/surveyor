@@ -5,7 +5,7 @@ Claude session/account. Everything session-local has been copied into the repo;
 nothing below depends on the old conversation existing.
 
 Last updated: 2026-07-05 evening. Event: "Worlds in Action" hackathon before
-SIGGRAPH 2026 (~Jul 18). Repo: `D:\worlds-in-action` (git, master).
+SIGGRAPH 2026 (~Jul 18). Repo: `D:\worlds-in-action` (git, main).
 
 ---
 
