@@ -417,6 +417,39 @@ export class RepairEngine {
     d.outcomeNote = note;
   }
 
+  // ------------------------------------------------------------- export
+
+  /**
+   * Export the corrected bundle: repaired collider, certificate with
+   * outcomes, verified spawns, quarantine zones, and the Isaac training
+   * contract (pipeline v2 Stage B). Refuses nothing but WARNS in the
+   * certificate itself if defects remain open.
+   */
+  async exportBundle(outDir: string): Promise<{ files: string[]; openDefects: number }> {
+    const { mkdirSync, writeFileSync } = await import("node:fs");
+    const { join } = await import("node:path");
+    const { saveTriMeshGlb } = await import("../ingest/glb.js");
+    const { certificateToIsaac } = await import("../export/isaacContract.js");
+
+    mkdirSync(outDir, { recursive: true });
+    const cert = this.currentCertificate();
+    const quarantine = this.quarantined.map((q) => ({ region: q.region, reason: q.reason }));
+    const contract = certificateToIsaac(cert, this.spawns, quarantine);
+
+    await saveTriMeshGlb(join(outDir, "collider.glb"), this.state.collider, "collider-repaired");
+    writeFileSync(join(outDir, "visual-points.f32"), Buffer.from(this.state.visualPoints.buffer, this.state.visualPoints.byteOffset, this.state.visualPoints.byteLength));
+    writeFileSync(join(outDir, "metadata.json"), JSON.stringify(this.state.metadata, null, 2));
+    writeFileSync(join(outDir, "certificate.json"), JSON.stringify(cert, null, 2));
+    writeFileSync(join(outDir, "spawns.json"), JSON.stringify(this.spawns, null, 2));
+    writeFileSync(join(outDir, "quarantine.json"), JSON.stringify(quarantine, null, 2));
+    writeFileSync(join(outDir, "surveyor_contract.py"), contract.python);
+    writeFileSync(join(outDir, "contract.json"), JSON.stringify(contract.sidecar, null, 2));
+    return {
+      files: ["collider.glb", "visual-points.f32", "metadata.json", "certificate.json", "spawns.json", "quarantine.json", "surveyor_contract.py", "contract.json"],
+      openDefects: this.openDefects().length,
+    };
+  }
+
   // ------------------------------------------------------------ internals
 
   private async certify(

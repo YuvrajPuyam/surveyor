@@ -1,0 +1,36 @@
+{
+  "worldId": "7188e250-e2ff-43e7-babb-73834c22e932",
+  "generatedFrom": {
+    "grade": "F",
+    "certifiedAt": "2026-07-05T15:46:47.387Z",
+    "seed": 1234
+  },
+  "gravity": {
+    "name": "moon",
+    "mps2": 1.62
+  },
+  "friction": {
+    "static": [
+      0.4,
+      1.1
+    ],
+    "dynamic": [
+      0.3,
+      0.9
+    ],
+    "basis": "wide prior: scale unverified at certification time — do not narrow until re-certified"
+  },
+  "spawns": [],
+  "quarantine": [],
+  "disclosures": [
+    "Wheeled rover (raycast-vehicle class): Rigid-body raycast vehicle, Coulomb friction, no soil mechanics. Verdicts valid for this model class only.",
+    "Quadruped (kinematic capability envelope): Kinematic capability envelope anchored to ANYmal published spec (footprint, max step, max slope). No gait simulation performed or implied.",
+    "Probe methodology: seeded probe rain with CCD; every fall-through cross-checked by an independent raycast at the probe's exit point before it counts as a hole.",
+    "Trust states cover robot-REACHABLE space only; 'observed' means no physical experiment touched the cell.",
+    "Detection floor: at this coverage (ray grid 0.1 m, ~0.26 m probe spacing over 30 m²), 'verified' rules out collider holes with footprint ≥ ~0.26 m; smaller defects are below the instrument's floor.",
+    "Divergence 'lying' threshold self-calibrated to this world's simplification noise floor: 0.433 m (1.5x the p99 splat-to-collider distance on probe-verified cells). 'Lying' means divergence beyond the vendor's own demonstrated simplification tolerance.",
+    "Single-level survey: one walkable surface per column; multi-level worlds are unsupported in this version.",
+    "Scope of the grade: it predicts navmesh-level traversability under the disclosed model class. It does not predict policy transfer or visual-domain fidelity.",
+    "All measurements carry uncertainty ranges; the methods line under each number states how it was obtained."
+  ]
+}

@@ -83,5 +83,17 @@ for (const tool of REPAIR_TOOLS) {
   });
 }
 
+// pipeline v2 Stage B: export the post-repair state as a training contract
+server.tool(
+  "export_bundle",
+  "Export the repaired world as a certified training bundle: corrected collider, certificate with all outcomes, verified spawns, quarantine zones, and the generated Isaac Lab training contract. Call once, after every defect has an outcome and a final recertify(full).",
+  { outDir: z.string().optional() },
+  async ({ outDir }) => {
+    const dir = outDir ?? join(process.cwd(), "assets", "exports", world.worldId);
+    const result = await recorder.record("export_bundle", { outDir: dir }, () => engine.exportBundle(dir));
+    return { content: [{ type: "text", text: JSON.stringify({ dir, ...result }) }] };
+  },
+);
+
 await server.connect(new StdioServerTransport());
 console.error(`[repair-server] listening on stdio; cassette: ${recorder.path}`);
