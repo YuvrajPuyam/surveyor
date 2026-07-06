@@ -1,0 +1,351 @@
+{
+  "worldId": "7188e250-e2ff-43e7-babb-73834c22e932",
+  "conclusive": true,
+  "origin": [
+    0,
+    0,
+    0
+  ],
+  "yawOffsetDeg": 357,
+  "yawPeakSharpness": 7.2,
+  "crops": [
+    {
+      "crop": 0,
+      "fit": {
+        "s": 0.017155576293659557,
+        "t": 0.6234399628222567,
+        "inlierFraction": 0.1037037037037037,
+        "residualMadInv": 0.021708934965153137,
+        "medianRelDepthErr": 0.031588318399732265,
+        "n": 135
+      },
+      "spearman": 0.032304165447273436,
+      "calibrated": false
+    },
+    {
+      "crop": 1,
+      "fit": {
+        "s": 0.05404887520314992,
+        "t": 0.4988719250259699,
+        "inlierFraction": 0.519774011299435,
+        "residualMadInv": 0.013307517640599342,
+        "medianRelDepthErr": 0.013360164027126802,
+        "n": 177
+      },
+      "spearman": 0.8701416180467789,
+      "calibrated": true
+    },
+    {
+      "crop": 2,
+      "fit": {
+        "s": 0,
+        "t": 0,
+        "inlierFraction": 0,
+        "residualMadInv": null,
+        "medianRelDepthErr": null,
+        "n": 12
+      },
+      "spearman": 0,
+      "calibrated": false
+    },
+    {
+      "crop": 3,
+      "fit": {
+        "s": 0,
+        "t": 0,
+        "inlierFraction": 0,
+        "residualMadInv": null,
+        "medianRelDepthErr": null,
+        "n": 5
+      },
+      "spearman": 0,
+      "calibrated": false
+    },
+    {
+      "crop": 4,
+      "fit": {
+        "s": 0.018366109785793353,
+        "t": 0.3061471053982844,
+        "inlierFraction": 0.47619047619047616,
+        "residualMadInv": 0.010602086242199937,
+        "medianRelDepthErr": 0.030804863415012387,
+        "n": 42
+      },
+      "spearman": 0.6792804472895227,
+      "calibrated": false
+    },
+    {
+      "crop": 5,
+      "fit": {
+        "s": 0,
+        "t": 0,
+        "inlierFraction": 0,
+        "residualMadInv": null,
+        "medianRelDepthErr": null,
+        "n": 6
+      },
+      "spearman": 0,
+      "calibrated": false
+    },
+    {
+      "crop": 6,
+      "fit": {
+        "s": 0,
+        "t": 0,
+        "inlierFraction": 0,
+        "residualMadInv": null,
+        "medianRelDepthErr": null,
+        "n": 6
+      },
+      "spearman": 0,
+      "calibrated": false
+    },
+    {
+      "crop": 7,
+      "fit": {
+        "s": 0.036713393018939444,
+        "t": 0.7300298286394178,
+        "inlierFraction": 0.34615384615384615,
+        "residualMadInv": 0.00664312293952074,
+        "medianRelDepthErr": 0.006003695022082246,
+        "n": 52
+      },
+      "spearman": 0.7619738751814223,
+      "calibrated": false
+    },
+    {
+      "crop": 8,
+      "fit": {
+        "s": 0.09924374033351226,
+        "t": 0.3108114281899709,
+        "inlierFraction": 0.695364238410596,
+        "residualMadInv": 0.02226682370778099,
+        "medianRelDepthErr": 0.02294406833021522,
+        "n": 151
+      },
+      "spearman": 0.8929452771000349,
+      "calibrated": true
+    },
+    {
+      "crop": 9,
+      "fit": {
+        "s": 0.012897944390994691,
+        "t": 0.9215053061044669,
+        "inlierFraction": 0.176,
+        "residualMadInv": 0.014992328250443165,
+        "medianRelDepthErr": 0.014650062073929231,
+        "n": 125
+      },
+      "spearman": 0.3814132104454685,
+      "calibrated": false
+    },
+    {
+      "crop": 10,
+      "fit": {
+        "s": 0,
+        "t": 0,
+        "inlierFraction": 0,
+        "residualMadInv": null,
+        "medianRelDepthErr": null,
+        "n": 10
+      },
+      "spearman": 0,
+      "calibrated": false
+    },
+    {
+      "crop": 11,
+      "fit": {
+        "s": 0,
+        "t": 0,
+        "inlierFraction": 0,
+        "residualMadInv": null,
+        "medianRelDepthErr": null,
+        "n": 3
+      },
+      "spearman": 0,
+      "calibrated": false
+    },
+    {
+      "crop": 12,
+      "fit": {
+        "s": 0,
+        "t": 0,
+        "inlierFraction": 0,
+        "residualMadInv": null,
+        "medianRelDepthErr": null,
+        "n": 19
+      },
+      "spearman": 0,
+      "calibrated": false
+    },
+    {
+      "crop": 13,
+      "fit": {
+        "s": 0,
+        "t": 0,
+        "inlierFraction": 0,
+        "residualMadInv": null,
+        "medianRelDepthErr": null,
+        "n": 8
+      },
+      "spearman": 0,
+      "calibrated": false
+    },
+    {
+      "crop": 14,
+      "fit": {
+        "s": 0,
+        "t": 0,
+        "inlierFraction": 0,
+        "residualMadInv": null,
+        "medianRelDepthErr": null,
+        "n": 6
+      },
+      "spearman": 0,
+      "calibrated": false
+    },
+    {
+      "crop": 15,
+      "fit": {
+        "s": 0.04253147531085002,
+        "t": 0.8581705244481532,
+        "inlierFraction": 0.12698412698412698,
+        "residualMadInv": 0.005181287060461948,
+        "medianRelDepthErr": 0.004743178012709569,
+        "n": 63
+      },
+      "spearman": 0.49980798771121354,
+      "calibrated": false
+    }
+  ],
+  "cropsCalibrated": 2,
+  "consensusSpearman": 0.8929452771000349,
+  "agreementThresholdRel": 0.12,
+  "tallies": {
+    "triple_confirmed": 397,
+    "both_suspect": 122,
+    "sides_with_splat": 98,
+    "sides_with_collider": 106,
+    "sides_with_neither": 237,
+    "unmeasured": 6784
+  },
+  "bothSuspectRegions": [
+    {
+      "kind": "both_suspect",
+      "rays": 25,
+      "position": [
+        0.31718401077410363,
+        -0.544454510930781,
+        1.1542407675252035
+      ],
+      "meanImageDepthM": 1.3209038141220093,
+      "meanAssetDepthM": 1.286001020669937
+    },
+    {
+      "kind": "both_suspect",
+      "rays": 15,
+      "position": [
+        0.2063177357920444,
+        -0.2524805498366686,
+        1.2383037623583042
+      ],
+      "meanImageDepthM": 1.2853229447894325,
+      "meanAssetDepthM": 2.0289218703905743
+    },
+    {
+      "kind": "both_suspect",
+      "rays": 10,
+      "position": [
+        0.4016034634557267,
+        -0.45459402788531866,
+        0.6308852892785033
+      ],
+      "meanImageDepthM": 0.8782390218232614,
+      "meanAssetDepthM": 0.9440603911876678
+    },
+    {
+      "kind": "both_suspect",
+      "rays": 9,
+      "position": [
+        0.2630184430828835,
+        -0.4848018656724218,
+        0.3423869210058498
+      ],
+      "meanImageDepthM": 0.6502970776276089,
+      "meanAssetDepthM": 0.7740493582354652
+    },
+    {
+      "kind": "both_suspect",
+      "rays": 8,
+      "position": [
+        0.8734243267000464,
+        -0.002020900886878582,
+        0.4921225677303014
+      ],
+      "meanImageDepthM": 1.0045164239104243,
+      "meanAssetDepthM": 0.8740304931998253
+    },
+    {
+      "kind": "both_suspect",
+      "rays": 8,
+      "position": [
+        -0.2817635636697618,
+        -0.4862469463554345,
+        0.3041213972439128
+      ],
+      "meanImageDepthM": 0.6402347661081003,
+      "meanAssetDepthM": 0.7542792148888111
+    },
+    {
+      "kind": "both_suspect",
+      "rays": 7,
+      "position": [
+        0.8805454166968608,
+        0.2139708854108588,
+        0.48432810211687
+      ],
+      "meanImageDepthM": 1.030104331406667,
+      "meanAssetDepthM": 0.9029011939253125
+    },
+    {
+      "kind": "both_suspect",
+      "rays": 7,
+      "position": [
+        0.27178921467731615,
+        0.0010904293985141045,
+        1.32927138039367
+      ],
+      "meanImageDepthM": 1.3605657947288943,
+      "meanAssetDepthM": 1.8379654373441423
+    },
+    {
+      "kind": "both_suspect",
+      "rays": 6,
+      "position": [
+        0.8730825276773261,
+        -0.20441444105867454,
+        0.4827385004978753
+      ],
+      "meanImageDepthM": 1.0201524328864304,
+      "meanAssetDepthM": 0.8894829501708349
+    }
+  ],
+  "adjudications": [],
+  "methods": [
+    "Monocular depth (Xenova/depth-anything-small-hf) over 16 pinhole crops (75° fov, 336px) of the shipped 360° pano; 7744 rays sampled.",
+    "Capture origin ASSUMED at the world origin (Marble worlds train around the source camera); the assumption is validated by the calibration quality below, and the audit refuses itself when it does not hold.",
+    "Pano→world yaw offset FITTED by 5° sweep + 1° refinement, maximizing total affine inliers across per-crop calibrations: 357.0° (peak ×7.2 over the sweep median).",
+    "PER-CROP affine calibration (monocular depth is scale/shift-ambiguous in inverse depth, and only affine-consistent WITHIN a frame): each crop fits its own RANSAC+IRLS line against consensus rays — where splat and collider agree within max(0.15 m, 7%). 2/16 crops calibrated (needs ≥25 rays, ≥50% inliers, |ρ| ≥ 0.55); uncalibrated crops ABSTAIN — their rays are reported unmeasured, not guessed.",
+    "Agreement threshold derives from the calibrated crops' own error: 12% relative depth (= max(12%, 3× median per-crop calibration error)). 'Both suspect' means the imagery disagrees with BOTH shipped assets where they agree with each other — the failure class the two-instrument certificate cannot see.",
+    "Advisory instrument: the deterministic certificate is unchanged; this audit is a sidecar with disclosed model, fits, and refusal conditions."
+  ],
+  "meta": {
+    "modelId": "Xenova/depth-anything-small-hf",
+    "crops": 16,
+    "cropSize": 336,
+    "fovDeg": 75,
+    "grid": 22,
+    "margin": 0.1,
+    "raysSampled": 7744
+  }
+}

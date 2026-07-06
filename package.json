@@ -24,6 +24,7 @@
     "@dimforge/rapier3d-compat": "^0.14.0",
     "@gltf-transform/core": "^4.1.0",
     "@gltf-transform/functions": "^4.1.0",
+    "@huggingface/transformers": "^4.2.0",
     "@modelcontextprotocol/sdk": "^1.12.0",
     "tsx": "^4.19.0",
     "zod": "^3.24.0"

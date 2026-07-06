@@ -58,6 +58,13 @@ export class PhysicsWorld {
     return { y: fromY - hit.timeOfImpact, distance: hit.timeOfImpact };
   }
 
+  /** Cast an arbitrary ray. Returns hit distance along the (unit) direction, or null. */
+  castRay(origin: Vec3, dir: Vec3, maxDist: number): number | null {
+    const ray = new RAPIER.Ray(origin, dir);
+    const hit = this.world.castRay(ray, maxDist, true);
+    return hit ? hit.timeOfImpact : null;
+  }
+
   /** Cast straight up from (x, fromY, z). Returns hit height or null (open sky/ceilingless). */
   castUp(x: number, fromY: number, z: number, maxDist: number): RayHit | null {
     const ray = new RAPIER.Ray({ x, y: fromY, z }, { x: 0, y: 1, z: 0 });

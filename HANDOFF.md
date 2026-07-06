@@ -120,6 +120,37 @@ the loaded world, with the app's own humanize functions:
   ENDGAME's cut list** ("Full Mission Control chrome" cut; MISSION LOG panel
   only). Don't build it unless ENDGAME is edited first.
 
+## 7b. INSTRUMENT #3 — image-depth audit (user-directed addition, 2026-07-06 evening)
+
+`npx tsx scripts/depth-audit.ts <bundle-dir>` — a monocular depth model
+(depth-anything-small via transformers.js; downloads once, then offline)
+over the shipped 360° pano, as a THIRD instrument measuring the IMAGERY:
+- per-crop affine calibration (monocular depth is scale/shift-ambiguous and
+  only affine-consistent within a frame) on the CONSENSUS set (rays where
+  splat and collider agree), edge-aware; pano→world yaw offset FITTED;
+  capture origin assumed at world origin and validated by fit quality;
+- verdict classes per ray: triple-confirmed / **both-suspect** (imagery
+  disagrees with both assets where they agree — the failure class the
+  two-instrument certificate cannot see) / sides-with-splat / -collider /
+  -neither (adjudication of existing divergences);
+- REFUSES ITSELF (inconclusive) when calibration self-checks fail;
+  uncalibrated crops abstain; advisory sidecar — the deterministic
+  certificate is untouched.
+
+Habitat exemplar (committed at docs/validation/depth-audit-habitat.json):
+yaw 357° (×7.2 peak), 2/16 crops calibrated at 1.3–2.3% median rel error
+(ρ≈0.88), 960 measured rays → 397 triple-confirmed, 122 both-suspect
+(clustered regions reported with world positions), 98/106/237 splat/collider/
+neither on divergent rays. Math core unit-tested (test/depth-math.test.ts).
+
+Refinement backlog: (1) TARGETED crops aimed at defect directions instead of
+the fixed 45° ring — fixes per-defect adjudication coverage (currently most
+ghost/phantom cones fall in abstaining crops); (2) origin refinement by small
+grid search maximizing calibrated-crop count; (3) depth-derived sill/step
+measurements as a metrology cross-check. NOTE: not in ENDGAME §4 — built on
+direct user instruction; folding it into the demo (Q&A tier?) is an ENDGAME
+edit the user should make deliberately.
+
 ## 8. Suggested first moves (next session)
 
 1. `npm test` (35 green) + one full Beat 1→5 rehearsal in the viewer:
