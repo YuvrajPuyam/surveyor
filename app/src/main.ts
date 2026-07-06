@@ -418,13 +418,20 @@ function buildBeforeAfterCard(): void {
 
 function downloadCertificate(): void {
   if (!latestCert) return;
-  const blob = new Blob([JSON.stringify(latestCert, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `certificate-${latestCert.worldId}.json`;
-  link.click();
-  URL.revokeObjectURL(url);
+  // export the FULL certificate (the artifact the CLI writes and the content
+  // hash covers) — the compact summary is only a rendering shape
+  void client
+    .getFullCertificate()
+    .catch(() => latestCert)
+    .then((cert) => {
+      const blob = new Blob([JSON.stringify(cert, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `certificate-${latestCert!.worldId}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    });
 }
 
 // -------------------------------------------------- narrator + trust force
@@ -1343,7 +1350,7 @@ async function main(): Promise<void> {
   }
 
   splatObject = await loadSplats(dir);
-  (window as unknown as Record<string, unknown>).__dbg = { scene, worldGroup, camera, renderer, get splat() { return splatObject; } };
+  (window as unknown as Record<string, unknown>).__dbg = { scene, worldGroup, camera, renderer, client, get splat() { return splatObject; } };
   if (splatObject) {
     worldGroup.add(splatObject);
   } else {

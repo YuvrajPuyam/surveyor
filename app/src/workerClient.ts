@@ -239,6 +239,13 @@ export class CertifyWorkerClient {
     return this.send(id, msg) as Promise<InitResult>;
   }
 
+  /** The FULL certificate (what the CLI writes and the content hash covers) — not the compact summary. */
+  getFullCertificate(): Promise<unknown> {
+    const id = this.nextId++;
+    const msg = { type: "rpc", id, tool: "get_full_certificate" } as unknown as RpcRequest;
+    return this.send(id, msg);
+  }
+
   /** Convenience: init from a bundle dir ("/marble/<id>") using standard file names. */
   initBundle(dir: string, opts: Omit<InitParams, "worldId" | "colliderUrl" | "visualPointsUrl"> & { worldId?: string } = {}): Promise<InitResult> {
     const clean = dir.endsWith("/") ? dir.slice(0, -1) : dir;

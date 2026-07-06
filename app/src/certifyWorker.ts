@@ -212,6 +212,13 @@ async function handleRpc(msg: RpcRequest): Promise<void> {
     return;
   }
   try {
+    // Worker-level RPC (not on the agent's closed tool menu): the FULL
+    // certificate — what the CLI writes, what the content hash covers, what
+    // the export button must download. The agent keeps getting summaries.
+    if ((msg.tool as string) === "get_full_certificate") {
+      post({ type: "result", id: msg.id, ok: true, result: engine.getCertificate() });
+      return;
+    }
     const isRecertify = msg.tool === "recertify";
     if (isRecertify) {
       const scope = (msg.input as { scope?: string } | undefined)?.scope ?? "full";

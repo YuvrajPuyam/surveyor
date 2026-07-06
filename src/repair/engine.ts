@@ -515,13 +515,21 @@ export class RepairEngine {
     const minor = open.filter((d) => d.severity === "minor").length;
     const score = 100 - 40 * critical - 15 * major - 5 * minor;
     const grade = score >= 90 ? "A" : score >= 75 ? "B" : score >= 60 ? "C" : score >= 40 ? "D" : "F";
+    // Same wording as certifyWorld's computeGrade — a FRESH engine
+    // certificate must be byte-identical to the CLI's (the content hash is
+    // the demo's determinism claim). Only once outcomes exist does the
+    // rationale gain the outcomes line: a repaired certificate is a
+    // different artifact and may say so.
+    const outcomes = defects.filter((d) => d.outcome).length;
+    const baseRationale =
+      `${critical} critical, ${major} major, ${minor} minor unresolved defect(s); ` +
+      `score ${Math.max(0, score)}/100 (critical -40, major -15, minor -5). ` +
+      `Repaired/quarantined/accepted defects do not count against the grade but remain listed.`;
     return {
       ...cert,
       defects,
       grade,
-      gradeRationale:
-        `${critical} critical, ${major} major, ${minor} minor unresolved defect(s); score ${Math.max(0, score)}/100. ` +
-        `Outcomes recorded: ${defects.filter((d) => d.outcome).length}/${defects.length}.`,
+      gradeRationale: outcomes > 0 ? `${baseRationale} Outcomes recorded: ${outcomes}/${defects.length}.` : baseRationale,
     };
   }
 }
