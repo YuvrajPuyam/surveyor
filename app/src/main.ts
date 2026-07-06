@@ -1365,7 +1365,17 @@ async function main(): Promise<void> {
     wfGeom.setIndex(new THREE.BufferAttribute(soup.indices.slice(), 1));
     const wireframe = new THREE.Mesh(
       wfGeom,
-      new THREE.MeshBasicMaterial({ color: 0x3bd6c6, wireframe: true, transparent: true, opacity: 0.35 }),
+      // DoubleSide is load-bearing: the twin run raycasts THIS mesh to derive
+      // routes, and three's Raycaster respects material.side — FrontSide
+      // silently misses floors whose torn-mesh triangles wind away, which
+      // starves route derivation (Rapier's castDown has no such blindness).
+      new THREE.MeshBasicMaterial({
+        color: 0x3bd6c6,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.35,
+        side: THREE.DoubleSide,
+      }),
     );
     wireframe.name = "collider-wireframe";
     // pretty world first — the Beat-1 "Reveal the physics" (or W) shows it;
