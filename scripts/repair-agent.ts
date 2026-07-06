@@ -47,10 +47,18 @@ if (args.includes("--hero")) {
   process.exit(1);
 }
 
-const probeCount = flag("probes") ? parseInt(flag("probes")!, 10) : 800;
+// 2000 probes = the canonical certification (browser count == certificate
+// count == cassette count demands one probe budget everywhere)
+const probeCount = flag("probes") ? parseInt(flag("probes")!, 10) : 2000;
 console.log(`Certifying ${world.worldId} (baseline, ${probeCount} probes)...`);
 const engine = new RepairEngine(
-  { worldId: world.worldId, collider: world.collider, visualPoints: world.visualPoints, metadata: world.metadata },
+  {
+    worldId: world.worldId,
+    collider: world.collider,
+    visualPoints: world.visualPoints,
+    visualScales: "visualScales" in world ? world.visualScales : undefined,
+    metadata: world.metadata,
+  },
   { probeCount },
 );
 const baseline = await engine.init();

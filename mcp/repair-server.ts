@@ -37,9 +37,17 @@ if (args.includes("--hero")) {
   process.exit(1);
 }
 
-const probeCount = flag("probes") ? parseInt(flag("probes")!, 10) : 800;
+// 2000 probes = the canonical certification: browser count == certificate
+// count == cassette count requires one probe budget everywhere
+const probeCount = flag("probes") ? parseInt(flag("probes")!, 10) : 2000;
 const engine = new RepairEngine(
-  { worldId: world.worldId, collider: world.collider, visualPoints: world.visualPoints, metadata: world.metadata },
+  {
+    worldId: world.worldId,
+    collider: world.collider,
+    visualPoints: world.visualPoints,
+    visualScales: "visualScales" in world ? world.visualScales : undefined,
+    metadata: world.metadata,
+  },
   { probeCount },
 );
 console.error(`[repair-server] certifying baseline for ${world.worldId} (${probeCount} probes)...`);
