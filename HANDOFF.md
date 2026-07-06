@@ -92,9 +92,27 @@ the loaded world, with the app's own humanize functions:
   re-record and any `claude -p` episode wait for reset. The one diagnosis
   agent that finished provided the load-bearing forensics (its numbers are in
   the C1 commit message).
-- Marble credits ~1,000 — **ask before spending** (draft hero candidates ≈
-  $0.12 each; Mars panorama ~150 credits). Hero-world generation (Artemis
-  Supply Hab, specced with a real sill contrast) is user-gated.
+- **Marble credits EXHAUSTED** (2026-07-06: candidate C failed 402 — full
+  marble-1.1 generations cost far more than the $0.12 draft estimate; A and B
+  consumed the balance). Top-up at platform.worldlabs.ai/billing is a user
+  action. **Hero candidates so far** (bundles on disk, certified, gitignored):
+  - `afb51203…` (A, storage bay + airlock): grade F, 62 defects — solid floor
+    (0 holes), 10 ghosts, 1 sill IN the contrast band, vendor ×0.886.
+    NOT-HERO (no hole, no validated failure route).
+  - `8368aef6…` (B, storage room + airlock): grade F, 234 defects — solid
+    floor (0 holes), 30 ghosts, vendor ×0.621; **validated ghost drive-through
+    VERIFIED ON CAMERA** (d-visual-201: 8.9 m straight through shelf-looking
+    geometry, 4.7 s, deterministic). A strong ghost-beat showcase.
+  - Next fishing prompt when credits exist: the two-room + doorway recipe
+    (the original habitat's gate-d1 prompt produced 10 holes; single-bay
+    compositions came back with solid floors twice).
+  - `npx tsx scripts/hero-check.ts <bundle>` is the one-command curation gate
+    (certify --write-bundle first). NOTE: hero-check's dry-run and the
+    browser worker agreed within 2 steps on B (284 vs 286) — same math, tiny
+    spawn-settle divergence; keep constants in lockstep.
+  **The demo is NOT hero-blocked**: live twin-run FALLS are proven on camera
+  on both fallback worlds (habitat d-hole-3 fell@1.3 s; moon d-hole-9
+  fell@0.9 s).
 - Gilbreth evenings (G1 driver check decides the Isaac layer), rules answer
   Jul 8 EOD, customer conversations, Gate-A fps on the demo laptop — user lane
   per ENDGAME §4.
