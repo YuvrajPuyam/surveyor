@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "surveyor-isaac"
+version = "0.1.0"
+description = "SURVEYOR certificate -> Isaac Lab training contract: the certificate is the contract."
+readme = "README.md"
+requires-python = ">=3.10"
+# Deliberately NO isaaclab/gymnasium hard deps: contract parsing + validation
+# run anywhere; the env module imports Isaac Lab only on the machine that has it.
+dependencies = []
+
+[project.scripts]
+surveyor-contract-validate = "surveyor_isaac.validate:main"
+
+[tool.setuptools.packages.find]
+include = ["surveyor_isaac*"]

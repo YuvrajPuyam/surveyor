@@ -123,6 +123,20 @@ function streamState(): void {
     grade: cert.grade,
     openDefectIds: engine.openDefects().map((d) => d.id),
   });
+  void postContentHash();
+}
+
+/**
+ * Certificate content SHA-256 (createdAt normalized out) — the SAME bytes
+ * the CLI and report.html hash, so the chip in the UI, the report footer,
+ * and the hash pre-printed on the Devpost all agree on a live re-run.
+ */
+async function postContentHash(): Promise<void> {
+  if (!engine) return;
+  const json = JSON.stringify({ ...engine.getCertificate(), createdAt: "" });
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(json));
+  const hash = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  post({ type: "hash", hash });
 }
 
 // --------------------------------------------------------------- handlers
@@ -142,6 +156,20 @@ async function handleInit(msg: InitRequest): Promise<void> {
     let visualPoints = new Float32Array(raw);
     if (visualPoints.length % 3 !== 0) visualPoints = visualPoints.subarray(0, visualPoints.length - (visualPoints.length % 3));
 
+    // Best-effort Gaussian-scale sidecar: the headless CLI loads it, so the
+    // browser must too or the divergence counts drift apart (stale/absent
+    // sidecars are dropped exactly like bundleIO does).
+    let visualScales: Float32Array | undefined;
+    if (msg.visualScalesUrl) {
+      try {
+        const sraw = await fetchBuffer(msg.visualScalesUrl);
+        visualScales = new Float32Array(sraw);
+        if (visualScales.length !== visualPoints.length / 3) visualScales = undefined;
+      } catch {
+        visualScales = undefined;
+      }
+    }
+
     let metadata: WorldMetadata | undefined = msg.metadata;
     if (!metadata && msg.metadataUrl) {
       // best-effort: a bundle without metadata.json still certifies (no vendor scale factor)
@@ -157,7 +185,7 @@ async function handleInit(msg: InitRequest): Promise<void> {
 
     post({ type: "phase", phase: "physics-init", detail: `${(soup.indices.length / 3).toLocaleString()} tris, ${(visualPoints.length / 3).toLocaleString()} splat centers` });
     engine = new RepairEngine(
-      { worldId: msg.worldId, collider: soup, visualPoints, metadata },
+      { worldId: msg.worldId, collider: soup, visualPoints, visualScales, metadata },
       { seed: msg.seed, probeCount: msg.probeCount, gravity: msg.gravity },
     );
 

@@ -270,6 +270,11 @@ client.onDefects = (ev) => {
   updateLiveDefects(ev.defects);
 };
 
+// determinism chip: content SHA-256 from the worker after every (re)certify —
+// the same bytes the CLI and report.html hash, so a live re-run matches the
+// hash pre-printed on the Devpost
+client.onHash = (hash) => certificatePanel.setHash(hash);
+
 // ----------------------------------------------------- beat 1: intro card
 
 const introCard = document.createElement("div");

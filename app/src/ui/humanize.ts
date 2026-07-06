@@ -61,6 +61,8 @@ export function fmtMeasurementRaw(m: MeasurementLike): string {
 export interface TrustLike {
   verifiedPct: number;
   lyingPct: number;
+  /** full-certificate trust summaries carry cell counts — render the denominator when we have it */
+  counts?: { unknown: number; verified: number; observed: number; lying: number };
 }
 
 export interface TrustStory {
@@ -75,11 +77,15 @@ export function trustSummary(trust: TrustLike): TrustStory {
   const tested = trust.verifiedPct;
   const lying = trust.lyingPct;
   const untested = Math.max(0, 100 - tested - lying);
+  // explicit denominator: percentages are over SURVEYED cells — space outside
+  // the capture envelope is counted in none of these
+  const known = trust.counts ? trust.counts.verified + trust.counts.observed + trust.counts.lying : undefined;
+  const denom = known !== undefined ? ` (of ${loc(known)} surveyed cells)` : "";
   return {
-    tested: `We physically tested ${tested.toFixed(1)}% of the walkable area.`,
+    tested: `We physically tested ${tested.toFixed(1)}% of the surveyed area${denom}.`,
     lying: `In ${lying.toFixed(1)}% of it, what you see is not what a robot would feel.`,
-    untested: "The rest was seen but never physically tested.",
-    line: `Physically tested: ${tested.toFixed(1)}% · divergent: ${lying.toFixed(1)}% · untested: ${untested.toFixed(1)}%`,
+    untested: "The rest was seen but never physically tested. Anything outside the surveyed area makes no claim at all.",
+    line: `Physically tested: ${tested.toFixed(1)}% · divergent: ${lying.toFixed(1)}% · untested: ${untested.toFixed(1)}%${denom}`,
     untestedPct: untested,
   };
 }
@@ -165,6 +171,9 @@ const METERS_RE = /([\d.]+)\s*m\b/;
 export function defectExplainer(d: DefectSummary): string {
   switch (d.type) {
     case "collider_hole":
+      if (d.description && /capture boundary/i.test(d.description)) {
+        return "The pixels keep going but the physics stops — this floor sits at the very edge of what the capture saw, and probes fell straight out of the world here.";
+      }
       if (d.description && /raycast void/i.test(d.description)) {
         return "Our test rays passed straight through the floor here, and not one probe could land.";
       }
@@ -234,7 +243,14 @@ export function defectOrdinal(cert: CertificateSummary, defectId: string): numbe
 
 // ---------------------------------------------------------------- verdicts
 
+// Keys are the REAL check ids the certificate emits (src/certify/verdicts.ts);
+// the older spellings stay as aliases so stale summaries still humanize.
 const CHECK_NAMES: Record<string, string> = {
+  step_negotiation: "Can it climb the step?",
+  passage_clearance_width: "Does it fit through the passage?",
+  slope_capability: "Can it hold the slope?",
+  floor_integrity: "Can it trust the floor?",
+  braking_stopping_distance: "Can it stop in time?",
   step_negotiability: "Can it climb the step?",
   doorway_clearance: "Does it fit through the doorway?",
   slope_traversal: "Can it hold the slope?",
@@ -245,6 +261,11 @@ export function checkName(check: string): string {
 }
 
 const CHECK_NOUN: Record<string, string> = {
+  step_negotiation: "sill",
+  passage_clearance_width: "passage",
+  slope_capability: "slope",
+  floor_integrity: "floor",
+  braking_stopping_distance: "stopping distance",
   step_negotiability: "sill",
   doorway_clearance: "doorway",
   slope_traversal: "slope",
@@ -281,6 +302,18 @@ export function verdictsSummary(cert: CertificateSummary): string {
     return s;
   }
   if (groups.size === 0) return "No robot checks were run.";
+  // "All robots agree" would be misleading while metric verdicts are on hold:
+  // an open size error suspends every meter-based check by design.
+  let suspendedGroups = 0;
+  for (const [, vs] of groups) {
+    if (vs.some((v) => v.pass === "not_evaluated")) suspendedGroups += 1;
+  }
+  if (suspendedGroups > 0) {
+    const openScale = cert.defects.some((d) => d.type === "scale_error" && !isResolved(d));
+    return openScale
+      ? `${suspendedGroups} of ${groups.size} checks on hold until the size error is fixed — measuring at the wrong scale would be meaningless.`
+      : `${suspendedGroups} of ${groups.size} checks could not be evaluated on this world.`;
+  }
   return `${groups.size} check${groups.size === 1 ? "" : "s"} · all robots agree.`;
 }
 
@@ -410,10 +443,25 @@ export function repairCardCopy(
     }
     case "accept_defect": {
       const n = step.defectIds.length;
-      return {
-        title: `Leave ${loc(n)} sill${n === 1 ? " as it is" : "s as they are"}`,
-        body: "They're really there. The rover can't cross them; the quadruped can. That's a fact about the robots, not an error to fix.",
-      };
+      const title = `Leave ${loc(n)} sill${n === 1 ? " as it is" : "s as they are"}`;
+      // Derive the who-can-cross sentence from the certificate's own step
+      // verdicts — never assert a split the verdicts don't show.
+      const stepVerdicts = (cert?.robotVerdicts ?? []).filter(
+        (v) => v.check === "step_negotiation" || v.check === "step_negotiability",
+      );
+      const fails = stepVerdicts.filter((v) => v.pass === false).map(robotOf);
+      const passes = stepVerdicts.filter((v) => v.pass === true).map(robotOf);
+      let body: string;
+      if (fails.length > 0 && passes.length > 0) {
+        body = `They're really there. The ${fails.join(" and ")} can't cross them; the ${passes.join(" and ")} can. That's a fact about the robots, not an error to fix.`;
+      } else if (fails.length > 0) {
+        body = "They're really there, and the verdicts say none of this fleet can cross them. Real terrain, honestly recorded — route around, don't erase.";
+      } else if (passes.length > 0) {
+        body = "They're really there, and every robot in this fleet clears them — recorded as terrain, not as defects.";
+      } else {
+        body = "They're really there. Whether a robot can cross them is answered by the per-robot verdicts, not by hiding the step.";
+      }
+      return { title, body };
     }
     default:
       return { title: step.label, body: step.detail };

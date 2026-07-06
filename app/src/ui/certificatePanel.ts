@@ -48,6 +48,8 @@ export interface CertificatePanelHandle {
   setCompact(on: boolean): void;
   /** Force a section open (fail-and-adapt auto-expands "defects"). */
   expandSection(key: string): void;
+  /** Certificate content SHA-256 (determinism chip) — from the worker after every (re)certify. */
+  setHash(hash: string | undefined): void;
   destroy(): void;
 }
 
@@ -250,7 +252,7 @@ function renderFinePrintBody(cert: CertificateSummary, body: HTMLElement): void 
 
 // ------------------------------------------------------------------ header
 
-function renderHeader(cert: CertificateSummary): HTMLElement {
+function renderHeader(cert: CertificateSummary, hash?: string): HTMLElement {
   const head = el("div", "sv-cert-head");
 
   const left = el("div", "sv-cert-head-left");
@@ -261,6 +263,14 @@ function renderHeader(cert: CertificateSummary): HTMLElement {
   );
   const story = gradeStory(cert.grade);
   if (story) left.appendChild(el("div", "sv-cert-story", story));
+  if (hash) {
+    const chip = el("div", "sv-hash-chip", `⬡ ${hash.slice(0, 12)}`);
+    chip.title =
+      `certificate content SHA-256: ${hash}\n` +
+      "Deterministic for (world, seed, gravity): re-run the survey and this hash reproduces. " +
+      "Compare it to the hash printed on the Devpost.";
+    left.appendChild(chip);
+  }
   head.appendChild(left);
 
   const badge = el("div", `sv-grade sv-grade-${cert.grade}`, cert.grade);
@@ -288,6 +298,7 @@ export function mountCertificatePanel(
   const openSections = new Set<string>();
   let lastCert: CertificateSummary | undefined;
   let compact = false;
+  let certHash: string | undefined;
 
   function collapsible(
     key: string,
@@ -335,7 +346,7 @@ export function mountCertificatePanel(
 
     // --- full panel
     const full = el("div", "sv-cert-full");
-    full.appendChild(renderHeader(c));
+    full.appendChild(renderHeader(c, certHash));
 
     full.appendChild(collapsible("trust", SECTION.trust, trustSummary(c.trust).line, (b) => renderTrustBody(c, b)));
 
@@ -401,6 +412,11 @@ export function mountCertificatePanel(
     expandSection(key: string): void {
       if (openSections.has(key)) return;
       openSections.add(key);
+      rerender();
+    },
+    setHash(hash: string | undefined): void {
+      if (hash === certHash) return;
+      certHash = hash;
       rerender();
     },
     destroy: () => panel.remove(),

@@ -9,3 +9,4 @@ assets/marble/
 traces/*.jsonl
 !traces/.gitkeep
 .env
+__pycache__/

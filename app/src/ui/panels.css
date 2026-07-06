@@ -435,6 +435,18 @@ body.sv-dev .sv-hum { display: none; }
   border-style: solid; flex: none;
 }
 .sv-compact-story { color: #c3cadb; font-size: 11px; flex: 1; min-width: 0; }
+.sv-hash-chip {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 1px 7px;
+  border: 1px solid #2a3142;
+  border-radius: 999px;
+  color: #8a93a8;
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  cursor: help;
+}
 .sv-panel-certificate.sv-compact { flex: 0 0 auto !important; min-height: 48px; }
 .sv-panel-certificate.sv-compact .sv-cert-full { display: none; }
 .sv-panel-certificate.sv-compact .sv-compact-head { display: flex; }

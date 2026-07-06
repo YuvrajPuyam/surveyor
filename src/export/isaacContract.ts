@@ -38,7 +38,7 @@ export interface IsaacContract {
 }
 
 /** Coulomb friction prior for generic indoor hard surfaces, widened by scale trust. */
-function frictionRange(cert: Certificate): { static: [number, number]; dynamic: [number, number]; basis: string } {
+export function frictionRange(cert: Certificate): { static: [number, number]; dynamic: [number, number]; basis: string } {
   // The certificate does not measure friction (no tactile probe in the model
   // class) — this is a disclosed prior. Scale-unverified worlds get the
   // widest band; verified-scale worlds get the standard indoor prior.

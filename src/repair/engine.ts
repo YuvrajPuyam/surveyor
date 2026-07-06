@@ -25,6 +25,8 @@ export interface RepairWorldState {
   worldId: string;
   collider: TriMesh;
   visualPoints: Float32Array;
+  /** per-splat max Gaussian scale, aligned with visualPoints — certify counts shift without it */
+  visualScales?: Float32Array;
   metadata: WorldMetadata;
 }
 
@@ -36,6 +38,7 @@ export interface AppliedAction {
   before: TriMesh;
   beforeMetadata: WorldMetadata;
   beforeVisualPoints: Float32Array;
+  beforeVisualScales?: Float32Array;
   /** ledger defect regions BEFORE the action — whole-world transforms move them */
   beforeRegions: Map<string, Region>;
   reverted: boolean;
@@ -83,6 +86,7 @@ export class RepairEngine {
       worldId: world.worldId,
       collider: cloneMesh(world.collider),
       visualPoints: new Float32Array(world.visualPoints),
+      visualScales: world.visualScales ? new Float32Array(world.visualScales) : undefined,
       metadata: { ...world.metadata },
     };
   }
@@ -158,6 +162,7 @@ export class RepairEngine {
       before: cloneMesh(this.state.collider),
       beforeMetadata: { ...this.state.metadata },
       beforeVisualPoints: this.state.visualPoints, // visual points only change on scale ops; shared ref is fine otherwise
+      beforeVisualScales: this.state.visualScales,
       beforeRegions,
       reverted: false,
     };
@@ -177,6 +182,12 @@ export class RepairEngine {
     const vp = new Float32Array(this.state.visualPoints.length);
     for (let i = 0; i < vp.length; i++) vp[i] = this.state.visualPoints[i] * factor;
     this.state.visualPoints = vp;
+    if (this.state.visualScales) {
+      // Gaussian scales are lengths — a whole-world transform scales them too
+      const vs = new Float32Array(this.state.visualScales.length);
+      for (let i = 0; i < vs.length; i++) vs[i] = this.state.visualScales[i] * factor;
+      this.state.visualScales = vs;
+    }
     this.state.metadata = { ...this.state.metadata, metricScaleFactor: 1 };
     // a whole-world transform moves every recorded region with it — the
     // ledger stays in world coordinates or identity matching falls apart
@@ -325,6 +336,7 @@ export class RepairEngine {
       this.state.collider = cloneMesh(a.before);
       this.state.metadata = { ...a.beforeMetadata };
       this.state.visualPoints = a.beforeVisualPoints;
+      this.state.visualScales = a.beforeVisualScales;
       // restore ledger regions (whole-world transforms move them on apply)
       for (const [id, region] of a.beforeRegions) {
         const d = this.ledger.get(id);
@@ -389,12 +401,19 @@ export class RepairEngine {
     }
 
     const newDefects: Defect[] = [];
+    const ledgerEntries = [...this.ledger.values()];
     for (const d of result.certificate.defects) {
-      const known = [...this.ledger.values()].find((old) => matches(old, d));
+      // Prefer a match that ABSORBS the detection (open/quarantined/accepted)
+      // over a "fixed" one: overlapping ledger entries otherwise let a
+      // quarantined cluster keep reopening its old "fixed" twin forever —
+      // an immortal flicker in every replan loop.
+      const known =
+        ledgerEntries.find((old) => old.outcome !== "fixed" && matches(old, d)) ??
+        ledgerEntries.find((old) => matches(old, d));
       if (!known) {
         this.ledger.set(d.id, { ...d });
         newDefects.push(d);
-      } else if (known.outcome === "fixed" && matches(known, d)) {
+      } else if (known.outcome === "fixed") {
         // a "fixed" defect that reappeared — reopen it
         known.outcome = undefined;
         known.outcomeNote = undefined;
@@ -447,6 +466,9 @@ export class RepairEngine {
 
     await saveTriMeshGlb(join(outDir, "collider.glb"), this.state.collider, "collider-repaired");
     writeFileSync(join(outDir, "visual-points.f32"), Buffer.from(this.state.visualPoints.buffer, this.state.visualPoints.byteOffset, this.state.visualPoints.byteLength));
+    if (this.state.visualScales) {
+      writeFileSync(join(outDir, "visual-scales.f32"), Buffer.from(this.state.visualScales.buffer, this.state.visualScales.byteOffset, this.state.visualScales.byteLength));
+    }
     writeFileSync(join(outDir, "metadata.json"), JSON.stringify(this.state.metadata, null, 2));
     writeFileSync(join(outDir, "certificate.json"), JSON.stringify(cert, null, 2));
     writeFileSync(join(outDir, "spawns.json"), JSON.stringify(this.spawns, null, 2));
@@ -470,6 +492,7 @@ export class RepairEngine {
         worldId: this.state.worldId,
         collider: this.state.collider,
         visualPoints: this.state.visualPoints,
+        visualScales: this.state.visualScales,
         metadata: this.state.metadata,
       },
       {

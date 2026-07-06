@@ -47,6 +47,8 @@ export interface InitRequest {
   colliderUrl: string;
   /** URL of the raw float32 xyz splat-center file. */
   visualPointsUrl: string;
+  /** Optional per-splat max Gaussian scale sidecar — the headless CLI loads it, so the browser must too or divergence counts drift. */
+  visualScalesUrl?: string;
   /** Optional metadata.json URL — fetched in the worker when `metadata` is not given (vendor metricScaleFactor lives there). */
   metadataUrl?: string;
   metadata?: WorldMetadata;
@@ -87,6 +89,12 @@ export interface TrustMapEvent {
   trustMap: TrustMapPayload;
 }
 
+export interface HashEvent {
+  type: "hash";
+  /** certificate content SHA-256 (createdAt normalized out) — matches the CLI/report hash */
+  hash: string;
+}
+
 export interface DefectsEvent {
   type: "defects";
   defects: DefectSummary[];
@@ -98,7 +106,7 @@ export type RpcResultEvent =
   | { type: "result"; id: number; ok: true; result: unknown }
   | { type: "result"; id: number; ok: false; error: string };
 
-export type CertifyWorkerEvent = PhaseEvent | TrustMapEvent | DefectsEvent | RpcResultEvent;
+export type CertifyWorkerEvent = PhaseEvent | TrustMapEvent | DefectsEvent | HashEvent | RpcResultEvent;
 
 // ---------------------------------------------- compact result shapes
 // These mirror src/agent/tools.ts summarize* outputs (numbers-not-pixels).
@@ -170,6 +178,7 @@ export interface InitParams {
   worldId: string;
   colliderUrl: string;
   visualPointsUrl: string;
+  visualScalesUrl?: string;
   metadataUrl?: string;
   metadata?: WorldMetadata;
   seed?: number;
@@ -195,6 +204,8 @@ export class CertifyWorkerClient {
   onTrustMap?: (trustMap: TrustMapPayload) => void;
   /** Fires after init and after EVERY recertify — refresh the defect list. */
   onDefects?: (ev: DefectsEvent) => void;
+  /** Fires after init and after EVERY recertify — the certificate content SHA-256 (determinism chip). */
+  onHash?: (hash: string) => void;
 
   constructor() {
     this.worker = new Worker(new URL("./certifyWorker.ts", import.meta.url), { type: "module" });
@@ -203,6 +214,7 @@ export class CertifyWorkerClient {
       if (msg.type === "phase") this.onPhase?.(msg.phase, msg.detail);
       else if (msg.type === "trustmap") this.onTrustMap?.(msg.trustMap);
       else if (msg.type === "defects") this.onDefects?.(msg);
+      else if (msg.type === "hash") this.onHash?.(msg.hash);
       else if (msg.type === "result") {
         const p = this.pending.get(msg.id);
         if (!p) return;
@@ -234,6 +246,7 @@ export class CertifyWorkerClient {
       worldId: opts.worldId ?? clean.split("/").pop() ?? clean,
       colliderUrl: `${clean}/collider.glb`,
       visualPointsUrl: `${clean}/visual-points.f32`,
+      visualScalesUrl: `${clean}/visual-scales.f32`,
       metadataUrl: `${clean}/metadata.json`,
       ...opts,
     });
