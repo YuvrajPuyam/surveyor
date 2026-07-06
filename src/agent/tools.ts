@@ -155,7 +155,12 @@ export function summarizeCertificate(c: Certificate) {
     gravity: c.gravity.name,
     grade: c.grade,
     gradeRationale: c.gradeRationale,
-    trust: { verifiedPct: Number(c.trust.verifiedPct.toFixed(1)), lyingPct: Number(c.trust.lyingPct.toFixed(1)) },
+    trust: {
+      verifiedPct: Number(c.trust.verifiedPct.toFixed(1)),
+      lyingPct: Number(c.trust.lyingPct.toFixed(1)),
+      // counts ride along so UI denominators stay explicit ("of N surveyed cells")
+      counts: c.trust.counts,
+    },
     defects: c.defects.map(summarizeDefect),
     robotVerdicts: c.robotVerdicts.map(summarizeVerdict),
     scale: c.scale,

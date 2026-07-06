@@ -65,6 +65,12 @@ writeFileSync(join(out, "world", "validator-report.md"), reportToMarkdown(report
 copyFileSync(join(dir, "certificate.json"), join(out, "certificate.json"));
 writeFileSync(join(out, "report.html"), renderReportHtml(certificate));
 
+// ---- self-validation appendix (instrument-level CIs, ENDGAME §1) — shipped
+// as a SIBLING file so certificate.json stays byte-identical to the bundle's
+// (the parity/hash artifact); regenerate with `npm run self-validate -- --out docs/validation/self-validation.json`
+const appendix = join("docs", "validation", "self-validation.json");
+if (existsSync(appendix)) copyFileSync(appendix, join(out, "self-validation.json"));
+
 // ---- contract/
 for (const f of ["surveyor_contract.py", "contract.json", "spawns.json", "quarantine.json"]) {
   if (existsSync(join(dir, f))) copyFileSync(join(dir, f), join(out, "contract", f));
@@ -122,6 +128,9 @@ data, and the receipt.**
 - **certificate.json / report.html**: the warranty — what is verified, to what
   tolerance, for which robot; every number carries uncertainty and a methods
   line; grade ${certificate.grade}; ${certificate.defects.length} defects each with a recorded outcome.
+- **self-validation.json**: the instrument's own bench appendix — recall and
+  precision with one-sided 95% Clopper–Pearson lower bounds on planted-defect
+  worlds, including the disclosed miss.
 - **dataset/, policy/**: cluster-generated layers (placeholders until gate G3–G5).
 
 ## Verify this pack

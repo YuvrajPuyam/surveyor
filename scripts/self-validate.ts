@@ -1,12 +1,17 @@
 /**
  * Run the self-validation suite on the standard synthetic set and print the
- * precision/recall appendix. Usage: npm run self-validate [-- --probes 800]
+ * precision/recall appendix. Usage: npm run self-validate [-- --probes 800] [-- --out file.json]
+ * --out writes the SelfValidation summary JSON — the appendix the Certified
+ * World Pack ships beside the certificate (ENDGAME §1).
  */
+import { writeFileSync } from "node:fs";
 import { standardValidationSet } from "../src/ingest/synthetic.js";
 import { selfValidate } from "../src/validation/selfValidate.js";
 
 const probesArg = process.argv.indexOf("--probes");
 const probeCount = probesArg > -1 ? parseInt(process.argv[probesArg + 1], 10) : 2000;
+const outArg = process.argv.indexOf("--out");
+const outPath = outArg > -1 ? process.argv[outArg + 1] : undefined;
 
 const t0 = performance.now();
 const worlds = standardValidationSet();
@@ -33,5 +38,9 @@ for (const w of report.perWorld) {
     console.log(
       `    FP: ${f.type} @ [${f.region.min.map((v) => v.toFixed(1)).join(",")}]..[${f.region.max.map((v) => v.toFixed(1)).join(",")}] — ${f.description.slice(0, 70)}`,
     );
+}
+if (outPath) {
+  writeFileSync(outPath, JSON.stringify(report.summary, null, 2));
+  console.log(`\nappendix → ${outPath}`);
 }
 console.log(`\nTotal time: ${((performance.now() - t0) / 1000).toFixed(1)} s`);
