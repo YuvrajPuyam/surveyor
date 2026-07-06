@@ -36,11 +36,11 @@ pre-public-repo migration. Do not "fix" casually.
 |---|---|---|
 | C1 | Outdoor recalibration | **DONE** (commit b7f6b31) — capture envelope, sustained-contact verification, density-calibrated phantom radius, height-banded noise floor, enclosure test for holes. Moon: 1053→89 defects (979 phantom majors→51), divergent 65.2%→4.5%. Canyon: 128→51, sills 38→0. Bench UNCHANGED: recall 96.8% (CI ≥85.6%), precision 100% (CI ≥90.5%), same single disclosed miss. Regression suite `test/outdoor-calibration.test.ts`. |
 | C2 | Grade dynamic range | **DONE** — station now grades **D** (its only critical is the TRUE vendor-scale error 2.528; 100% confirmed / 0% divergent); habitat/canyon/moon F. Real worlds rank. |
-| C3 | Canonical re-certification | **PART DONE** — canonical post-C1 certificates + report.html installed in all four `assets/marble/<id>/` bundles (NOTE: `assets/marble` is **gitignored** — they live on disk only). CLI now passes `visualScales` (was a silent CLI≠browser divergence); engine threads scales through state/scale/revert/certify/export; browser worker fetches `visual-scales.f32`. Engine==CLI counts PROVEN on habitat (grade F, 21 defects, 64.4/20.2 exact) **and browser==CLI proven LIVE** (in-browser survey content hash `f68e3de19081…` == canonical certificate; full JSON byte-identical modulo createdAt; export button now downloads the full certificate via a worker-level `get_full_certificate` RPC). REMAINING: cassette re-record only (**blocked**: Claude subscription session limit; resets ~4:50am ET). |
+| C3 | Canonical re-certification | **PART DONE** — canonical post-C1 certificates + report.html installed in all four `assets/marble/<id>/` bundles (NOTE: `assets/marble` is **gitignored** — they live on disk only). CLI now passes `visualScales` (was a silent CLI≠browser divergence); engine threads scales through state/scale/revert/certify/export; browser worker fetches `visual-scales.f32`. Engine==CLI counts PROVEN on habitat (grade F, 21 defects, 64.4/20.2 exact) **and browser==CLI proven LIVE on two worlds** (habitat `f68e3de19081…`, moon `5d36c6d0eb1d…`; full JSON byte-identical modulo createdAt; export button downloads the full certificate via a worker-level `get_full_certificate` RPC). **Cassette RE-RECORDED live** (claude -p + MCP at canonical 2000 probes with visualScales): baseline F/21 == canonical EXACTLY; episode F(0/100)→A(100/100), **75 ledger outcomes, 0 dropped**, organic fitted_slab-seam → revert → mesh_fill adaptation, scale-first diagnosis (vendor 1.624× vs independent 1.60× agree). Repaired bundle re-exported to assets/exports/. **C3 COMPLETE.** |
 | C4 | Hero + Beat-3 truth | **DONE mechanically** — `scripts/verify-beat-truth.ts` (see §5). Habitat CANNOT truthfully speak the rover/quadruped sill contrast (post-scale worst step 0.44 m fails both). ENDGAME's pre-committed fallback applies: Beat 3 = hole+ghost contrast + verdict-suspension line; sill contrast comes from the generated hero world (user lane, specced to carry it) or Q&A. |
 | C5 | Copy-truth batch | **DONE** — humanize.ts: real check ids (`step_negotiation` etc.), honest suspension line ("N of M checks on hold until the size error is fixed"), accept-card derived from actual step verdicts, explicit surveyed-cells denominators, capture-boundary hole explainer. |
-| C6 | Twin run choreography | **NOT STARTED** — next big item. app/src/patrol.ts + main.ts beats. |
-| C7 | MISSION LOG panel | **NOT STARTED** — streams cassette reasoning into Beat 4; do after C6; cassette may be re-recorded first (C3). |
+| C6 | Twin run choreography | **MECHANISM DONE** (commit ceabccc) — certificate-derived candidates validated by SILENT PHYSICS DRY-RUNS in the worker (ray heuristics provably cannot see torn-mesh slivers); three failure modes (fell / beached-in-defect / ghost drive-through), byte-deterministic replay, R key, camera framing that yields to the user, fall/ghost markers, honest refusal copy. **Honest finding: neither fallback world has a box-drivable raw failure lane** (habitat holes hug walls; moon rims are flap-armored — ~50 dry-runs, probes travel 0.6–5.3 m and beach on rims). The beat rides on hero-world curation exactly as ENDGAME §2 specs — **pressing R on a candidate world IS the curation check now**. Pre-recorded-clip fallback stands. Rover physics: pitch/roll free, yaw steering-locked, orientation streamed. Beat-5 delivery follow built; needs one full-repair rehearsal pass. |
+| C7 | MISSION LOG panel | **DONE** (commit ceabccc) — recorded-episode replay narrates Beat 4 (agent's own words + tool chips with result-driven states, RECORDED REPLAY honesty chip, wifi-off from assets/traces/); starts with Run All on the same Space; recorded tool calls pulse the matching live plan cards. Determinism check: MATCH (two replays byte-identical). Standalone harness `/missionlog-dev.html`. Mounted at speed 2 (~38 s for the 305-event canonical cassette). |
 | C8 | USD pack assembler | **DONE** — `src/export/usdPack.ts` + `usdValidate.ts` + `scripts/usd-pack.ts` + tests. Habitat repaired-bundle pack: **ALL RULES PASS** (Z-up/metersPerUnit explicit, PhysicsCollisionAPI, 10/10 spawns outside 72 quarantine cubes, NuRec payload ref, certificate sha in layer customData). Text-level validation only — drag-in test is cluster gate G2. |
 | C9 | Isaac Lab task package | **DONE** — `isaac/` (surveyor-isaac): pure-python contract loader mirroring `isaacContract.ts` constant-for-constant; `Certified-Resupply-Rover-v0` env cfg wired entirely from the certificate (spawns→resets, quarantine→terminations, friction→DR, gravity→sim, open criticals→ContractRefused); 6/6 unittest green vs the real habitat certificate; README has exact Gilbreth commands + honest Isaac-version caveats (targets Isaac Lab 2.x, JETBOT_CONFIG — swap one import if the cluster differs). |
 | C10 | Determinism hash chip | **DONE** — `certificateSha256` is now a CONTENT hash (createdAt normalized; stable across re-runs — required for the "re-hash live, match the Devpost print" claim). Worker streams it (WebCrypto, same bytes); panel chip with tooltip; report footer explains. |
@@ -104,15 +104,19 @@ the loaded world, with the app's own humanize functions:
 
 ## 8. Suggested first moves (next session)
 
-1. `npm test` (35 green) — then C6 (twin run) and C7 (MISSION LOG) in the app.
-2. If the session limit has reset: re-record the repair cassette against the
-   canonical habitat certificate (`scripts/repair-agent.ts`, bills the Max
-   subscription) and re-check `verify-beat-truth` + browser counts == cassette.
-3. Run the viewer (`.claude/launch.json` "viewer", port 5173,
-   `?world=/marble/<id>`) and verify: hash chip, suspension verdict line,
-   trust denominators, new disclosures render.
-4. `npx tsx scripts/verify-beat-truth.ts` on station (should be the D-grade,
-   scale-repair-to-B/A story — a strong second beat if the hero world slips).
+1. `npm test` (35 green) + one full Beat 1→5 rehearsal in the viewer:
+   Space through the beats, Run All at Beat 4 (MISSION LOG narrates over the
+   live engine — verify card pulsing + final grade), patrol/delivery at
+   Beat 5 (`twinRun.followDelivery` camera). This is the only unrehearsed
+   surface left in the app.
+2. Hero-world candidates (user-gated, ~$0.12 draft each): for each candidate,
+   load in the viewer and press **R** — a validated twin-run failure route
+   either derives (twinRun.probeReport() in `__dbg` shows the dry-runs) or
+   the world is not the hero. "The certificates pick the hero", mechanically.
+3. `npx tsx scripts/verify-beat-truth.ts` on station (the D-grade,
+   scale-repair story — a strong second beat if the hero world slips).
+4. Assemble the publishable pack from the NEW canonical export:
+   `npx tsx scripts/make-pack.ts assets/exports/7188e250-… --out <dir>`.
 
 ## 9. Environment, secrets, money
 
@@ -147,6 +151,17 @@ in-house SPZ parser at `src/ingest/spz.ts`, CRLF warnings are noise). New:
   clusters per wave (shifted regions, IoU miss). Replan loops must iterate;
   counts decay fast. See verify-beat-truth's wave loop.
 - vitest suite must stay the single source of green: 35 tests as of tonight.
+- **Vite on this machine lies without polling**: chokidar misses tool-driven
+  writes, so the dev server serves modules ONE EDIT BEHIND (hours lost
+  testing stale code) — `server.watch.usePolling` is now set in
+  app/vite.config.ts; verify freshness with a cache-busted fetch of the
+  module before trusting a browser test. Also: killing the preview leaves an
+  **orphaned vite squatting port 5173** (npm→cmd→vite on Windows); check
+  `Get-NetTCPConnection -LocalPort 5173` before restarting.
+- Ray heuristics cannot vet a drive lane on torn Marble meshes (downward,
+  horizontal, and floor-following rays all passed lanes that wedge a box).
+  The twin run validates by silent physics dry-run (`rover_probe` in the
+  worker) — keep that pattern for any future traversal claim.
 
 ## 11. File map (load-bearing additions this session)
 
