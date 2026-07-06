@@ -500,3 +500,106 @@ body.sv-dev .sv-hum { display: none; }
 .sv-beforeafter-breakdown { color: #8a93a8; font-size: 10.5px; margin-bottom: 10px; }
 .sv-beforeafter-disclosure { color: #6b7487; font-size: 10px; font-style: italic; margin-bottom: 10px; }
 .sv-beforeafter-buttons { display: flex; justify-content: center; gap: 8px; }
+
+/* ======================================================= MISSION LOG (C7)
+   Beat-4 cassette replay panel. Same dark palette/fonts as every sv- panel;
+   all classes sv-ml- so this block stays out of other lanes' way. */
+
+.sv-panel-mission { display: flex; flex-direction: column; overflow: hidden; }
+
+.sv-ml-replaychip {
+  flex: none; font-size: 9px; font-weight: 800; letter-spacing: 0.1em;
+  color: #ffd60a; border: 1px solid rgba(255, 214, 10, 0.55);
+  background: rgba(255, 214, 10, 0.08);
+  border-radius: 3px; padding: 1px 6px; cursor: help;
+  align-self: flex-start; white-space: nowrap;
+}
+.sv-ml-sub {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+  color: #8a93a8; font-size: 10px; letter-spacing: 0.06em;
+  margin: -6px 0 8px;
+}
+.sv-ml-episode { color: #5b6478; word-break: break-all; }
+.sv-ml-progress { flex: none; color: #5b6478; font-variant-numeric: tabular-nums; }
+
+.sv-ml-log {
+  flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden;
+  background: #070a10; border: 1px solid #1c2334; border-radius: 6px;
+  padding: 8px 9px;
+  scrollbar-width: thin; scrollbar-color: #2a3142 transparent;
+}
+
+/* agent reasoning — the recorded words, typed in verbatim */
+.sv-ml-note { margin: 7px 0 6px; }
+.sv-ml-note-tag {
+  font-size: 9px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+  color: #0b0e14; background: #7c86e8; border-radius: 3px; padding: 0 5px;
+  margin-right: 6px;
+}
+.sv-ml-note-text { color: #dfe5f2; white-space: pre-wrap; word-break: break-word; }
+.sv-ml-caret {
+  display: inline-block; width: 7px; height: 11px; margin-left: 1px;
+  background: #dfe5f2; vertical-align: -1px;
+  animation: sv-ml-caret 0.85s steps(1) infinite;
+}
+@keyframes sv-ml-caret { 50% { opacity: 0; } }
+
+/* tool rows — one chip row per recorded tool call */
+.sv-ml-tool {
+  display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;
+  margin: 2px 0; padding: 2px 4px; border-radius: 4px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.sv-ml-tool-burst { margin: 1px 0; padding: 0 4px; background: none; }
+.sv-ml-glyph { color: #5fa8ff; flex: none; }
+.sv-ml-tool-line { color: #c3cadb; font-weight: 700; word-break: break-word; }
+.sv-ml-state {
+  flex: none; margin-left: auto;
+  font-size: 9px; font-weight: 800; letter-spacing: 0.08em;
+  border-radius: 3px; padding: 1px 5px; white-space: nowrap;
+}
+.sv-ml-state-running { color: #0b0e14; background: #ffd60a; animation: sv-blink 1s ease-in-out infinite; }
+.sv-ml-state-done { color: #34d975; border: 1px solid rgba(52, 217, 117, 0.6); }
+.sv-ml-state-failed { color: #fff; background: #ff453a; }
+.sv-ml-state-flagged { color: #0b0e14; background: #ff9500; }
+
+/* dim settle-line under a tool row once its recorded result lands */
+.sv-ml-resnote {
+  flex-basis: 100%; color: #6b7487; font-size: 10px;
+  padding-left: 14px; word-break: break-word;
+}
+.sv-ml-resnote-flagged { color: #ff9500; }
+.sv-ml-resnote-failed { color: #ff453a; }
+
+/* the agent's recorded justification, quoted verbatim */
+.sv-ml-quote {
+  flex-basis: 100%; color: #8a93a8; font-size: 10px; font-style: italic;
+  border-left: 2px solid #3a4358; padding-left: 6px; margin-left: 8px;
+  word-break: break-word;
+}
+.sv-ml-quote-clip { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* footer: done line + controls */
+.sv-ml-foot {
+  display: flex; align-items: center; gap: 8px; margin-top: 8px; flex: none;
+}
+.sv-ml-status { flex: 1; min-width: 0; color: #8a93a8; font-size: 10.5px; }
+.sv-ml-status-done { color: #34d975; font-weight: 700; }
+
+/* a recorded tool call visually drives the matching repair-plan card:
+   short blue outline pulse, cosmetic only — never fights the card's real
+   status chip (integration snippet toggles this class for ~900 ms) */
+.sv-ml-drive { outline: 2px solid #5fa8ff; outline-offset: -1px; animation: sv-ml-drive 0.9s ease-out; }
+@keyframes sv-ml-drive {
+  from { outline-color: rgba(95, 168, 255, 0.95); }
+  to { outline-color: rgba(95, 168, 255, 0); }
+}
+
+/* ============================================================ twin run (C6) */
+/* Raw-run trigger chip: bottom-left, below the intro/legend cards (they sit
+   at bottom: 76px and grow upward), above the canvas. */
+.sv-twinrun-btn {
+  position: fixed; left: 14px; bottom: 44px; z-index: 26;
+  color: #ff9500; border-color: rgba(255, 149, 0, 0.55); background: rgba(20, 14, 6, 0.85);
+}
+.sv-twinrun-btn:hover:not(:disabled) { background: rgba(45, 30, 10, 0.95); border-color: #ff9500; }

@@ -2,57 +2,189 @@
   "schemaVersion": "0.1",
   "worldId": "7188e250-e2ff-43e7-babb-73834c22e932",
   "seed": 1234,
-  "createdAt": "2026-07-05T15:46:47.387Z",
+  "createdAt": "2026-07-06T12:41:13.322Z",
   "gravity": {
-    "name": "moon",
-    "g": 1.62
+    "name": "earth",
+    "g": 9.81
   },
-  "grade": "F",
-  "gradeRationale": "11 critical, 13 major, 14 minor unresolved defect(s); score 0/100. Outcomes recorded: 0/38.",
+  "grade": "A",
+  "gradeRationale": "0 critical, 0 major, 0 minor unresolved defect(s); score 100/100 (critical -40, major -15, minor -5). Repaired/quarantined/accepted defects do not count against the grade but remain listed. Outcomes recorded: 75/75.",
   "trust": {
     "cellSizeM": 0.25,
-    "cols": 16,
-    "rows": 62,
+    "cols": 26,
+    "rows": 101,
     "counts": {
-      "unknown": 425,
-      "verified": 62,
-      "observed": 399,
-      "lying": 106
+      "unknown": 1179,
+      "verified": 742,
+      "observed": 377,
+      "lying": 328
     },
-    "verifiedPct": 10.934744268077601,
-    "lyingPct": 18.69488536155203
+    "verifiedPct": 51.27850725639254,
+    "lyingPct": 22.667588113337942
   },
   "measurements": [
     {
       "name": "floor_plane_height",
-      "value": -0.5266697580761661,
+      "value": -0.8474403945060397,
       "unit": "m",
       "uncertainty": {
-        "low": -0.5563931477986902,
-        "high": -0.496946368353642,
+        "low": -0.8782667929242144,
+        "high": -0.816613996087865,
         "basis": "2x RANSAC inlier RMS"
       },
-      "method": "RANSAC plane fit on 320 virtual-LiDAR returns (tol 0.03 m, 200 iters); tilt 2.97 deg",
-      "n": 320
+      "method": "RANSAC plane fit on 905 virtual-LiDAR returns (tol 0.03 m, 200 iters); tilt 0.17 deg",
+      "n": 905
     },
     {
       "name": "doorway_width",
-      "value": 0.30000000000000004,
+      "value": 1.6,
       "unit": "m",
       "uncertainty": {
-        "low": 0.20000000000000004,
-        "high": 0.4,
+        "low": 1.5,
+        "high": 1.7000000000000002,
         "basis": "raycast grid resolution 0.1 m"
       },
       "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
     },
     {
       "name": "doorway_height",
-      "value": 0.9413533854484558,
+      "value": 1.1241850900650023,
       "unit": "m",
       "uncertainty": {
-        "low": 0.9113533854484558,
-        "high": 0.9713533854484558,
+        "low": 1.0941850900650023,
+        "high": 1.1541850900650024,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 1.2000000000000002,
+      "unit": "m",
+      "uncertainty": {
+        "low": 1.1,
+        "high": 1.3000000000000003,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 1.5434589433670043,
+      "unit": "m",
+      "uncertainty": {
+        "low": 1.5134589433670043,
+        "high": 1.5734589433670043,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 1.5,
+      "unit": "m",
+      "uncertainty": {
+        "low": 1.4,
+        "high": 1.6,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.9569149661064148,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.9269149661064148,
+        "high": 0.9869149661064148,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 1.2000000000000002,
+      "unit": "m",
+      "uncertainty": {
+        "low": 1.1,
+        "high": 1.3000000000000003,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 1.8536268520355224,
+      "unit": "m",
+      "uncertainty": {
+        "low": 1.8236268520355223,
+        "high": 1.8836268520355224,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 1.7000000000000002,
+      "unit": "m",
+      "uncertainty": {
+        "low": 1.6,
+        "high": 1.8000000000000003,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 1.6951421546936034,
+      "unit": "m",
+      "uncertainty": {
+        "low": 1.6651421546936034,
+        "high": 1.7251421546936034,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.7000000000000011,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6000000000000011,
+        "high": 0.800000000000001,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 1.8970954465866088,
+      "unit": "m",
+      "uncertainty": {
+        "low": 1.8670954465866088,
+        "high": 1.9270954465866088,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.19999999999999973,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.09999999999999973,
+        "high": 0.2999999999999997,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 2.0798915672302245,
+      "unit": "m",
+      "uncertainty": {
+        "low": 2.0498915672302247,
+        "high": 2.1098915672302243,
         "basis": "vertical ray quantization"
       },
       "method": "min upward-ray headroom over doorway cells, measured from local surface"
@@ -70,276 +202,133 @@
     },
     {
       "name": "doorway_height",
-      "value": 0.7294324684143065,
+      "value": 1.7657947587966918,
       "unit": "m",
       "uncertainty": {
-        "low": 0.6994324684143065,
-        "high": 0.7594324684143066,
+        "low": 1.7357947587966918,
+        "high": 1.7957947587966918,
         "basis": "vertical ray quantization"
       },
       "method": "min upward-ray headroom over doorway cells, measured from local surface"
     },
     {
       "name": "doorway_width",
-      "value": 0.3999999999999999,
+      "value": 2.5999999999999996,
       "unit": "m",
       "uncertainty": {
-        "low": 0.29999999999999993,
-        "high": 0.4999999999999999,
+        "low": 2.4999999999999996,
+        "high": 2.6999999999999997,
         "basis": "raycast grid resolution 0.1 m"
       },
       "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
     },
     {
       "name": "doorway_height",
-      "value": 0.8493998694419861,
+      "value": 1.7169019031524657,
       "unit": "m",
       "uncertainty": {
-        "low": 0.8193998694419861,
-        "high": 0.8793998694419861,
+        "low": 1.6869019031524657,
+        "high": 1.7469019031524657,
         "basis": "vertical ray quantization"
       },
       "method": "min upward-ray headroom over doorway cells, measured from local surface"
     },
     {
       "name": "doorway_width",
-      "value": 0.3999999999999999,
+      "value": 1,
       "unit": "m",
       "uncertainty": {
-        "low": 0.29999999999999993,
-        "high": 0.4999999999999999,
+        "low": 0.9,
+        "high": 1.1,
         "basis": "raycast grid resolution 0.1 m"
       },
       "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
     },
     {
       "name": "doorway_height",
-      "value": 1.2680380392074584,
+      "value": 1.995067958831787,
       "unit": "m",
       "uncertainty": {
-        "low": 1.2380380392074584,
-        "high": 1.2980380392074584,
-        "basis": "vertical ray quantization"
-      },
-      "method": "min upward-ray headroom over doorway cells, measured from local surface"
-    },
-    {
-      "name": "doorway_width",
-      "value": 0.40000000000000036,
-      "unit": "m",
-      "uncertainty": {
-        "low": 0.3000000000000004,
-        "high": 0.5000000000000003,
-        "basis": "raycast grid resolution 0.1 m"
-      },
-      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
-    },
-    {
-      "name": "doorway_height",
-      "value": 1.2268480110168456,
-      "unit": "m",
-      "uncertainty": {
-        "low": 1.1968480110168456,
-        "high": 1.2568480110168456,
+        "low": 1.965067958831787,
+        "high": 2.025067958831787,
         "basis": "vertical ray quantization"
       },
       "method": "min upward-ray headroom over doorway cells, measured from local surface"
     },
     {
       "name": "step_height",
-      "value": 0.3449660539627075,
+      "value": 0.12044024467468262,
       "unit": "m",
       "uncertainty": {
-        "low": 0.3249660539627075,
-        "high": 0.36496605396270754,
+        "low": 0.10044024467468261,
+        "high": 0.1404402446746826,
         "basis": "adjacent-cell surface delta quantization"
       },
-      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
+      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
     },
     {
       "name": "step_height",
-      "value": 0.16708523035049438,
+      "value": 0.4579439163208008,
       "unit": "m",
       "uncertainty": {
-        "low": 0.1470852303504944,
-        "high": 0.18708523035049437,
+        "low": 0.43794391632080076,
+        "high": 0.4779439163208008,
         "basis": "adjacent-cell surface delta quantization"
       },
-      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
+      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
     },
     {
       "name": "step_height",
-      "value": 0.045837342739105225,
+      "value": 0.4931607246398926,
       "unit": "m",
       "uncertainty": {
-        "low": 0.025837342739105224,
-        "high": 0.06583734273910523,
+        "low": 0.47316072463989256,
+        "high": 0.5131607246398926,
         "basis": "adjacent-cell surface delta quantization"
       },
-      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
+      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
     },
     {
       "name": "step_height",
-      "value": 0.048524677753448486,
+      "value": 0.21196269989013672,
       "unit": "m",
       "uncertainty": {
-        "low": 0.028524677753448486,
-        "high": 0.06852467775344849,
+        "low": 0.19196269989013673,
+        "high": 0.2319626998901367,
         "basis": "adjacent-cell surface delta quantization"
       },
-      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
+      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
     },
     {
       "name": "step_height",
-      "value": 0.04750770330429077,
+      "value": 0.09179258346557617,
       "unit": "m",
       "uncertainty": {
-        "low": 0.02750770330429077,
-        "high": 0.06750770330429078,
+        "low": 0.07179258346557617,
+        "high": 0.11179258346557618,
         "basis": "adjacent-cell surface delta quantization"
       },
-      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
-    },
-    {
-      "name": "step_height",
-      "value": 0.040290236473083496,
-      "unit": "m",
-      "uncertainty": {
-        "low": 0.020290236473083496,
-        "high": 0.0602902364730835,
-        "basis": "adjacent-cell surface delta quantization"
-      },
-      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
-    },
-    {
-      "name": "step_height",
-      "value": 0.04066169261932373,
-      "unit": "m",
-      "uncertainty": {
-        "low": 0.02066169261932373,
-        "high": 0.060661692619323734,
-        "basis": "adjacent-cell surface delta quantization"
-      },
-      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
-    },
-    {
-      "name": "step_height",
-      "value": 0.04897570610046387,
-      "unit": "m",
-      "uncertainty": {
-        "low": 0.028975706100463867,
-        "high": 0.06897570610046387,
-        "basis": "adjacent-cell surface delta quantization"
-      },
-      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
-    },
-    {
-      "name": "step_height",
-      "value": 0.05997145175933838,
-      "unit": "m",
-      "uncertainty": {
-        "low": 0.039971451759338375,
-        "high": 0.07997145175933838,
-        "basis": "adjacent-cell surface delta quantization"
-      },
-      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
-    },
-    {
-      "name": "step_height",
-      "value": 0.04534250497817993,
-      "unit": "m",
-      "uncertainty": {
-        "low": 0.02534250497817993,
-        "high": 0.06534250497817994,
-        "basis": "adjacent-cell surface delta quantization"
-      },
-      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
-    },
-    {
-      "name": "step_height",
-      "value": 0.05709320306777954,
-      "unit": "m",
-      "uncertainty": {
-        "low": 0.03709320306777954,
-        "high": 0.07709320306777954,
-        "basis": "adjacent-cell surface delta quantization"
-      },
-      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
-    },
-    {
-      "name": "step_height",
-      "value": 0.041142046451568604,
-      "unit": "m",
-      "uncertainty": {
-        "low": 0.021142046451568603,
-        "high": 0.06114204645156861,
-        "basis": "adjacent-cell surface delta quantization"
-      },
-      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
-    },
-    {
-      "name": "step_height",
-      "value": 0.04656773805618286,
-      "unit": "m",
-      "uncertainty": {
-        "low": 0.02656773805618286,
-        "high": 0.06656773805618287,
-        "basis": "adjacent-cell surface delta quantization"
-      },
-      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
-    },
-    {
-      "name": "step_height",
-      "value": 0.04345220327377319,
-      "unit": "m",
-      "uncertainty": {
-        "low": 0.023452203273773193,
-        "high": 0.0634522032737732,
-        "basis": "adjacent-cell surface delta quantization"
-      },
-      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
-    },
-    {
-      "name": "step_height",
-      "value": 0.052641868591308594,
-      "unit": "m",
-      "uncertainty": {
-        "low": 0.03264186859130859,
-        "high": 0.0726418685913086,
-        "basis": "adjacent-cell surface delta quantization"
-      },
-      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
-    },
-    {
-      "name": "step_height",
-      "value": 0.043417930603027344,
-      "unit": "m",
-      "uncertainty": {
-        "low": 0.023417930603027343,
-        "high": 0.06341793060302735,
-        "basis": "adjacent-cell surface delta quantization"
-      },
-      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
+      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
     },
     {
       "name": "metric_scale_factor_estimate",
-      "value": 1.6008983462899729,
+      "value": 0.9760124191009318,
       "unit": "x",
       "uncertainty": {
-        "low": 1.4431743712860345,
-        "high": 1.7586223212939112,
+        "low": 0.8798535600762095,
+        "high": 1.0721712781256543,
         "basis": "door-height prior 2.03±0.1 m (2 SD)"
       },
-      "method": "tallest measured doorway height 1.27 m vs standard-passage prior; single-cue estimate — cross-check against vendor metadata",
-      "n": 5
+      "method": "tallest measured doorway height 2.08 m vs standard-passage prior; single-cue estimate — cross-check against vendor metadata",
+      "n": 10
     },
     {
       "name": "vendor_metric_scale_factor",
-      "value": 1.624169111251831,
+      "value": 1,
       "unit": "x",
       "uncertainty": {
-        "low": 1.624169111251831,
-        "high": 1.624169111251831,
+        "low": 1,
+        "high": 1,
         "basis": "vendor-shipped metadata (exact as shipped)"
       },
       "method": "read from world metadata; accuracy unverified until cross-checked"
@@ -351,49 +340,14 @@
       "type": "collider_hole",
       "region": {
         "min": [
-          0.698124384880066,
-          -0.8266697580761662,
-          -3.010352897644043
+          0.051032495498657404,
+          -1.1474596355915663,
+          12.75584363937378
         ],
         "max": [
-          0.9981243848800663,
-          -0.22666975807616613,
-          -1.710352897644043
-        ]
-      },
-      "severity": "critical",
-      "confidence": 0.95,
-      "evidence": [
-        {
-          "kind": "raycast_miss",
-          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
-        },
-        {
-          "kind": "probe_fallthrough",
-          "detail": "5 probes fell through; each confirmed by an independent raycast at its drop point (tunneling excluded)",
-          "count": 5
-        },
-        {
-          "kind": "divergence_visual_no_physics",
-          "detail": "224 visual samples cover this region — the floor LOOKS intact",
-          "count": 224
-        }
-      ],
-      "description": "Physics hole under visually intact floor: probes fall through and rays pass unobstructed."
-    },
-    {
-      "id": "d-hole-1",
-      "type": "collider_hole",
-      "region": {
-        "min": [
-          -0.801875615119934,
-          -0.8266697580761662,
-          -2.210352897644043
-        ],
-        "max": [
-          -0.501875615119934,
-          -0.22666975807616613,
-          -0.710352897644043
+          0.4510324954986573,
+          -0.5474596355915662,
+          13.35584363937378
         ]
       },
       "severity": "critical",
@@ -410,250 +364,27 @@
         },
         {
           "kind": "divergence_visual_no_physics",
-          "detail": "1387 visual samples cover this region — the floor LOOKS intact",
-          "count": 1387
-        }
-      ],
-      "description": "Physics hole under visually intact floor: probes fall through and rays pass unobstructed."
-    },
-    {
-      "id": "d-hole-2",
-      "type": "collider_hole",
-      "region": {
-        "min": [
-          0.5981243848800659,
-          -0.8266697580761662,
-          -1.5103528976440428
-        ],
-        "max": [
-          0.9981243848800663,
-          -0.22666975807616613,
-          -0.710352897644043
-        ]
-      },
-      "severity": "critical",
-      "confidence": 0.95,
-      "evidence": [
-        {
-          "kind": "raycast_miss",
-          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
-        },
-        {
-          "kind": "probe_fallthrough",
-          "detail": "3 probes fell through; each confirmed by an independent raycast at its drop point (tunneling excluded)",
-          "count": 3
-        },
-        {
-          "kind": "divergence_visual_no_physics",
-          "detail": "1277 visual samples cover this region — the floor LOOKS intact",
-          "count": 1277
-        }
-      ],
-      "description": "Physics hole under visually intact floor: probes fall through and rays pass unobstructed."
-    },
-    {
-      "id": "d-hole-3",
-      "type": "collider_hole",
-      "region": {
-        "min": [
-          0.4981243848800663,
-          -0.8266697580761662,
-          0.28964710235595703
-        ],
-        "max": [
-          0.8981243848800662,
-          -0.22666975807616613,
-          1.9896471023559572
-        ]
-      },
-      "severity": "critical",
-      "confidence": 0.95,
-      "evidence": [
-        {
-          "kind": "raycast_miss",
-          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
-        },
-        {
-          "kind": "probe_fallthrough",
-          "detail": "7 probes fell through; each confirmed by an independent raycast at its drop point (tunneling excluded)",
+          "detail": "7 visual samples cover this region — the floor LOOKS intact",
           "count": 7
-        },
-        {
-          "kind": "divergence_visual_no_physics",
-          "detail": "6339 visual samples cover this region — the floor LOOKS intact",
-          "count": 6339
         }
       ],
-      "description": "Physics hole under visually intact floor: probes fall through and rays pass unobstructed."
+      "description": "Physics hole at the capture boundary: pixels claim floor, probes fall through, and the collider never resumes beyond — patch or quarantine before training.",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
     },
     {
-      "id": "d-hole-4",
+      "id": "d-hole-1",
       "type": "collider_hole",
       "region": {
         "min": [
-          -0.7018756151199339,
-          -0.8266697580761662,
-          0.4896471023559572
+          -3.1189675331115723,
+          -1.1523787240042866,
+          -0.6441563606262202
         ],
         "max": [
-          -0.601875615119934,
-          -0.22666975807616613,
-          0.9896471023559572
-        ]
-      },
-      "severity": "critical",
-      "confidence": 0.7,
-      "evidence": [
-        {
-          "kind": "raycast_miss",
-          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
-        }
-      ],
-      "description": "Raycast void inside the floor footprint; no probe landed here — probe-directed follow-up recommended."
-    },
-    {
-      "id": "d-hole-5",
-      "type": "collider_hole",
-      "region": {
-        "min": [
-          -0.601875615119934,
-          -0.8266697580761662,
-          0.9896471023559572
-        ],
-        "max": [
-          -0.501875615119934,
-          -0.22666975807616613,
-          1.4896471023559572
-        ]
-      },
-      "severity": "critical",
-      "confidence": 0.95,
-      "evidence": [
-        {
-          "kind": "raycast_miss",
-          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
-        },
-        {
-          "kind": "probe_fallthrough",
-          "detail": "1 probes fell through; each confirmed by an independent raycast at its drop point (tunneling excluded)",
-          "count": 1
-        },
-        {
-          "kind": "divergence_visual_no_physics",
-          "detail": "637 visual samples cover this region — the floor LOOKS intact",
-          "count": 637
-        }
-      ],
-      "description": "Physics hole under visually intact floor: probes fall through and rays pass unobstructed."
-    },
-    {
-      "id": "d-hole-6",
-      "type": "collider_hole",
-      "region": {
-        "min": [
-          -1.101875615119934,
-          -0.8266697580761662,
-          2.0896471023559577
-        ],
-        "max": [
-          -0.4018756151199341,
-          -0.22666975807616613,
-          7.089647102355958
-        ]
-      },
-      "severity": "critical",
-      "confidence": 0.95,
-      "evidence": [
-        {
-          "kind": "raycast_miss",
-          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
-        },
-        {
-          "kind": "probe_fallthrough",
-          "detail": "21 probes fell through; each confirmed by an independent raycast at its drop point (tunneling excluded)",
-          "count": 21
-        },
-        {
-          "kind": "divergence_visual_no_physics",
-          "detail": "14819 visual samples cover this region — the floor LOOKS intact",
-          "count": 14819
-        }
-      ],
-      "description": "Physics hole under visually intact floor: probes fall through and rays pass unobstructed."
-    },
-    {
-      "id": "d-hole-7",
-      "type": "collider_hole",
-      "region": {
-        "min": [
-          0.3981243848800662,
-          -0.8266697580761662,
-          2.1896471023559574
-        ],
-        "max": [
-          0.698124384880066,
-          -0.22666975807616613,
-          2.5896471023559577
-        ]
-      },
-      "severity": "critical",
-      "confidence": 0.95,
-      "evidence": [
-        {
-          "kind": "raycast_miss",
-          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
-        },
-        {
-          "kind": "probe_fallthrough",
-          "detail": "1 probes fell through; each confirmed by an independent raycast at its drop point (tunneling excluded)",
-          "count": 1
-        },
-        {
-          "kind": "divergence_visual_no_physics",
-          "detail": "786 visual samples cover this region — the floor LOOKS intact",
-          "count": 786
-        }
-      ],
-      "description": "Physics hole under visually intact floor: probes fall through and rays pass unobstructed."
-    },
-    {
-      "id": "d-hole-8",
-      "type": "collider_hole",
-      "region": {
-        "min": [
-          0.4981243848800663,
-          -0.8266697580761662,
-          2.6896471023559574
-        ],
-        "max": [
-          0.698124384880066,
-          -0.22666975807616613,
-          3.489647102355957
-        ]
-      },
-      "severity": "critical",
-      "confidence": 0.7,
-      "evidence": [
-        {
-          "kind": "raycast_miss",
-          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
-        }
-      ],
-      "description": "Raycast void inside the floor footprint; no probe landed here — probe-directed follow-up recommended."
-    },
-    {
-      "id": "d-hole-9",
-      "type": "collider_hole",
-      "region": {
-        "min": [
-          0.198124384880066,
-          -0.8266697580761662,
-          4.989647102355958
-        ],
-        "max": [
-          0.4981243848800663,
-          -0.22666975807616613,
-          6.489647102355958
+          -1.918967533111572,
+          -0.5523787240042868,
+          0.15584363937377965
         ]
       },
       "severity": "critical",
@@ -670,259 +401,286 @@
         },
         {
           "kind": "divergence_visual_no_physics",
-          "detail": "331 visual samples cover this region — the floor LOOKS intact",
-          "count": 331
+          "detail": "243 visual samples cover this region — the floor LOOKS intact",
+          "count": 243
         }
       ],
-      "description": "Physics hole under visually intact floor: probes fall through and rays pass unobstructed."
+      "description": "Physics hole at the capture boundary: pixels claim floor, probes fall through, and the collider never resumes beyond — patch or quarantine before training.",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
     },
     {
-      "id": "d-phantom-10",
-      "type": "phantom_collider",
+      "id": "d-hole-2",
+      "type": "collider_hole",
       "region": {
         "min": [
-          -0.15187561511993408,
-          -0.5266697580761661,
-          -0.960352897644043
+          1.8810324668884277,
+          -1.1523787240042866,
+          -0.14415636062622017
         ],
         "max": [
-          0.8481243848800659,
-          1.9733302419238339,
-          -0.21035289764404297
+          2.6810324668884284,
+          -0.5523787240042868,
+          0.15584363937377965
         ]
       },
-      "severity": "major",
+      "severity": "critical",
       "confidence": 0.95,
       "evidence": [
         {
-          "kind": "divergence_physics_no_visual",
-          "detail": "38 collider-surface samples have no visual support within 0.2 m — an invisible barrier",
-          "count": 38
+          "kind": "raycast_miss",
+          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
+        },
+        {
+          "kind": "probe_fallthrough",
+          "detail": "2 probes fell through; each confirmed by an independent raycast at its drop point (tunneling excluded)",
+          "count": 2
+        },
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "82 visual samples cover this region — the floor LOOKS intact",
+          "count": 82
         }
       ],
-      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+      "description": "Physics hole at the capture boundary: pixels claim floor, probes fall through, and the collider never resumes beyond — patch or quarantine before training.",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
     },
     {
-      "id": "d-phantom-11",
-      "type": "phantom_collider",
+      "id": "d-hole-3",
+      "type": "collider_hole",
       "region": {
         "min": [
-          -0.6518756151199341,
-          -0.5266697580761661,
-          -0.710352897644043
+          2.781032466888428,
+          -1.1523787240042866,
+          -0.14415636062622017
         ],
         "max": [
-          -0.4018756151199341,
-          1.9733302419238339,
-          -0.46035289764404297
+          3.081032466888428,
+          -0.5523787240042868,
+          0.15584363937377965
         ]
       },
-      "severity": "major",
-      "confidence": 0.7,
+      "severity": "critical",
+      "confidence": 0.95,
       "evidence": [
         {
-          "kind": "divergence_physics_no_visual",
-          "detail": "8 collider-surface samples have no visual support within 0.2 m — an invisible barrier",
+          "kind": "raycast_miss",
+          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
+        },
+        {
+          "kind": "probe_fallthrough",
+          "detail": "1 probes fell through; each confirmed by an independent raycast at its drop point (tunneling excluded)",
+          "count": 1
+        },
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "9 visual samples cover this region — the floor LOOKS intact",
+          "count": 9
+        }
+      ],
+      "description": "Physics hole at the capture boundary: pixels claim floor, probes fall through, and the collider never resumes beyond — patch or quarantine before training.",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
+    },
+    {
+      "id": "d-hole-4",
+      "type": "collider_hole",
+      "region": {
+        "min": [
+          -0.9189675331115721,
+          -1.1523787240042866,
+          2.35584363937378
+        ],
+        "max": [
+          -0.7189675331115719,
+          -0.5523787240042868,
+          3.05584363937378
+        ]
+      },
+      "severity": "critical",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "raycast_miss",
+          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
+        },
+        {
+          "kind": "probe_fallthrough",
+          "detail": "1 probes fell through; each confirmed by an independent raycast at its drop point (tunneling excluded)",
+          "count": 1
+        },
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "845 visual samples cover this region — the floor LOOKS intact",
+          "count": 845
+        }
+      ],
+      "description": "Physics hole at the capture boundary: pixels claim floor, probes fall through, and the collider never resumes beyond — patch or quarantine before training.",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
+    },
+    {
+      "id": "d-hole-5",
+      "type": "collider_hole",
+      "region": {
+        "min": [
+          -1.2189675331115721,
+          -1.1523787240042866,
+          12.75584363937378
+        ],
+        "max": [
+          -0.7189675331115719,
+          -0.5523787240042868,
+          13.25584363937378
+        ]
+      },
+      "severity": "critical",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "raycast_miss",
+          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
+        },
+        {
+          "kind": "probe_fallthrough",
+          "detail": "1 probes fell through; each confirmed by an independent raycast at its drop point (tunneling excluded)",
+          "count": 1
+        },
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "8 visual samples cover this region — the floor LOOKS intact",
           "count": 8
         }
       ],
-      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+      "description": "Physics hole at the capture boundary: pixels claim floor, probes fall through, and the collider never resumes beyond — patch or quarantine before training.",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
     },
     {
-      "id": "d-phantom-12",
-      "type": "phantom_collider",
+      "id": "d-hole-6",
+      "type": "collider_hole",
       "region": {
         "min": [
-          -0.6518756151199341,
-          -0.5266697580761661,
-          0.789647102355957
+          -1.789632338519408,
+          -1.342651486273333,
+          3.39394027706344
         ],
         "max": [
-          -0.4018756151199341,
-          1.9733302419238339,
-          1.539647102355957
+          -0.6527139606431263,
+          -0.3681500195222343,
+          11.514785833322595
         ]
       },
-      "severity": "major",
+      "severity": "critical",
       "confidence": 0.95,
       "evidence": [
         {
-          "kind": "divergence_physics_no_visual",
-          "detail": "20 collider-surface samples have no visual support within 0.2 m — an invisible barrier",
-          "count": 20
-        }
-      ],
-      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
-    },
-    {
-      "id": "d-phantom-13",
-      "type": "phantom_collider",
-      "region": {
-        "min": [
-          -0.6518756151199341,
-          -0.5266697580761661,
-          2.789647102355957
-        ],
-        "max": [
-          -0.15187561511993408,
-          1.9733302419238339,
-          3.289647102355957
-        ]
-      },
-      "severity": "major",
-      "confidence": 0.875,
-      "evidence": [
+          "kind": "raycast_miss",
+          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
+        },
         {
-          "kind": "divergence_physics_no_visual",
-          "detail": "15 collider-surface samples have no visual support within 0.2 m — an invisible barrier",
-          "count": 15
-        }
-      ],
-      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
-    },
-    {
-      "id": "d-phantom-14",
-      "type": "phantom_collider",
-      "region": {
-        "min": [
-          -0.6518756151199341,
-          -0.5266697580761661,
-          3.539647102355957
-        ],
-        "max": [
-          -0.15187561511993408,
-          1.9733302419238339,
-          4.039647102355957
-        ]
-      },
-      "severity": "major",
-      "confidence": 0.85,
-      "evidence": [
+          "kind": "probe_fallthrough",
+          "detail": "43 probes fell through; each confirmed by an independent raycast at its drop point (tunneling excluded)",
+          "count": 43
+        },
         {
-          "kind": "divergence_physics_no_visual",
-          "detail": "14 collider-surface samples have no visual support within 0.2 m — an invisible barrier",
-          "count": 14
+          "kind": "divergence_visual_no_physics",
+          "detail": "14819 visual samples cover this region — the floor LOOKS intact",
+          "count": 14819
         }
       ],
-      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+      "description": "Physics hole at the capture boundary: pixels claim floor, probes fall through, and the collider never resumes beyond — patch or quarantine before training.",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
     },
     {
-      "id": "d-phantom-15",
-      "type": "phantom_collider",
+      "id": "d-hole-7",
+      "type": "collider_hole",
       "region": {
         "min": [
-          -0.9018756151199341,
-          -0.5266697580761661,
-          5.039647102355957
+          -2.1189675331115723,
+          -1.1450580303185809,
+          4.185843849182129
         ],
         "max": [
-          -0.6518756151199341,
-          1.9733302419238339,
-          5.539647102355957
+          -1.8189675331115722,
+          -0.545058030318581,
+          10.785843849182129
         ]
       },
-      "severity": "major",
-      "confidence": 0.85,
-      "evidence": [
-        {
-          "kind": "divergence_physics_no_visual",
-          "detail": "14 collider-surface samples have no visual support within 0.2 m — an invisible barrier",
-          "count": 14
-        }
-      ],
-      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
-    },
-    {
-      "id": "d-phantom-16",
-      "type": "phantom_collider",
-      "region": {
-        "min": [
-          -1.151875615119934,
-          -0.5266697580761661,
-          6.039647102355957
-        ],
-        "max": [
-          -0.15187561511993408,
-          1.9733302419238339,
-          11.539647102355957
-        ]
-      },
-      "severity": "major",
+      "severity": "critical",
       "confidence": 0.95,
       "evidence": [
         {
-          "kind": "divergence_physics_no_visual",
-          "detail": "237 collider-surface samples have no visual support within 0.2 m — an invisible barrier",
-          "count": 237
+          "kind": "raycast_miss",
+          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
+        },
+        {
+          "kind": "probe_fallthrough",
+          "detail": "13 probes fell through; each confirmed by an independent raycast at its drop point (tunneling excluded)",
+          "count": 13
+        },
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "38 visual samples cover this region — the floor LOOKS intact",
+          "count": 38
         }
       ],
-      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+      "description": "Physics hole at the capture boundary: pixels claim floor, probes fall through, and the collider never resumes beyond — patch or quarantine before training.",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
     },
     {
-      "id": "d-phantom-17",
-      "type": "phantom_collider",
+      "id": "d-hole-8",
+      "type": "collider_hole",
       "region": {
         "min": [
-          0.09812438488006592,
-          -0.5266697580761661,
-          6.289647102355957
+          0.38103246688842773,
+          -1.1450580303185809,
+          10.58584384918213
         ],
         "max": [
-          0.3481243848800659,
-          1.9733302419238339,
-          6.539647102355957
+          0.5810324668884279,
+          -0.545058030318581,
+          11.38584384918213
         ]
       },
-      "severity": "major",
-      "confidence": 0.725,
+      "severity": "critical",
+      "confidence": 0.95,
       "evidence": [
         {
-          "kind": "divergence_physics_no_visual",
-          "detail": "9 collider-surface samples have no visual support within 0.2 m — an invisible barrier",
-          "count": 9
+          "kind": "raycast_miss",
+          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
+        },
+        {
+          "kind": "probe_fallthrough",
+          "detail": "1 probes fell through; each confirmed by an independent raycast at its drop point (tunneling excluded)",
+          "count": 1
+        },
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "12 visual samples cover this region — the floor LOOKS intact",
+          "count": 12
         }
       ],
-      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+      "description": "Physics hole at the capture boundary: pixels claim floor, probes fall through, and the collider never resumes beyond — patch or quarantine before training.",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
     },
     {
-      "id": "d-phantom-18",
+      "id": "d-phantom-9",
       "type": "phantom_collider",
       "region": {
         "min": [
-          0.09812438488006592,
-          -0.5266697580761661,
-          7.039647102355957
+          1.1310324668884277,
+          -0.845058030318581,
+          -4.214156150817871
         ],
         "max": [
-          0.3481243848800659,
-          1.9733302419238339,
-          7.789647102355957
-        ]
-      },
-      "severity": "major",
-      "confidence": 0.725,
-      "evidence": [
-        {
-          "kind": "divergence_physics_no_visual",
-          "detail": "9 collider-surface samples have no visual support within 0.2 m — an invisible barrier",
-          "count": 9
-        }
-      ],
-      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
-    },
-    {
-      "id": "d-phantom-19",
-      "type": "phantom_collider",
-      "region": {
-        "min": [
-          -0.15187561511993408,
-          -0.5266697580761661,
-          9.039647102355957
-        ],
-        "max": [
-          0.3481243848800659,
-          1.9733302419238339,
-          9.539647102355957
+          1.3810324668884277,
+          1.6549419696814192,
+          -3.714156150817871
         ]
       },
       "severity": "major",
@@ -930,51 +688,139 @@
       "evidence": [
         {
           "kind": "divergence_physics_no_visual",
-          "detail": "11 collider-surface samples have no visual support within 0.2 m — an invisible barrier",
+          "detail": "11 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
           "count": 11
         }
       ],
-      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
     },
     {
-      "id": "d-phantom-20",
+      "id": "d-phantom-10",
       "type": "phantom_collider",
       "region": {
         "min": [
-          -0.4018756151199341,
-          -0.5266697580761661,
-          11.039647102355957
+          0.6010324954986572,
+          -0.8474403945060397,
+          1.5058436393737793
         ],
         "max": [
-          -0.15187561511993408,
-          1.9733302419238339,
-          11.539647102355957
+          0.8510324954986572,
+          1.6525596054939604,
+          2.7558436393737793
         ]
       },
       "severity": "major",
-      "confidence": 0.8,
+      "confidence": 0.95,
       "evidence": [
         {
           "kind": "divergence_physics_no_visual",
-          "detail": "12 collider-surface samples have no visual support within 0.2 m — an invisible barrier",
-          "count": 12
+          "detail": "47 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 47
         }
       ],
-      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "accepted",
+      "outcomeNote": "Real walls/structures with dense co-located visual support: d-phantom-4 (2534 visual, ratio 2.2), d-phantom-8 (557, ratio 5.5), d-phantom-10 (706, ratio 1.5), d-phantom-13 (145, ratio 0.33). Colliders are legitimate; sparse-visual flags are grazing-angle capture artifacts, not invisible barriers. Correct as-is for physics training."
     },
     {
-      "id": "d-sill-21",
+      "id": "d-phantom-11",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          0.15937059498278927,
+          -0.8554007528977836,
+          11.433577377760002
+        ],
+        "max": [
+          0.565412872795747,
+          3.205022025231794,
+          12.651704211198876
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.725,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "9 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.02 m mean point spacing) — an invisible barrier",
+          "count": 9
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
+    },
+    {
+      "id": "d-phantom-12",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          0.6010324954986572,
+          -0.8474403945060397,
+          3.2558436393737793
+        ],
+        "max": [
+          0.8510324954986572,
+          1.6525596054939604,
+          3.7558436393737793
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "16 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 16
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "accepted",
+      "outcomeNote": "Real walls/structures with dense co-located visual support: d-phantom-5 (395 visual), d-phantom-12 (237, ratio 1.4), d-phantom-16 (84, ratio 0.48). Colliders are legitimate; sparse-visual flags are grazing-angle capture artifacts, not invisible barriers. Correct as-is for physics training."
+    },
+    {
+      "id": "d-visual-13",
+      "type": "visual_only_surface",
+      "region": {
+        "min": [
+          -1.8708407940819995,
+          -0.8554007528977836,
+          0.06439359899718511
+        ],
+        "max": [
+          -1.4647985162690418,
+          3.205022025231794,
+          0.4704358768101429
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "18 visual samples are >0.15 m from any collider surface — painted-on geometry",
+          "count": 18
+        }
+      ],
+      "description": "Ghost geometry: a visual surface with no physics behind it — looks solid, is not. Training episodes touching it learn an affordance that does not exist.",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
+    },
+    {
+      "id": "d-sill-14",
       "type": "raised_sill",
       "region": {
         "min": [
-          -0.601875615119934,
-          -0.5266697580761661,
-          -2.410352897644043
+          -0.9775477828934924,
+          -0.8554007528977836,
+          -3.914820723569801
         ],
         "max": [
-          -0.501875615119934,
-          -0.1317037041134586,
-          -2.210352897644043
+          -0.8151308717683091,
+          -0.2139090880585302,
+          -3.5899869013194348
         ]
       },
       "severity": "major",
@@ -992,28 +838,30 @@
               "high": 0.36496605396270754,
               "basis": "adjacent-cell surface delta quantization"
             },
-            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
           }
         }
       ],
-      "description": "Raised step/sill of 0.34 m — negotiability is robot-relative (see per-robot verdicts)."
+      "description": "Raised step/sill of 0.34 m — negotiability is robot-relative (see per-robot verdicts).",
+      "outcome": "accepted",
+      "outcomeNote": "Genuine surface discontinuities (raised sills) at true metric scale. No menu operation lowers a real step; negotiability is robot-relative and recorded in the per-robot step_negotiation verdicts. Correct as-is."
     },
     {
-      "id": "d-sill-22",
+      "id": "d-sill-15",
       "type": "raised_sill",
       "region": {
         "min": [
-          0.198124384880066,
-          -0.5266697580761661,
-          -1.5103528976440428
+          -0.6527139606431263,
+          -0.8554007528977836,
+          -2.453068523443153
         ],
         "max": [
-          0.3981243848800662,
-          -0.30958452772567174,
-          -1.3103528976440428
+          0.646621328358339,
+          -0.5028176272535221,
+          1.1201035213108759
         ]
       },
-      "severity": "major",
+      "severity": "minor",
       "confidence": 0.85,
       "evidence": [
         {
@@ -1028,313 +876,27 @@
               "high": 0.18708523035049437,
               "basis": "adjacent-cell surface delta quantization"
             },
-            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
           }
         }
       ],
-      "description": "Raised step/sill of 0.17 m — negotiability is robot-relative (see per-robot verdicts)."
+      "description": "Raised step/sill of 0.17 m — negotiability is robot-relative (see per-robot verdicts).",
+      "outcome": "accepted",
+      "outcomeNote": "Genuine surface discontinuities measured at true metric scale (0.04–0.17 m). No menu operation lowers a real step, and negotiability is robot-relative: the live per-robot step_negotiation verdicts already record it (max step 0.16 m — quadruped ≤0.25 m passes, rover ≤0.08 m does not). The findings are correct as-is."
     },
     {
-      "id": "d-sill-23",
+      "id": "d-sill-16",
       "type": "raised_sill",
       "region": {
         "min": [
-          -0.301875615119934,
-          -0.5266697580761661,
-          -1.3103528976440428
+          -0.16546322726757687,
+          -0.8554007528977836,
+          2.7442726325627067
         ],
         "max": [
-          -0.0018756151199339488,
-          -0.4308324153370609,
-          -1.1103528976440429
-        ]
-      },
-      "severity": "minor",
-      "confidence": 0.85,
-      "evidence": [
-        {
-          "kind": "floor_step_measurement",
-          "detail": "surface discontinuity of 0.046 m between adjacent traversable cells",
-          "measurement": {
-            "name": "step_height",
-            "value": 0.045837342739105225,
-            "unit": "m",
-            "uncertainty": {
-              "low": 0.025837342739105224,
-              "high": 0.06583734273910523,
-              "basis": "adjacent-cell surface delta quantization"
-            },
-            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
-          }
-        }
-      ],
-      "description": "Raised step/sill of 0.05 m — negotiability is robot-relative (see per-robot verdicts)."
-    },
-    {
-      "id": "d-sill-24",
-      "type": "raised_sill",
-      "region": {
-        "min": [
-          -0.10187561511993404,
-          -0.5266697580761661,
-          -0.6103528976440429
-        ],
-        "max": [
-          0.2981243848800661,
-          -0.42814508032271764,
-          -0.4103528976440427
-        ]
-      },
-      "severity": "minor",
-      "confidence": 0.85,
-      "evidence": [
-        {
-          "kind": "floor_step_measurement",
-          "detail": "surface discontinuity of 0.049 m between adjacent traversable cells",
-          "measurement": {
-            "name": "step_height",
-            "value": 0.048524677753448486,
-            "unit": "m",
-            "uncertainty": {
-              "low": 0.028524677753448486,
-              "high": 0.06852467775344849,
-              "basis": "adjacent-cell surface delta quantization"
-            },
-            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
-          }
-        }
-      ],
-      "description": "Raised step/sill of 0.05 m — negotiability is robot-relative (see per-robot verdicts)."
-    },
-    {
-      "id": "d-sill-25",
-      "type": "raised_sill",
-      "region": {
-        "min": [
-          -0.301875615119934,
-          -0.5266697580761661,
-          -0.3103528976440426
-        ],
-        "max": [
-          0.09812438488006592,
-          -0.42916205477187536,
-          -0.11035289764404288
-        ]
-      },
-      "severity": "minor",
-      "confidence": 0.85,
-      "evidence": [
-        {
-          "kind": "floor_step_measurement",
-          "detail": "surface discontinuity of 0.048 m between adjacent traversable cells",
-          "measurement": {
-            "name": "step_height",
-            "value": 0.04750770330429077,
-            "unit": "m",
-            "uncertainty": {
-              "low": 0.02750770330429077,
-              "high": 0.06750770330429078,
-              "basis": "adjacent-cell surface delta quantization"
-            },
-            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
-          }
-        }
-      ],
-      "description": "Raised step/sill of 0.05 m — negotiability is robot-relative (see per-robot verdicts)."
-    },
-    {
-      "id": "d-sill-26",
-      "type": "raised_sill",
-      "region": {
-        "min": [
-          -0.10187561511993404,
-          -0.5266697580761661,
-          0.0896471023559573
-        ],
-        "max": [
-          -0.0018756151199339488,
-          -0.43637952160308263,
-          0.28964710235595703
-        ]
-      },
-      "severity": "minor",
-      "confidence": 0.85,
-      "evidence": [
-        {
-          "kind": "floor_step_measurement",
-          "detail": "surface discontinuity of 0.040 m between adjacent traversable cells",
-          "measurement": {
-            "name": "step_height",
-            "value": 0.040290236473083496,
-            "unit": "m",
-            "uncertainty": {
-              "low": 0.020290236473083496,
-              "high": 0.0602902364730835,
-              "basis": "adjacent-cell surface delta quantization"
-            },
-            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
-          }
-        }
-      ],
-      "description": "Raised step/sill of 0.04 m — negotiability is robot-relative (see per-robot verdicts)."
-    },
-    {
-      "id": "d-sill-27",
-      "type": "raised_sill",
-      "region": {
-        "min": [
-          0.09812438488006592,
-          -0.5266697580761661,
-          0.0896471023559573
-        ],
-        "max": [
-          0.3981243848800662,
-          -0.4360080654568424,
-          0.28964710235595703
-        ]
-      },
-      "severity": "minor",
-      "confidence": 0.85,
-      "evidence": [
-        {
-          "kind": "floor_step_measurement",
-          "detail": "surface discontinuity of 0.041 m between adjacent traversable cells",
-          "measurement": {
-            "name": "step_height",
-            "value": 0.04066169261932373,
-            "unit": "m",
-            "uncertainty": {
-              "low": 0.02066169261932373,
-              "high": 0.060661692619323734,
-              "basis": "adjacent-cell surface delta quantization"
-            },
-            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
-          }
-        }
-      ],
-      "description": "Raised step/sill of 0.04 m — negotiability is robot-relative (see per-robot verdicts)."
-    },
-    {
-      "id": "d-sill-28",
-      "type": "raised_sill",
-      "region": {
-        "min": [
-          0.2981243848800661,
-          -0.5266697580761661,
-          0.4896471023559572
-        ],
-        "max": [
-          0.3981243848800662,
-          -0.42769405197570226,
-          0.6896471023559574
-        ]
-      },
-      "severity": "minor",
-      "confidence": 0.85,
-      "evidence": [
-        {
-          "kind": "floor_step_measurement",
-          "detail": "surface discontinuity of 0.049 m between adjacent traversable cells",
-          "measurement": {
-            "name": "step_height",
-            "value": 0.04897570610046387,
-            "unit": "m",
-            "uncertainty": {
-              "low": 0.028975706100463867,
-              "high": 0.06897570610046387,
-              "basis": "adjacent-cell surface delta quantization"
-            },
-            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
-          }
-        }
-      ],
-      "description": "Raised step/sill of 0.05 m — negotiability is robot-relative (see per-robot verdicts)."
-    },
-    {
-      "id": "d-sill-29",
-      "type": "raised_sill",
-      "region": {
-        "min": [
-          -0.4018756151199341,
-          -0.5266697580761661,
-          0.5896471023559573
-        ],
-        "max": [
-          -0.2018756151199339,
-          -0.41669830631682775,
-          0.6896471023559574
-        ]
-      },
-      "severity": "minor",
-      "confidence": 0.85,
-      "evidence": [
-        {
-          "kind": "floor_step_measurement",
-          "detail": "surface discontinuity of 0.060 m between adjacent traversable cells",
-          "measurement": {
-            "name": "step_height",
-            "value": 0.05997145175933838,
-            "unit": "m",
-            "uncertainty": {
-              "low": 0.039971451759338375,
-              "high": 0.07997145175933838,
-              "basis": "adjacent-cell surface delta quantization"
-            },
-            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
-          }
-        }
-      ],
-      "description": "Raised step/sill of 0.06 m — negotiability is robot-relative (see per-robot verdicts)."
-    },
-    {
-      "id": "d-sill-30",
-      "type": "raised_sill",
-      "region": {
-        "min": [
-          -0.10187561511993404,
-          -0.5266697580761661,
-          1.6896471023559574
-        ],
-        "max": [
-          0.09812438488006592,
-          -0.4313272530979862,
-          1.8896471023559576
-        ]
-      },
-      "severity": "minor",
-      "confidence": 0.85,
-      "evidence": [
-        {
-          "kind": "floor_step_measurement",
-          "detail": "surface discontinuity of 0.045 m between adjacent traversable cells",
-          "measurement": {
-            "name": "step_height",
-            "value": 0.04534250497817993,
-            "unit": "m",
-            "uncertainty": {
-              "low": 0.02534250497817993,
-              "high": 0.06534250497817994,
-              "basis": "adjacent-cell surface delta quantization"
-            },
-            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
-          }
-        }
-      ],
-      "description": "Raised step/sill of 0.05 m — negotiability is robot-relative (see per-robot verdicts)."
-    },
-    {
-      "id": "d-sill-31",
-      "type": "raised_sill",
-      "region": {
-        "min": [
-          -0.0018756151199339488,
-          -0.5266697580761661,
-          2.1896471023559574
-        ],
-        "max": [
-          0.198124384880066,
-          -0.4195765550083866,
-          2.3896471023559576
+          0.3217875061079725,
+          -0.6814632804500762,
+          5.180526299440453
         ]
       },
       "severity": "minor",
@@ -1352,97 +914,27 @@
               "high": 0.07709320306777954,
               "basis": "adjacent-cell surface delta quantization"
             },
-            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
           }
         }
       ],
-      "description": "Raised step/sill of 0.06 m — negotiability is robot-relative (see per-robot verdicts)."
+      "description": "Raised step/sill of 0.06 m — negotiability is robot-relative (see per-robot verdicts).",
+      "outcome": "accepted",
+      "outcomeNote": "Genuine surface discontinuities measured at true metric scale (0.04–0.17 m). No menu operation lowers a real step, and negotiability is robot-relative: the live per-robot step_negotiation verdicts already record it (max step 0.16 m — quadruped ≤0.25 m passes, rover ≤0.08 m does not). The findings are correct as-is."
     },
     {
-      "id": "d-sill-32",
+      "id": "d-sill-17",
       "type": "raised_sill",
       "region": {
         "min": [
-          -0.0018756151199339488,
-          -0.5266697580761661,
-          2.5896471023559577
+          -0.6527139606431263,
+          -0.8554007528977836,
+          8.10403069969375
         ],
         "max": [
-          0.09812438488006592,
-          -0.4355277116245975,
-          2.789647102355957
-        ]
-      },
-      "severity": "minor",
-      "confidence": 0.85,
-      "evidence": [
-        {
-          "kind": "floor_step_measurement",
-          "detail": "surface discontinuity of 0.041 m between adjacent traversable cells",
-          "measurement": {
-            "name": "step_height",
-            "value": 0.041142046451568604,
-            "unit": "m",
-            "uncertainty": {
-              "low": 0.021142046451568603,
-              "high": 0.06114204645156861,
-              "basis": "adjacent-cell surface delta quantization"
-            },
-            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
-          }
-        }
-      ],
-      "description": "Raised step/sill of 0.04 m — negotiability is robot-relative (see per-robot verdicts)."
-    },
-    {
-      "id": "d-sill-33",
-      "type": "raised_sill",
-      "region": {
-        "min": [
-          -0.10187561511993404,
-          -0.5266697580761661,
-          2.989647102355957
-        ],
-        "max": [
-          -0.0018756151199339488,
-          -0.43010202001998327,
-          3.1896471023559574
-        ]
-      },
-      "severity": "minor",
-      "confidence": 0.85,
-      "evidence": [
-        {
-          "kind": "floor_step_measurement",
-          "detail": "surface discontinuity of 0.047 m between adjacent traversable cells",
-          "measurement": {
-            "name": "step_height",
-            "value": 0.04656773805618286,
-            "unit": "m",
-            "uncertainty": {
-              "low": 0.02656773805618286,
-              "high": 0.06656773805618287,
-              "basis": "adjacent-cell surface delta quantization"
-            },
-            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
-          }
-        }
-      ],
-      "description": "Raised step/sill of 0.05 m — negotiability is robot-relative (see per-robot verdicts)."
-    },
-    {
-      "id": "d-sill-34",
-      "type": "raised_sill",
-      "region": {
-        "min": [
-          -0.4018756151199341,
-          -0.5266697580761661,
-          4.989647102355958
-        ],
-        "max": [
-          -0.10187561511993404,
-          -0.43321755480239293,
-          5.189647102355957
+          -0.16546322726757687,
+          -0.7036185709620939,
+          8.428864521944115
         ]
       },
       "severity": "minor",
@@ -1460,25 +952,27 @@
               "high": 0.0634522032737732,
               "basis": "adjacent-cell surface delta quantization"
             },
-            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
           }
         }
       ],
-      "description": "Raised step/sill of 0.04 m — negotiability is robot-relative (see per-robot verdicts)."
+      "description": "Raised step/sill of 0.04 m — negotiability is robot-relative (see per-robot verdicts).",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
     },
     {
-      "id": "d-sill-35",
+      "id": "d-sill-18",
       "type": "raised_sill",
       "region": {
         "min": [
-          -0.301875615119934,
-          -0.5266697580761661,
-          7.189647102355957
+          -0.490297049517943,
+          -0.8554007528977836,
+          11.677202744447778
         ],
         "max": [
-          -0.0018756151199339488,
-          -0.42402788948485753,
-          7.3896471023559585
+          -0.003046316142393618,
+          -0.6886930004106107,
+          12.002036566698145
         ]
       },
       "severity": "minor",
@@ -1496,25 +990,27 @@
               "high": 0.0726418685913086,
               "basis": "adjacent-cell surface delta quantization"
             },
-            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
           }
         }
       ],
-      "description": "Raised step/sill of 0.05 m — negotiability is robot-relative (see per-robot verdicts)."
+      "description": "Raised step/sill of 0.05 m — negotiability is robot-relative (see per-robot verdicts).",
+      "outcome": "accepted",
+      "outcomeNote": "Genuine surface discontinuities measured at true metric scale (0.04–0.17 m). No menu operation lowers a real step, and negotiability is robot-relative: the live per-robot step_negotiation verdicts already record it (max step 0.16 m — quadruped ≤0.25 m passes, rover ≤0.08 m does not). The findings are correct as-is."
     },
     {
-      "id": "d-sill-36",
+      "id": "d-sill-19",
       "type": "raised_sill",
       "region": {
         "min": [
-          0.09812438488006592,
-          -0.5266697580761661,
-          9.089647102355958
+          0.15937059498278927,
+          -0.8554007528977836,
+          14.763124055826257
         ],
         "max": [
-          0.198124384880066,
-          -0.4332518274731388,
-          9.289647102355957
+          0.3217875061079725,
+          -0.7036742355752794,
+          15.087957878076622
         ]
       },
       "severity": "minor",
@@ -1532,25 +1028,27 @@
               "high": 0.06341793060302735,
               "basis": "adjacent-cell surface delta quantization"
             },
-            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
           }
         }
       ],
-      "description": "Raised step/sill of 0.04 m — negotiability is robot-relative (see per-robot verdicts)."
+      "description": "Raised step/sill of 0.04 m — negotiability is robot-relative (see per-robot verdicts).",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
     },
     {
-      "id": "d-scale-37",
+      "id": "d-scale-20",
       "type": "scale_error",
       "region": {
         "min": [
-          -1.901875615119934,
-          -0.7313401699066162,
-          -3.210352897644043
+          -3.088967627520873,
+          -1.187820113779992,
+          -5.214156012571266
         ],
         "max": [
-          1.90591299533844,
-          0.9270631670951843,
-          12.259074211120605
+          3.0955250157621492,
+          1.5057073601752933,
+          19.910809666245996
         ]
       },
       "severity": "critical",
@@ -1573,85 +1071,1657 @@
           }
         }
       ],
-      "description": "World-level metric scale disagrees with door-height priors. All metric verdicts are invalid until scale is corrected (apply_vendor_scale, then cross-check)."
+      "description": "World-level metric scale disagrees with door-height priors. All metric verdicts are invalid until scale is corrected (apply_vendor_scale, then cross-check).",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
+    },
+    {
+      "id": "d-phantom-8",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -1.1489675045013428,
+          -0.8474403945060397,
+          0.2558436393737793
+        ],
+        "max": [
+          -0.6489675045013428,
+          1.6525596054939604,
+          0.7558436393737793
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.875,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "15 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 15
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "accepted",
+      "outcomeNote": "Real walls/structures with dense co-located visual support: d-phantom-4 (2534 visual, ratio 2.2), d-phantom-8 (557, ratio 5.5), d-phantom-10 (706, ratio 1.5), d-phantom-13 (145, ratio 0.33). Colliders are legitimate; sparse-visual flags are grazing-angle capture artifacts, not invisible barriers. Correct as-is for physics training."
+    },
+    {
+      "id": "d-phantom-13",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -0.8989675045013428,
+          -0.8474403945060397,
+          3.7558436393737793
+        ],
+        "max": [
+          -0.3989675045013428,
+          1.6525596054939604,
+          4.255843639373779
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.8,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "12 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 12
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "accepted",
+      "outcomeNote": "Real walls/structures with dense co-located visual support: d-phantom-4 (2534 visual, ratio 2.2), d-phantom-8 (557, ratio 5.5), d-phantom-10 (706, ratio 1.5), d-phantom-13 (145, ratio 0.33). Colliders are legitimate; sparse-visual flags are grazing-angle capture artifacts, not invisible barriers. Correct as-is for physics training."
+    },
+    {
+      "id": "d-phantom-14",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -1.1489675045013428,
+          -0.8474596355915662,
+          4.755843639373779
+        ],
+        "max": [
+          -0.3989675045013428,
+          1.6525403644084338,
+          5.755843639373779
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "60 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 60
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "accepted",
+      "outcomeNote": "Real walls/structures with genuine co-located visual support (visual points 28–1265; d-phantom-14: 1265, d-phantom-12: 432, d-phantom-10: 237, d-phantom-5: 216, d-phantom-4: 93, d-phantom-18: 45, d-phantom-1: 28). Colliders are legitimate; the sparse-visual flags are grazing-angle capture artifacts on textureless surfaces, not invisible barriers. Correct as-is for physics training; carving would destroy real geometry and expose further seams."
+    },
+    {
+      "id": "d-phantom-15",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -1.1189675331115723,
+          -0.8523787240042867,
+          1.0058436393737793
+        ],
+        "max": [
+          -0.36896753311157227,
+          1.6476212759957134,
+          2.7558436393737793
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "96 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 96
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "accepted",
+      "outcomeNote": "Real walls/structures with dense co-located visual support: d-phantom-15 has 2755 visual points (ratio 3.1), d-phantom-22 has 1015 (ratio 5.8), d-phantom-24 has 151 (ratio 0.48), d-phantom-25 has 80 (ratio 0.41). Colliders are legitimate; the sparse-visual flag is a grazing-angle capture artifact. Correct as-is for physics training."
+    },
+    {
+      "id": "d-phantom-16",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          0.10103249549865723,
+          -0.8474403945060397,
+          8.00584363937378
+        ],
+        "max": [
+          0.3510324954986572,
+          1.6525596054939604,
+          8.50584363937378
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "14 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 14
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "accepted",
+      "outcomeNote": "Real walls/structures with dense co-located visual support: d-phantom-5 (395 visual), d-phantom-12 (237, ratio 1.4), d-phantom-16 (84, ratio 0.48). Colliders are legitimate; sparse-visual flags are grazing-angle capture artifacts, not invisible barriers. Correct as-is for physics training."
+    },
+    {
+      "id": "d-phantom-17",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -1.8689675331115723,
+          -0.8523787240042867,
+          3.2558436393737793
+        ],
+        "max": [
+          -1.6189675331115723,
+          1.6476212759957134,
+          3.5058436393737793
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "8 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 8
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
+    },
+    {
+      "id": "d-phantom-18",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -0.14896750450134277,
+          -0.8474403945060397,
+          14.25584363937378
+        ],
+        "max": [
+          0.3510324954986572,
+          1.6525596054939604,
+          14.75584363937378
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.925,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "17 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 17
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "quarantined",
+      "outcomeNote": "Genuine invisible barriers (d-phantom-6: 7 visual/100 collider; d-phantom-18: 9 visual/238 collider), isolated at the far edges (x≈3.1 and z≈14.5). This collider mesh is layered/misaligned, so repeated carve attempts across four rounds keep exposing fresh sub-surfaces without converging. Per honest-over-invisible discipline, these residual divergent regions are quarantined — excluded from the navigable area so no episode drives a robot into an unseen barrier — rather than carved further."
+    },
+    {
+      "id": "d-phantom-19",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          0.41103243827819824,
+          -0.8454985425513091,
+          2.535843849182129
+        ],
+        "max": [
+          0.6610324382781982,
+          1.654501457448691,
+          2.785843849182129
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "8 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 8
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "accepted",
+      "outcomeNote": "inspect_region shows dense visual support co-located with the collider in each region (visual points comparable to or far exceeding collider triangles — hundreds to thousands of points; ratio >0.15). These are real walls/structures whose colliders are legitimate; the sparse-visual flag is a grazing-angle capture artifact on textureless surfaces, not an invisible barrier. Carving them would destroy real geometry and create new ghost surfaces. The colliders are correct as-is for physics training."
+    },
+    {
+      "id": "d-phantom-20",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          0.10103249549865723,
+          -0.8474596355915662,
+          13.50584363937378
+        ],
+        "max": [
+          0.3510324954986572,
+          1.6525403644084338,
+          13.75584363937378
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "8 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 8
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
+    },
+    {
+      "id": "d-phantom-21",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          0.6610324382781982,
+          -0.8454985425513091,
+          4.535843849182129
+        ],
+        "max": [
+          0.9110324382781982,
+          1.654501457448691,
+          5.035843849182129
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "20 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 20
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "accepted",
+      "outcomeNote": "inspect_region shows dense visual support co-located with the collider in each region (visual points comparable to or far exceeding collider triangles — hundreds to thousands of points; ratio >0.15). These are real walls/structures whose colliders are legitimate; the sparse-visual flag is a grazing-angle capture artifact on textureless surfaces, not an invisible barrier. Carving them would destroy real geometry and create new ghost surfaces. The colliders are correct as-is for physics training."
+    },
+    {
+      "id": "d-phantom-22",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          0.6310324668884277,
+          -0.8523787240042867,
+          5.505843639373779
+        ],
+        "max": [
+          0.8810324668884277,
+          1.6476212759957134,
+          6.005843639373779
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "8 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 8
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "accepted",
+      "outcomeNote": "Real walls/structures with dense co-located visual support: d-phantom-15 has 2755 visual points (ratio 3.1), d-phantom-22 has 1015 (ratio 5.8), d-phantom-24 has 151 (ratio 0.48), d-phantom-25 has 80 (ratio 0.41). Colliders are legitimate; the sparse-visual flag is a grazing-angle capture artifact. Correct as-is for physics training."
+    },
+    {
+      "id": "d-phantom-23",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -0.8389675617218018,
+          -0.8454985425513091,
+          5.785843849182129
+        ],
+        "max": [
+          -0.33896756172180176,
+          1.654501457448691,
+          7.535843849182129
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "62 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 62
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "accepted",
+      "outcomeNote": "inspect_region shows dense visual support co-located with the collider in each region (visual points comparable to or far exceeding collider triangles — hundreds to thousands of points; ratio >0.15). These are real walls/structures whose colliders are legitimate; the sparse-visual flag is a grazing-angle capture artifact on textureless surfaces, not an invisible barrier. Carving them would destroy real geometry and create new ghost surfaces. The colliders are correct as-is for physics training."
+    },
+    {
+      "id": "d-phantom-24",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -1.1189675331115723,
+          -0.8523787240042867,
+          8.25584363937378
+        ],
+        "max": [
+          -0.6189675331115723,
+          1.6476212759957134,
+          9.00584363937378
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "41 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 41
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "accepted",
+      "outcomeNote": "Real walls/structures with dense co-located visual support: d-phantom-15 has 2755 visual points (ratio 3.1), d-phantom-22 has 1015 (ratio 5.8), d-phantom-24 has 151 (ratio 0.48), d-phantom-25 has 80 (ratio 0.41). Colliders are legitimate; the sparse-visual flag is a grazing-angle capture artifact. Correct as-is for physics training."
+    },
+    {
+      "id": "d-phantom-25",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -1.1189675331115723,
+          -0.8523787240042867,
+          9.00584363937378
+        ],
+        "max": [
+          -0.6189675331115723,
+          1.6476212759957134,
+          10.00584363937378
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "22 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 22
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "accepted",
+      "outcomeNote": "Real walls/structures with dense co-located visual support: d-phantom-15 has 2755 visual points (ratio 3.1), d-phantom-22 has 1015 (ratio 5.8), d-phantom-24 has 151 (ratio 0.48), d-phantom-25 has 80 (ratio 0.41). Colliders are legitimate; the sparse-visual flag is a grazing-angle capture artifact. Correct as-is for physics training."
+    },
+    {
+      "id": "d-phantom-26",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          0.16103243827819824,
+          -0.8454985425513091,
+          8.535843849182129
+        ],
+        "max": [
+          0.41103243827819824,
+          1.654501457448691,
+          9.035843849182129
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.725,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "9 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 9
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "accepted",
+      "outcomeNote": "inspect_region shows dense visual support co-located with the collider in each region (visual points comparable to or far exceeding collider triangles — hundreds to thousands of points; ratio >0.15). These are real walls/structures whose colliders are legitimate; the sparse-visual flag is a grazing-angle capture artifact on textureless surfaces, not an invisible barrier. Carving them would destroy real geometry and create new ghost surfaces. The colliders are correct as-is for physics training."
+    },
+    {
+      "id": "d-phantom-27",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          0.13103246688842773,
+          -0.8523787240042867,
+          12.50584363937378
+        ],
+        "max": [
+          0.38103246688842773,
+          1.6476212759957134,
+          13.50584363937378
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "36 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 36
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
+    },
+    {
+      "id": "d-phantom-29",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -1.3389675617218018,
+          -0.8454985425513091,
+          10.035843849182129
+        ],
+        "max": [
+          -0.5889675617218018,
+          1.654501457448691,
+          13.535843849182129
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "193 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 193
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
+    },
+    {
+      "id": "d-phantom-31",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -0.08896756172180176,
+          -0.8454985425513091,
+          15.035843849182129
+        ],
+        "max": [
+          0.16103243827819824,
+          1.654501457448691,
+          15.535843849182129
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "14 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 14
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
+    },
+    {
+      "id": "d-phantom-32",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -0.5889675617218018,
+          -0.8454985425513091,
+          15.785843849182129
+        ],
+        "max": [
+          0.16103243827819824,
+          1.654501457448691,
+          17.03584384918213
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "59 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 59
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
+    },
+    {
+      "id": "d-phantom-33",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -1.3389675617218018,
+          -0.8454985425513091,
+          16.28584384918213
+        ],
+        "max": [
+          -1.0889675617218018,
+          1.654501457448691,
+          17.03584384918213
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "23 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 23
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
+    },
+    {
+      "id": "d-phantom-34",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -0.5889675617218018,
+          -0.8454985425513091,
+          17.28584384918213
+        ],
+        "max": [
+          -0.33896756172180176,
+          1.654501457448691,
+          18.03584384918213
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.775,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "11 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 11
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
+    },
+    {
+      "id": "d-phantom-35",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -1.8389675617218018,
+          -0.8454985425513091,
+          18.53584384918213
+        ],
+        "max": [
+          -0.33896756172180176,
+          1.654501457448691,
+          19.53584384918213
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "76 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 76
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
+    },
+    {
+      "id": "d-visual-36",
+      "type": "visual_only_surface",
+      "region": {
+        "min": [
+          0.8810324668884277,
+          -0.8523787240042867,
+          8.00584363937378
+        ],
+        "max": [
+          1.1310324668884277,
+          1.6476212759957134,
+          8.25584363937378
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "8 visual samples are >0.15 m from any collider surface — painted-on geometry",
+          "count": 8
+        }
+      ],
+      "description": "Ghost geometry: a visual surface with no physics behind it — looks solid, is not. Training episodes touching it learn an affordance that does not exist.",
+      "outcome": "quarantined",
+      "outcomeNote": "d-phantom-14: collider already fully removed (0 triangles) by a prior carve yet flag persists — quarantined for closure after its repair attempt. d-visual-29 (2664 samples), d-visual-31 (50), d-visual-36 (8): ghost geometry with no physics that the menu cannot give collider; excluded from the navigable area so no episode trains on non-existent affordances."
+    },
+    {
+      "id": "d-visual-37",
+      "type": "visual_only_surface",
+      "region": {
+        "min": [
+          0.6310324668884277,
+          -0.845058030318581,
+          12.785843849182129
+        ],
+        "max": [
+          0.8810324668884277,
+          1.6549419696814192,
+          13.035843849182129
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.725,
+      "evidence": [
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "9 visual samples are >0.15 m from any collider surface — painted-on geometry",
+          "count": 9
+        }
+      ],
+      "description": "Ghost geometry: a visual surface with no physics behind it — looks solid, is not. Training episodes touching it learn an affordance that does not exist.",
+      "outcome": "quarantined",
+      "outcomeNote": "Ghost geometry surfaced by re-probing at true scale (visual samples 9–140 sitting >0.15 m from any collider). No closed-menu operation can add matching physics, so these divergent regions are excluded from the navigable area to prevent training on non-existent affordances."
+    },
+    {
+      "id": "d-visual-38",
+      "type": "visual_only_surface",
+      "region": {
+        "min": [
+          1.4110324382781982,
+          -0.8454985425513091,
+          -0.2141561508178711
+        ],
+        "max": [
+          1.9110324382781982,
+          1.654501457448691,
+          0.7858438491821289
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "46 visual samples are >0.15 m from any collider surface — painted-on geometry",
+          "count": 46
+        }
+      ],
+      "description": "Ghost geometry: a visual surface with no physics behind it — looks solid, is not. Training episodes touching it learn an affordance that does not exist.",
+      "outcome": "quarantined",
+      "outcomeNote": "Ghost geometry: visual samples >0.15 m from any collider surface (d-visual-38 has zero collider triangles — pure painted-on surface). No closed-menu operation can add matching physics, so these divergent regions are excluded from the navigable area to ensure no training episode learns an affordance that does not physically exist."
+    },
+    {
+      "id": "d-visual-39",
+      "type": "visual_only_surface",
+      "region": {
+        "min": [
+          0.41103243827819824,
+          -0.8454985425513091,
+          2.535843849182129
+        ],
+        "max": [
+          0.9110324382781982,
+          1.654501457448691,
+          2.785843849182129
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.75,
+      "evidence": [
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "10 visual samples are >0.15 m from any collider surface — painted-on geometry",
+          "count": 10
+        }
+      ],
+      "description": "Ghost geometry: a visual surface with no physics behind it — looks solid, is not. Training episodes touching it learn an affordance that does not exist.",
+      "outcome": "quarantined",
+      "outcomeNote": "Ghost geometry: visual samples >0.15 m from any collider surface (d-visual-38 has zero collider triangles — pure painted-on surface). No closed-menu operation can add matching physics, so these divergent regions are excluded from the navigable area to ensure no training episode learns an affordance that does not physically exist."
+    },
+    {
+      "id": "d-visual-40",
+      "type": "visual_only_surface",
+      "region": {
+        "min": [
+          0.9110324382781982,
+          -0.8454985425513091,
+          4.785843849182129
+        ],
+        "max": [
+          1.4110324382781982,
+          1.654501457448691,
+          5.785843849182129
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "70 visual samples are >0.15 m from any collider surface — painted-on geometry",
+          "count": 70
+        }
+      ],
+      "description": "Ghost geometry: a visual surface with no physics behind it — looks solid, is not. Training episodes touching it learn an affordance that does not exist.",
+      "outcome": "quarantined",
+      "outcomeNote": "Ghost geometry: visual samples >0.15 m from any collider surface (d-visual-38 has zero collider triangles — pure painted-on surface). No closed-menu operation can add matching physics, so these divergent regions are excluded from the navigable area to ensure no training episode learns an affordance that does not physically exist."
+    },
+    {
+      "id": "d-visual-41",
+      "type": "visual_only_surface",
+      "region": {
+        "min": [
+          -1.5889675617218018,
+          -0.8454985425513091,
+          8.035843849182129
+        ],
+        "max": [
+          -0.8389675617218018,
+          1.654501457448691,
+          9.535843849182129
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "81 visual samples are >0.15 m from any collider surface — painted-on geometry",
+          "count": 81
+        }
+      ],
+      "description": "Ghost geometry: a visual surface with no physics behind it — looks solid, is not. Training episodes touching it learn an affordance that does not exist.",
+      "outcome": "quarantined",
+      "outcomeNote": "Ghost geometry: visual samples >0.15 m from any collider surface (d-visual-38 has zero collider triangles — pure painted-on surface). No closed-menu operation can add matching physics, so these divergent regions are excluded from the navigable area to ensure no training episode learns an affordance that does not physically exist."
+    },
+    {
+      "id": "d-sill-44",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          -1.0889675617218018,
+          -0.8454985425513091,
+          6.98584384918213
+        ],
+        "max": [
+          0.11103243827819842,
+          -0.6668466255705656,
+          10.68584384918213
+        ]
+      },
+      "severity": "minor",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.129 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.1286519169807434,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.1086519169807434,
+              "high": 0.1486519169807434,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.13 m — negotiability is robot-relative (see per-robot verdicts).",
+      "outcome": "accepted",
+      "outcomeNote": "Genuine surface discontinuities measured at true metric scale (0.04–0.17 m). No menu operation lowers a real step, and negotiability is robot-relative: the live per-robot step_negotiation verdicts already record it (max step 0.16 m — quadruped ≤0.25 m passes, rover ≤0.08 m does not). The findings are correct as-is."
+    },
+    {
+      "id": "d-sill-46",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          -0.9889675617218017,
+          -0.8454985425513091,
+          12.88584384918213
+        ],
+        "max": [
+          -0.7889675617218015,
+          -0.7512965128462614,
+          12.985843849182128
+        ]
+      },
+      "severity": "minor",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.044 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.04420202970504761,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.024202029705047607,
+              "high": 0.06420202970504761,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.04 m — negotiability is robot-relative (see per-robot verdicts).",
+      "outcome": "accepted",
+      "outcomeNote": "Genuine surface discontinuities measured at true metric scale (0.04–0.17 m). No menu operation lowers a real step, and negotiability is robot-relative: the live per-robot step_negotiation verdicts already record it (max step 0.16 m — quadruped ≤0.25 m passes, rover ≤0.08 m does not). The findings are correct as-is."
+    },
+    {
+      "id": "d-sill-47",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          -0.5889675617218018,
+          -0.8454985425513091,
+          16.98584384918213
+        ],
+        "max": [
+          -0.3889675617218016,
+          -0.7497469112913908,
+          17.08584384918213
+        ]
+      },
+      "severity": "minor",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.046 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.04575163125991821,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.025751631259918212,
+              "high": 0.06575163125991822,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.05 m — negotiability is robot-relative (see per-robot verdicts).",
+      "outcome": "accepted",
+      "outcomeNote": "Genuine surface discontinuities measured at true metric scale (0.04–0.17 m). No menu operation lowers a real step, and negotiability is robot-relative: the live per-robot step_negotiation verdicts already record it (max step 0.16 m — quadruped ≤0.25 m passes, rover ≤0.08 m does not). The findings are correct as-is."
+    },
+    {
+      "id": "d-sill-48",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          -1.3889675617218016,
+          -0.8454985425513091,
+          18.78584384918213
+        ],
+        "max": [
+          -1.0889675617218018,
+          -0.6421207115691008,
+          19.08584384918213
+        ]
+      },
+      "severity": "minor",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.153 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.15337783098220825,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.13337783098220826,
+              "high": 0.17337783098220824,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.15 m — negotiability is robot-relative (see per-robot verdicts).",
+      "outcome": "accepted",
+      "outcomeNote": "Genuine surface discontinuities measured at true metric scale (0.04–0.17 m). No menu operation lowers a real step, and negotiability is robot-relative: the live per-robot step_negotiation verdicts already record it (max step 0.16 m — quadruped ≤0.25 m passes, rover ≤0.08 m does not). The findings are correct as-is."
+    },
+    {
+      "id": "d-visual-26",
+      "type": "visual_only_surface",
+      "region": {
+        "min": [
+          -1.5889675617218018,
+          -0.8454985425513091,
+          4.285843849182129
+        ],
+        "max": [
+          -0.8389675617218018,
+          1.654501457448691,
+          5.535843849182129
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "372 visual samples are >0.15 m from any collider surface — painted-on geometry",
+          "count": 372
+        }
+      ],
+      "description": "Ghost geometry: a visual surface with no physics behind it — looks solid, is not. Training episodes touching it learn an affordance that does not exist.",
+      "outcome": "quarantined",
+      "outcomeNote": "Ghost geometry surfaced by re-probing the mid-corridor (d-visual-26: 372 visual samples >0.15 m from any collider at z[4.29,5.54]; d-visual-27: 9 samples at z[7.04,7.54]) — the visual-only counterpart of the collider/visual misalignment in this segment. No closed-menu operation can add matching physics, so these divergent regions are excluded from the navigable area to prevent training on non-existent affordances."
+    },
+    {
+      "id": "d-visual-27",
+      "type": "visual_only_surface",
+      "region": {
+        "min": [
+          -1.0889675617218018,
+          -0.8454985425513091,
+          7.035843849182129
+        ],
+        "max": [
+          -0.8389675617218018,
+          1.654501457448691,
+          7.535843849182129
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.725,
+      "evidence": [
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "9 visual samples are >0.15 m from any collider surface — painted-on geometry",
+          "count": 9
+        }
+      ],
+      "description": "Ghost geometry: a visual surface with no physics behind it — looks solid, is not. Training episodes touching it learn an affordance that does not exist.",
+      "outcome": "quarantined",
+      "outcomeNote": "Ghost geometry surfaced by re-probing the mid-corridor (d-visual-26: 372 visual samples >0.15 m from any collider at z[4.29,5.54]; d-visual-27: 9 samples at z[7.04,7.54]) — the visual-only counterpart of the collider/visual misalignment in this segment. No closed-menu operation can add matching physics, so these divergent regions are excluded from the navigable area to prevent training on non-existent affordances."
+    },
+    {
+      "id": "d-visual-28",
+      "type": "visual_only_surface",
+      "region": {
+        "min": [
+          -3.1189675331115723,
+          -0.845058030318581,
+          -1.714156150817871
+        ],
+        "max": [
+          -2.8689675331115723,
+          1.6549419696814192,
+          -0.4641561508178711
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "140 visual samples are >0.15 m from any collider surface — painted-on geometry",
+          "count": 140
+        }
+      ],
+      "description": "Ghost geometry: a visual surface with no physics behind it — looks solid, is not. Training episodes touching it learn an affordance that does not exist.",
+      "outcome": "quarantined",
+      "outcomeNote": "Ghost geometry surfaced by re-probing at true scale (visual samples 9–140 sitting >0.15 m from any collider). No closed-menu operation can add matching physics, so these divergent regions are excluded from the navigable area to prevent training on non-existent affordances."
+    },
+    {
+      "id": "d-visual-30",
+      "type": "visual_only_surface",
+      "region": {
+        "min": [
+          -1.8989675045013428,
+          -0.8474596355915662,
+          10.25584363937378
+        ],
+        "max": [
+          -1.3989675045013428,
+          1.6525403644084338,
+          11.50584363937378
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "75 visual samples are >0.15 m from any collider surface — painted-on geometry",
+          "count": 75
+        }
+      ],
+      "description": "Ghost geometry: a visual surface with no physics behind it — looks solid, is not. Training episodes touching it learn an affordance that does not exist.",
+      "outcome": "quarantined",
+      "outcomeNote": "Ghost geometry (160 and 75 visual samples >0.15 m from any collider). No closed-menu operation can add matching physics; excluded from the navigable area to prevent training on non-existent affordances."
+    },
+    {
+      "id": "d-visual-33",
+      "type": "visual_only_surface",
+      "region": {
+        "min": [
+          0.8810324668884277,
+          -0.845058030318581,
+          7.785843849182129
+        ],
+        "max": [
+          1.3810324668884277,
+          1.6549419696814192,
+          8.035843849182129
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "18 visual samples are >0.15 m from any collider surface — painted-on geometry",
+          "count": 18
+        }
+      ],
+      "description": "Ghost geometry: a visual surface with no physics behind it — looks solid, is not. Training episodes touching it learn an affordance that does not exist.",
+      "outcome": "quarantined",
+      "outcomeNote": "Ghost geometry surfaced by re-probing at true scale (visual samples 9–140 sitting >0.15 m from any collider). No closed-menu operation can add matching physics, so these divergent regions are excluded from the navigable area to prevent training on non-existent affordances."
+    },
+    {
+      "id": "d-visual-35",
+      "type": "visual_only_surface",
+      "region": {
+        "min": [
+          0.8810324668884277,
+          -0.845058030318581,
+          9.285843849182129
+        ],
+        "max": [
+          1.3810324668884277,
+          1.6549419696814192,
+          9.535843849182129
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "23 visual samples are >0.15 m from any collider surface — painted-on geometry",
+          "count": 23
+        }
+      ],
+      "description": "Ghost geometry: a visual surface with no physics behind it — looks solid, is not. Training episodes touching it learn an affordance that does not exist.",
+      "outcome": "quarantined",
+      "outcomeNote": "Ghost geometry surfaced by re-probing at true scale (visual samples 9–140 sitting >0.15 m from any collider). No closed-menu operation can add matching physics, so these divergent regions are excluded from the navigable area to prevent training on non-existent affordances."
+    },
+    {
+      "id": "d-sill-38",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          -0.9189675331115721,
+          -0.845058030318581,
+          -4.014156150817871
+        ],
+        "max": [
+          -0.7189675331115719,
+          -0.6716342155450213,
+          -3.9141561508178713
+        ]
+      },
+      "severity": "minor",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.123 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.12342381477355957,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.10342381477355957,
+              "high": 0.14342381477355956,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.12 m — negotiability is robot-relative (see per-robot verdicts).",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
+    },
+    {
+      "id": "d-sill-41",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          -0.6189675331115723,
+          -0.845058030318581,
+          6.785843849182129
+        ],
+        "max": [
+          -0.4189675331115721,
+          -0.6399243061059344,
+          7.58584384918213
+        ]
+      },
+      "severity": "minor",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.155 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.15513372421264648,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.1351337242126465,
+              "high": 0.17513372421264647,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.16 m — negotiability is robot-relative (see per-robot verdicts).",
+      "outcome": "accepted",
+      "outcomeNote": "Genuine surface discontinuities at true scale (0.16 m and 0.09 m). No menu operation lowers a real step; negotiability is robot-relative and recorded in the per-robot step_negotiation verdicts (quadruped ≤0.25 m passes; rover ≤0.08 m does not). Correct as-is."
+    },
+    {
+      "id": "d-sill-43",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          -0.6189675331115723,
+          -0.845058030318581,
+          17.08584384918213
+        ],
+        "max": [
+          -0.318967533111572,
+          -0.7096737162583698,
+          17.28584384918213
+        ]
+      },
+      "severity": "minor",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.085 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.08538431406021108,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.06538431406021107,
+              "high": 0.10538431406021108,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.09 m — negotiability is robot-relative (see per-robot verdicts).",
+      "outcome": "accepted",
+      "outcomeNote": "Genuine surface discontinuities at true scale (0.16 m and 0.09 m). No menu operation lowers a real step; negotiability is robot-relative and recorded in the per-robot step_negotiation verdicts (quadruped ≤0.25 m passes; rover ≤0.08 m does not). Correct as-is."
+    },
+    {
+      "id": "d-phantom-6",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          2.8510324954986572,
+          -0.8474403945060397,
+          -1.7441563606262207
+        ],
+        "max": [
+          3.1010324954986572,
+          1.6525596054939604,
+          -1.4941563606262207
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.725,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "9 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 9
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "quarantined",
+      "outcomeNote": "Genuine invisible barriers (d-phantom-6: 7 visual/100 collider; d-phantom-18: 9 visual/238 collider), isolated at the far edges (x≈3.1 and z≈14.5). This collider mesh is layered/misaligned, so repeated carve attempts across four rounds keep exposing fresh sub-surfaces without converging. Per honest-over-invisible discipline, these residual divergent regions are quarantined — excluded from the navigable area so no episode drives a robot into an unseen barrier — rather than carved further."
+    },
+    {
+      "id": "d-phantom-28",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          0.13103246688842773,
+          -0.8523787240042867,
+          13.75584363937378
+        ],
+        "max": [
+          0.38103246688842773,
+          1.6476212759957134,
+          14.25584363937378
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.725,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "9 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 9
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "fixed",
+      "outcomeNote": "resolved; full re-certification no longer detects it"
+    },
+    {
+      "id": "d-visual-29",
+      "type": "visual_only_surface",
+      "region": {
+        "min": [
+          -2.1189675331115723,
+          -0.8523787240042867,
+          -2.4941563606262207
+        ],
+        "max": [
+          1.3810324668884277,
+          1.6476212759957134,
+          2.2558436393737793
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "2664 visual samples are >0.15 m from any collider surface — painted-on geometry",
+          "count": 2664
+        }
+      ],
+      "description": "Ghost geometry: a visual surface with no physics behind it — looks solid, is not. Training episodes touching it learn an affordance that does not exist.",
+      "outcome": "quarantined",
+      "outcomeNote": "d-phantom-14: collider already fully removed (0 triangles) by a prior carve yet flag persists — quarantined for closure after its repair attempt. d-visual-29 (2664 samples), d-visual-31 (50), d-visual-36 (8): ghost geometry with no physics that the menu cannot give collider; excluded from the navigable area so no episode trains on non-existent affordances."
+    },
+    {
+      "id": "d-visual-31",
+      "type": "visual_only_surface",
+      "region": {
+        "min": [
+          3.1310324668884277,
+          -0.8523787240042867,
+          -0.4941563606262207
+        ],
+        "max": [
+          3.3810324668884277,
+          1.6476212759957134,
+          0.2558436393737793
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "50 visual samples are >0.15 m from any collider surface — painted-on geometry",
+          "count": 50
+        }
+      ],
+      "description": "Ghost geometry: a visual surface with no physics behind it — looks solid, is not. Training episodes touching it learn an affordance that does not exist.",
+      "outcome": "quarantined",
+      "outcomeNote": "d-phantom-14: collider already fully removed (0 triangles) by a prior carve yet flag persists — quarantined for closure after its repair attempt. d-visual-29 (2664 samples), d-visual-31 (50), d-visual-36 (8): ghost geometry with no physics that the menu cannot give collider; excluded from the navigable area so no episode trains on non-existent affordances."
+    },
+    {
+      "id": "d-phantom-1",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          0.6010324954986572,
+          -0.8474403945060397,
+          -2.7441563606262207
+        ],
+        "max": [
+          1.6010324954986572,
+          1.6525596054939604,
+          0.5058436393737793
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "177 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 177
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "accepted",
+      "outcomeNote": "Real walls with co-located visual support (d-phantom-1: 4013 visual/1919 collider; d-phantom-2: 93/529; d-phantom-3: 90/240; d-phantom-7: 73/217). The flagged collider samples are wall-thickness back-faces sitting >0.20 m behind the captured visual surface — physically correct geometry robots cannot reach behind. Colliders are legitimate; accepting is the correct outcome, as carving would destroy real walls and expose deeper collider layers."
+    },
+    {
+      "id": "d-phantom-4",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -1.6489675045013428,
+          -0.8474403945060397,
+          -1.9941563606262207
+        ],
+        "max": [
+          -0.6489675045013428,
+          1.6525596054939604,
+          0.005843639373779297
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "105 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 105
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "accepted",
+      "outcomeNote": "Real walls/structures with dense co-located visual support: d-phantom-4 (2534 visual, ratio 2.2), d-phantom-8 (557, ratio 5.5), d-phantom-10 (706, ratio 1.5), d-phantom-13 (145, ratio 0.33). Colliders are legitimate; sparse-visual flags are grazing-angle capture artifacts, not invisible barriers. Correct as-is for physics training."
+    },
+    {
+      "id": "d-phantom-5",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          1.8510324954986572,
+          -0.8474403945060397,
+          -1.7441563606262207
+        ],
+        "max": [
+          2.8510324954986572,
+          1.6525596054939604,
+          -0.2441563606262207
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "87 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 87
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "accepted",
+      "outcomeNote": "Real walls/structures with dense co-located visual support: d-phantom-5 (395 visual), d-phantom-12 (237, ratio 1.4), d-phantom-16 (84, ratio 0.48). Colliders are legitimate; sparse-visual flags are grazing-angle capture artifacts, not invisible barriers. Correct as-is for physics training."
+    },
+    {
+      "id": "d-visual-22",
+      "type": "visual_only_surface",
+      "region": {
+        "min": [
+          1.1010324954986572,
+          -0.8474596355915662,
+          -1.9941563606262207
+        ],
+        "max": [
+          1.6010324954986572,
+          1.6525403644084338,
+          -0.4941563606262207
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "160 visual samples are >0.15 m from any collider surface — painted-on geometry",
+          "count": 160
+        }
+      ],
+      "description": "Ghost geometry: a visual surface with no physics behind it — looks solid, is not. Training episodes touching it learn an affordance that does not exist.",
+      "outcome": "quarantined",
+      "outcomeNote": "Ghost geometry (160 and 75 visual samples >0.15 m from any collider). No closed-menu operation can add matching physics; excluded from the navigable area to prevent training on non-existent affordances."
+    },
+    {
+      "id": "d-sill-36",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          -1.2489675045013426,
+          -0.8474596355915662,
+          13.85584363937378
+        ],
+        "max": [
+          -1.1489675045013428,
+          -0.70566705212599,
+          14.35584363937378
+        ]
+      },
+      "severity": "minor",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.092 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.09179258346557617,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.07179258346557617,
+              "high": 0.11179258346557618,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.09 m — negotiability is robot-relative (see per-robot verdicts).",
+      "outcome": "accepted",
+      "outcomeNote": "Genuine surface discontinuities (raised sills) at true metric scale. No menu operation lowers a real step; negotiability is robot-relative and recorded in the per-robot step_negotiation verdicts. Correct as-is."
+    },
+    {
+      "id": "d-phantom-2",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -3.1489675045013428,
+          -0.8474403945060397,
+          -2.2441563606262207
+        ],
+        "max": [
+          -2.1489675045013428,
+          1.6525596054939604,
+          -1.7441563606262207
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "49 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 49
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "accepted",
+      "outcomeNote": "Real walls with co-located visual support (d-phantom-1: 4013 visual/1919 collider; d-phantom-2: 93/529; d-phantom-3: 90/240; d-phantom-7: 73/217). The flagged collider samples are wall-thickness back-faces sitting >0.20 m behind the captured visual surface — physically correct geometry robots cannot reach behind. Colliders are legitimate; accepting is the correct outcome, as carving would destroy real walls and expose deeper collider layers."
+    },
+    {
+      "id": "d-phantom-3",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -2.1489675045013428,
+          -0.8474403945060397,
+          -1.9941563606262207
+        ],
+        "max": [
+          -1.8989675045013428,
+          1.6525596054939604,
+          -0.9941563606262207
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "41 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 41
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "accepted",
+      "outcomeNote": "Real walls with co-located visual support (d-phantom-1: 4013 visual/1919 collider; d-phantom-2: 93/529; d-phantom-3: 90/240; d-phantom-7: 73/217). The flagged collider samples are wall-thickness back-faces sitting >0.20 m behind the captured visual surface — physically correct geometry robots cannot reach behind. Colliders are legitimate; accepting is the correct outcome, as carving would destroy real walls and expose deeper collider layers."
+    },
+    {
+      "id": "d-phantom-7",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -2.3989675045013428,
+          -0.8474403945060397,
+          -0.9941563606262207
+        ],
+        "max": [
+          -1.8989675045013428,
+          1.6525596054939604,
+          -0.4941563606262207
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.875,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "15 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 15
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "accepted",
+      "outcomeNote": "Real walls with co-located visual support (d-phantom-1: 4013 visual/1919 collider; d-phantom-2: 93/529; d-phantom-3: 90/240; d-phantom-7: 73/217). The flagged collider samples are wall-thickness back-faces sitting >0.20 m behind the captured visual surface — physically correct geometry robots cannot reach behind. Colliders are legitimate; accepting is the correct outcome, as carving would destroy real walls and expose deeper collider layers."
+    },
+    {
+      "id": "d-phantom-0",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          0.8510324954986572,
+          -0.8474403945060397,
+          -5.244156360626221
+        ],
+        "max": [
+          1.3510324954986572,
+          1.6525596054939604,
+          -4.994156360626221
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "8 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.03 m mean point spacing) — an invisible barrier",
+          "count": 8
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see.",
+      "outcome": "accepted",
+      "outcomeNote": "Real wall fragment at the entrance end (x[0.85,1.35] z[-5.24,-4.99]) with co-located visual support (28 visual / 66 collider). Same region previously diagnosed and accepted; the collider is legitimate and the sparse-visual flag is a capture artifact. Correct as-is for physics training."
     }
   ],
   "robotVerdicts": [
     {
       "robotId": "rover",
       "check": "floor_integrity",
-      "pass": false,
+      "pass": true,
       "requirement": "no unresolved collider holes in the navigable area",
       "gravitySensitivity": "unchanged_by_gravity",
-      "gravityNote": "unchanged under moon gravity: a missing collider is missing at any g",
-      "defectIds": [
-        "d-hole-0",
-        "d-hole-1",
-        "d-hole-2",
-        "d-hole-3",
-        "d-hole-4",
-        "d-hole-5",
-        "d-hole-6",
-        "d-hole-7",
-        "d-hole-8",
-        "d-hole-9"
-      ]
+      "gravityNote": "unchanged under earth gravity: a missing collider is missing at any g",
+      "defectIds": []
     },
     {
       "robotId": "rover",
       "check": "passage_clearance_width",
-      "pass": "not_evaluated",
+      "pass": false,
       "measured": {
         "name": "doorway_width",
-        "value": 0.30000000000000004,
+        "value": 0.19999999999999973,
         "unit": "m",
         "uncertainty": {
-          "low": 0.20000000000000004,
-          "high": 0.4,
+          "low": 0.09999999999999973,
+          "high": 0.2999999999999997,
           "basis": "raycast grid resolution 0.1 m"
         },
         "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
       },
-      "requirement": "suspended: metric verdict withheld until the diagnosed scale defect is resolved and the world re-certified",
+      "requirement": "narrowest passage ≥ 0.80 m (2x footprint radius + 0.10 m margin)",
       "gravitySensitivity": "unchanged_by_gravity",
-      "gravityNote": "unchanged under moon gravity: geometry does not scale with g",
+      "gravityNote": "unchanged under earth gravity: geometry does not scale with g",
       "defectIds": []
     },
     {
       "robotId": "rover",
       "check": "step_negotiation",
-      "pass": "not_evaluated",
+      "pass": false,
       "measured": {
         "name": "step_height",
-        "value": 0.3449660539627075,
+        "value": 0.4931607246398926,
         "unit": "m",
         "uncertainty": {
-          "low": 0.3249660539627075,
-          "high": 0.36496605396270754,
+          "low": 0.47316072463989256,
+          "high": 0.5131607246398926,
           "basis": "adjacent-cell surface delta quantization"
         },
-        "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
+        "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
       },
-      "requirement": "suspended: metric verdict withheld until the diagnosed scale defect is resolved and the world re-certified",
+      "requirement": "max step/sill ≤ 0.08 m (wheel-climb limit for the vehicle model class)",
       "gravitySensitivity": "unchanged_by_gravity",
-      "gravityNote": "unchanged under moon gravity: step negotiability in this model class is kinematic",
+      "gravityNote": "unchanged under earth gravity: step negotiability in this model class is kinematic",
       "defectIds": [
-        "d-sill-21",
-        "d-sill-22",
-        "d-sill-23",
-        "d-sill-24",
-        "d-sill-25",
-        "d-sill-26",
-        "d-sill-27",
-        "d-sill-28",
-        "d-sill-29",
         "d-sill-30",
         "d-sill-31",
         "d-sill-32",
         "d-sill-33",
-        "d-sill-34",
-        "d-sill-35",
-        "d-sill-36"
+        "d-sill-34"
       ]
     },
     {
@@ -1660,18 +2730,18 @@
       "pass": true,
       "measured": {
         "name": "max_traversal_slope",
-        "value": 2.966774938460761,
+        "value": 0.1749851008123835,
         "unit": "deg",
         "uncertainty": {
-          "low": 2.466774938460761,
-          "high": 3.466774938460761,
+          "low": 0,
+          "high": 0.6749851008123835,
           "basis": "RANSAC plane-fit angular resolution"
         },
         "method": "floor-plane tilt from RANSAC fit; per-region slope mapping is a survey extension"
       },
       "requirement": "traversal slopes ≤ 20 deg (robot spec); Coulomb traction limit atan(µ=0.8) = 38.7 deg",
       "gravitySensitivity": "unchanged_by_gravity",
-      "gravityNote": "UNCHANGED under moon gravity: slope limit is atan(µ) — traction µ·m·g·cosθ and gravity pull m·g·sinθ both scale with g, which cancels. Loose-soil slip is excluded by the disclosed model class (rigid contact, Coulomb friction).",
+      "gravityNote": "UNCHANGED under earth gravity: slope limit is atan(µ) — traction µ·m·g·cosθ and gravity pull m·g·sinθ both scale with g, which cancels. Loose-soil slip is excluded by the disclosed model class (rigid contact, Coulomb friction).",
       "defectIds": []
     },
     {
@@ -1680,95 +2750,73 @@
       "pass": true,
       "measured": {
         "name": "stopping_distance",
-        "value": 0.8680555555555554,
+        "value": 0.14334862385321098,
         "unit": "m",
         "uncertainty": {
-          "low": 0.7812499999999999,
-          "high": 0.9982638888888886,
+          "low": 0.1290137614678899,
+          "high": 0.16485091743119262,
           "basis": "±10-15% for µ variation across surfaces in the model class"
         },
-        "method": "v²/(2µg) at reference speed 1.5 m/s, µ=0.8, g=1.62 m/s²"
+        "method": "v²/(2µg) at reference speed 1.5 m/s, µ=0.8, g=9.81 m/s²"
       },
       "requirement": "informational — plan braking margins accordingly",
       "gravitySensitivity": "changes_with_gravity",
-      "gravityNote": "CHANGES with gravity: 6.06x the Earth value of 0.14 m — deceleration is µ·g",
+      "gravityNote": "changes with gravity: deceleration is µ·g — on Mars this distance grows ~2.6x, on the Moon ~6.1x",
       "defectIds": []
     },
     {
       "robotId": "quadruped",
       "check": "floor_integrity",
-      "pass": false,
+      "pass": true,
       "requirement": "no unresolved collider holes in the navigable area",
       "gravitySensitivity": "unchanged_by_gravity",
-      "gravityNote": "unchanged under moon gravity: a missing collider is missing at any g",
-      "defectIds": [
-        "d-hole-0",
-        "d-hole-1",
-        "d-hole-2",
-        "d-hole-3",
-        "d-hole-4",
-        "d-hole-5",
-        "d-hole-6",
-        "d-hole-7",
-        "d-hole-8",
-        "d-hole-9"
-      ]
+      "gravityNote": "unchanged under earth gravity: a missing collider is missing at any g",
+      "defectIds": []
     },
     {
       "robotId": "quadruped",
       "check": "passage_clearance_width",
-      "pass": "not_evaluated",
+      "pass": false,
       "measured": {
         "name": "doorway_width",
-        "value": 0.30000000000000004,
+        "value": 0.19999999999999973,
         "unit": "m",
         "uncertainty": {
-          "low": 0.20000000000000004,
-          "high": 0.4,
+          "low": 0.09999999999999973,
+          "high": 0.2999999999999997,
           "basis": "raycast grid resolution 0.1 m"
         },
         "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
       },
-      "requirement": "suspended: metric verdict withheld until the diagnosed scale defect is resolved and the world re-certified",
+      "requirement": "narrowest passage ≥ 0.70 m (2x footprint radius + 0.10 m margin)",
       "gravitySensitivity": "unchanged_by_gravity",
-      "gravityNote": "unchanged under moon gravity: geometry does not scale with g",
+      "gravityNote": "unchanged under earth gravity: geometry does not scale with g",
       "defectIds": []
     },
     {
       "robotId": "quadruped",
       "check": "step_negotiation",
-      "pass": "not_evaluated",
+      "pass": false,
       "measured": {
         "name": "step_height",
-        "value": 0.3449660539627075,
+        "value": 0.4931607246398926,
         "unit": "m",
         "uncertainty": {
-          "low": 0.3249660539627075,
-          "high": 0.36496605396270754,
+          "low": 0.47316072463989256,
+          "high": 0.5131607246398926,
           "basis": "adjacent-cell surface delta quantization"
         },
-        "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid)"
+        "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
       },
-      "requirement": "suspended: metric verdict withheld until the diagnosed scale defect is resolved and the world re-certified",
+      "requirement": "max step/sill ≤ 0.25 m (published capability envelope)",
       "gravitySensitivity": "unchanged_by_gravity",
-      "gravityNote": "unchanged under moon gravity: step negotiability in this model class is kinematic",
+      "gravityNote": "unchanged under earth gravity: step negotiability in this model class is kinematic",
       "defectIds": [
-        "d-sill-21",
-        "d-sill-22",
-        "d-sill-23",
-        "d-sill-24",
-        "d-sill-25",
-        "d-sill-26",
-        "d-sill-27",
-        "d-sill-28",
-        "d-sill-29",
         "d-sill-30",
         "d-sill-31",
         "d-sill-32",
         "d-sill-33",
-        "d-sill-34",
-        "d-sill-35",
-        "d-sill-36"
+        "d-sill-34"
       ]
     },
     {
@@ -1777,18 +2825,18 @@
       "pass": true,
       "measured": {
         "name": "max_traversal_slope",
-        "value": 2.966774938460761,
+        "value": 0.1749851008123835,
         "unit": "deg",
         "uncertainty": {
-          "low": 2.466774938460761,
-          "high": 3.466774938460761,
+          "low": 0,
+          "high": 0.6749851008123835,
           "basis": "RANSAC plane-fit angular resolution"
         },
         "method": "floor-plane tilt from RANSAC fit; per-region slope mapping is a survey extension"
       },
       "requirement": "traversal slopes ≤ 30 deg (robot spec); Coulomb traction limit atan(µ=0.8) = 38.7 deg",
       "gravitySensitivity": "unchanged_by_gravity",
-      "gravityNote": "UNCHANGED under moon gravity: slope limit is atan(µ) — traction µ·m·g·cosθ and gravity pull m·g·sinθ both scale with g, which cancels. Loose-soil slip is excluded by the disclosed model class (rigid contact, Coulomb friction).",
+      "gravityNote": "UNCHANGED under earth gravity: slope limit is atan(µ) — traction µ·m·g·cosθ and gravity pull m·g·sinθ both scale with g, which cancels. Loose-soil slip is excluded by the disclosed model class (rigid contact, Coulomb friction).",
       "defectIds": []
     },
     {
@@ -1797,54 +2845,57 @@
       "pass": true,
       "measured": {
         "name": "stopping_distance",
-        "value": 0.3858024691358024,
+        "value": 0.063710499490316,
         "unit": "m",
         "uncertainty": {
-          "low": 0.34722222222222215,
-          "high": 0.44367283950617276,
+          "low": 0.0573394495412844,
+          "high": 0.07326707441386339,
           "basis": "±10-15% for µ variation across surfaces in the model class"
         },
-        "method": "v²/(2µg) at reference speed 1 m/s, µ=0.8, g=1.62 m/s²"
+        "method": "v²/(2µg) at reference speed 1 m/s, µ=0.8, g=9.81 m/s²"
       },
       "requirement": "informational — plan braking margins accordingly",
       "gravitySensitivity": "changes_with_gravity",
-      "gravityNote": "CHANGES with gravity: 6.06x the Earth value of 0.06 m — deceleration is µ·g",
+      "gravityNote": "changes with gravity: deceleration is µ·g — on Mars this distance grows ~2.6x, on the Moon ~6.1x",
       "defectIds": []
     }
   ],
   "scale": {
     "vendorFactorApplied": false,
-    "vendorFactor": 1.624169111251831,
+    "vendorFactor": 1,
     "estimated": {
       "name": "metric_scale_factor_estimate",
-      "value": 1.6008983462899729,
+      "value": 0.9760124191009318,
       "unit": "x",
       "uncertainty": {
-        "low": 1.4431743712860345,
-        "high": 1.7586223212939112,
+        "low": 0.8798535600762095,
+        "high": 1.0721712781256543,
         "basis": "door-height prior 2.03±0.1 m (2 SD)"
       },
-      "method": "tallest measured doorway height 1.27 m vs standard-passage prior; single-cue estimate — cross-check against vendor metadata",
-      "n": 5
+      "method": "tallest measured doorway height 2.08 m vs standard-passage prior; single-cue estimate — cross-check against vendor metadata",
+      "n": 10
     },
-    "agreement": "vendor factor 1.624169111251831 agrees with the door-height estimate 1.60 (within 2 SD)"
+    "agreement": "vendor factor 1 agrees with the door-height estimate 0.98 (within 2 SD)"
   },
   "disclosures": [
     "Wheeled rover (raycast-vehicle class): Rigid-body raycast vehicle, Coulomb friction, no soil mechanics. Verdicts valid for this model class only.",
     "Quadruped (kinematic capability envelope): Kinematic capability envelope anchored to ANYmal published spec (footprint, max step, max slope). No gait simulation performed or implied.",
-    "Probe methodology: seeded probe rain with CCD; every fall-through cross-checked by an independent raycast at the probe's exit point before it counts as a hole.",
+    "Probe methodology: seeded probe rain with CCD; every fall-through cross-checked by an independent raycast at the probe's exit point before it counts as a hole. Surface confirmation counts a probe at rest OR sustained rolling contact (>= 0.5 s of continuous collider contact along its path — on slopes a ball never sleeps; its contact record is the experiment).",
     "Trust states cover robot-REACHABLE space only; 'observed' means no physical experiment touched the cell.",
-    "Detection floor: at this coverage (ray grid 0.1 m, ~0.26 m probe spacing over 30 m²), 'verified' rules out collider holes with footprint ≥ ~0.26 m; smaller defects are below the instrument's floor.",
-    "Divergence 'lying' threshold self-calibrated to this world's simplification noise floor: 0.433 m (1.5x the p99 splat-to-collider distance on probe-verified cells). 'Lying' means divergence beyond the vendor's own demonstrated simplification tolerance.",
+    "Capture envelope: claims are limited to the splat capture envelope — collider columns whose visual coverage reaches this world's own surveyed-surface baseline. 7.6% of collider columns (~5 m²) lie beyond it and are OUTSIDE THE SURVEYED AREA: no defect, divergence, or fall-through evidence is drawn there. Absence of visual data beyond the capture is a capture limit, not an invisible wall.",
+    "143 of 616 probes exited the surveyed area (rolled off an open edge or beyond the capture envelope) — recorded as exits, excluded from all defect evidence.",
+    "Detection floor: at this coverage (ray grid 0.1 m, ~0.34 m probe spacing over the 71 m² surveyed area), 'verified' rules out collider holes with footprint ≥ ~0.34 m; smaller defects are below the instrument's floor.",
+    "Divergence threshold self-calibrated to this world's simplification noise floor: 0.500 m (1.5x the p99 splat-to-collider distance on probe-verified cells, height-banded to within 0.75 m of the contacted surface). 'Divergent' means splat/collider disagreement beyond the vendor's own demonstrated simplification tolerance.",
+    "Phantom-collider evidence radius self-calibrated to the shipped point cloud: 'no visual support' means no point within 0.20 m (1.5x the cloud's 0.03 m mean spacing over the surveyed area, bounded to [0.2, 0.6] m). The experiment defeats phantom evidence at the surface it validated: samples within 0.75 m of terrain a probe rested on or rolled across are excluded — geometry rising above a validated surface still counts.",
     "Single-level survey: one walkable surface per column; multi-level worlds are unsupported in this version.",
     "Scope of the grade: it predicts navmesh-level traversability under the disclosed model class. It does not predict policy transfer or visual-domain fidelity.",
     "All measurements carry uncertainty ranges; the methods line under each number states how it was obtained."
   ],
   "probeStats": {
-    "probesDropped": 449,
-    "probesRested": 132,
-    "probesFellThrough": 317,
-    "tunnelingArtifactsExcluded": 0,
+    "probesDropped": 616,
+    "probesRested": 454,
+    "probesFellThrough": 10,
+    "tunnelingArtifactsExcluded": 9,
     "simSteps": 900,
     "fixedTimestep": 0.016666666666666666
   }

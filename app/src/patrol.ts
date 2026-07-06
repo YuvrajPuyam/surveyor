@@ -8,6 +8,15 @@
  * detour waypoint inserted around the box corner. The rover's y follows the
  * collider floor via a downward raycast.
  *
+ * Two modes (C6):
+ *   "loop"     — the original patrol: a closed circuit over the spawns.
+ *   "delivery" — start→goal: from the first verified spawn to the FARTHEST
+ *                verified spawn (the depot), via any patched-floor regions
+ *                that lie near the straight route (the rover demonstrably
+ *                drives OVER repaired floor), around quarantine as always.
+ *                Arrival parks the rover at the depot marker and fires
+ *                onArrive once.
+ *
  * Usage:
  *   const patrol = startPatrol(scene, { spawns, quarantine, collider });
  *   ...
@@ -43,12 +52,21 @@ export interface PatrolOptions {
   turnRateRps?: number;
   /** Show the honesty-label overlay (default true). */
   showLabel?: boolean;
+  /** "loop" (default) circles the spawns forever; "delivery" is start→depot. */
+  mode?: "loop" | "delivery";
+  /** Patched-floor regions (fixed defects) the delivery route prefers to cross. */
+  patched?: Aabb[];
+  /** Fired once when a delivery run reaches the depot. */
+  onArrive?: (info: { position: THREE.Vector3 }) => void;
 }
 
 export interface PatrolHandle {
   stop(): void;
-  /** The full validated waypoint loop (spawns + inserted detours), world space. */
+  /** The full validated waypoint route (spawns + inserted detours), world space. */
   waypoints: ReadonlyArray<THREE.Vector3>;
+  /** The rover object (for camera framing). */
+  rover: THREE.Object3D;
+  mode: "loop" | "delivery";
 }
 
 // -------------------------------------------------------- segment validation
@@ -177,9 +195,71 @@ export function buildPatrolRoute(spawns: SpawnPoint[], quarantine: Aabb[]): THRE
   return route;
 }
 
+/**
+ * Delivery route (C6): first verified spawn → farthest verified spawn (the
+ * depot). Patched-floor regions near the straight route are inserted as via
+ * points so the run demonstrably crosses repaired floor; quarantine detours
+ * apply to every leg. Deterministic: fixed pick order, ties by index.
+ */
+export function buildDeliveryRoute(
+  spawns: SpawnPoint[],
+  quarantine: Aabb[],
+  patched: Aabb[] = [],
+): THREE.Vector3[] {
+  const rovers = spawns.filter((s) => (s.robotId ?? "").toLowerCase().includes("rover"));
+  const pool = rovers.length >= 2 ? rovers : spawns;
+  if (pool.length < 2) return pool.map((s) => new THREE.Vector3(s.x, s.y, s.z));
+
+  const start = pool[0]!;
+  let depot = pool[1]!;
+  let bestD = -1;
+  for (let i = 1; i < pool.length; i++) {
+    const s = pool[i]!;
+    const d = Math.hypot(s.x - start.x, s.z - start.z);
+    if (d > bestD) {
+      bestD = d;
+      depot = s;
+    }
+  }
+  const a = new THREE.Vector3(start.x, start.y, start.z);
+  const b = new THREE.Vector3(depot.x, depot.y, depot.z);
+  const boxes = quarantine.map((q) => inflateXZ(q, QUARANTINE_INFLATE_M));
+
+  // Via points: patched regions whose center sits near the straight route.
+  const abx = b.x - a.x;
+  const abz = b.z - a.z;
+  const abLen2 = abx * abx + abz * abz;
+  const vias: Array<{ t: number; p: THREE.Vector3 }> = [];
+  if (abLen2 > 1e-6) {
+    for (const r of patched) {
+      const cx = (r.min[0]! + r.max[0]!) / 2;
+      const cz = (r.min[2]! + r.max[2]!) / 2;
+      const t = ((cx - a.x) * abx + (cz - a.z) * abz) / abLen2;
+      if (t < 0.12 || t > 0.88) continue; // keep departure/arrival legs clean
+      const px = a.x + t * abx;
+      const pz = a.z + t * abz;
+      if (Math.hypot(cx - px, cz - pz) > 2.5) continue; // too far off-route
+      if (boxes.some((box) => pointInBox(cx, cz, box))) continue;
+      vias.push({ t, p: new THREE.Vector3(cx, a.y + t * (b.y - a.y), cz) });
+    }
+    vias.sort((u, v) => u.t - v.t);
+  }
+
+  const anchors = [a, ...vias.map((v) => v.p), b];
+  const route: THREE.Vector3[] = [];
+  for (let i = 0; i < anchors.length; i++) {
+    const p = anchors[i]!;
+    route.push(p);
+    if (i < anchors.length - 1) {
+      route.push(...detourSegment(p, anchors[i + 1]!, boxes, MAX_DETOUR_DEPTH));
+    }
+  }
+  return route;
+}
+
 // ------------------------------------------------------------- rover visual
 
-function buildRoverMesh(): THREE.Group {
+export function buildRoverMesh(): THREE.Group {
   const group = new THREE.Group();
   group.name = "patrol-rover";
 
@@ -220,13 +300,40 @@ function buildRoverMesh(): THREE.Group {
   return group;
 }
 
-function buildRouteLine(waypoints: THREE.Vector3[]): THREE.Line {
-  const pts = [...waypoints, waypoints[0]!].map((w) => w.clone().setY(w.y + 0.02));
+function buildRouteLine(waypoints: THREE.Vector3[], closed: boolean): THREE.Line {
+  const pts = (closed ? [...waypoints, waypoints[0]!] : waypoints).map((w) => w.clone().setY(w.y + 0.02));
   const geom = new THREE.BufferGeometry().setFromPoints(pts);
   return new THREE.Line(
     geom,
     new THREE.LineBasicMaterial({ color: 0x7bd88f, transparent: true, opacity: 0.55 }),
   );
+}
+
+/** Depot marker for delivery mode: pole + flag + ground ring at the goal. */
+function buildDepotMarker(at: THREE.Vector3): THREE.Group {
+  const group = new THREE.Group();
+  group.name = "delivery-depot";
+  const pole = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.015, 0.015, 0.9, 8),
+    new THREE.MeshStandardMaterial({ color: 0xb8bfcc }),
+  );
+  pole.position.y = 0.45;
+  group.add(pole);
+  const flag = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.34, 0.2),
+    new THREE.MeshBasicMaterial({ color: 0x34d975, side: THREE.DoubleSide }),
+  );
+  flag.position.set(0.18, 0.78, 0);
+  group.add(flag);
+  const ring = new THREE.Mesh(
+    new THREE.RingGeometry(0.32, 0.42, 32),
+    new THREE.MeshBasicMaterial({ color: 0x34d975, transparent: true, opacity: 0.6, side: THREE.DoubleSide }),
+  );
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.y = 0.02;
+  group.add(ring);
+  group.position.copy(at);
+  return group;
 }
 
 // ----------------------------------------------------------------- overlay
@@ -257,27 +364,37 @@ const RAY_START_ABOVE_M = 3;
 const MAX_DT_S = 0.1;
 
 export function startPatrol(scene: THREE.Scene, opts: PatrolOptions): PatrolHandle {
-  const waypoints = buildPatrolRoute(opts.spawns, opts.quarantine ?? []);
+  const mode = opts.mode ?? "loop";
+  const waypoints =
+    mode === "delivery"
+      ? buildDeliveryRoute(opts.spawns, opts.quarantine ?? [], opts.patched ?? [])
+      : buildPatrolRoute(opts.spawns, opts.quarantine ?? []);
   const speed = opts.speedMps ?? 0.6;
   const turnRate = opts.turnRateRps ?? 2.5;
 
   const rover = buildRoverMesh();
   let routeLine: THREE.Line | undefined;
+  let depotMarker: THREE.Group | undefined;
   let label: HTMLDivElement | undefined;
   let rafId = 0;
   let stopped = false;
+  let arrivedFired = false;
 
   if (waypoints.length < 2) {
     // Nothing to patrol; return an inert handle.
-    return { stop: () => undefined, waypoints };
+    return { stop: () => undefined, waypoints, rover, mode };
   }
 
   const start = waypoints[0]!;
   rover.position.copy(start);
   scene.add(rover);
-  routeLine = buildRouteLine(waypoints);
+  routeLine = buildRouteLine(waypoints, mode === "loop");
   routeLine.name = "patrol-route";
   scene.add(routeLine);
+  if (mode === "delivery") {
+    depotMarker = buildDepotMarker(waypoints[waypoints.length - 1]!);
+    scene.add(depotMarker);
+  }
 
   if (opts.showLabel !== false) {
     label = buildLabel();
@@ -315,6 +432,14 @@ export function startPatrol(scene: THREE.Scene, opts: PatrolOptions): PatrolHand
     const dist = Math.hypot(dx, dz);
 
     if (dist < ARRIVE_RADIUS_M) {
+      if (mode === "delivery" && target >= waypoints.length - 1) {
+        // Depot reached: park the rover (mesh stays), fire onArrive once.
+        if (!arrivedFired) {
+          arrivedFired = true;
+          opts.onArrive?.({ position: rover.position.clone() });
+        }
+        return; // stop ticking — the rover is parked at the depot
+      }
       target = (target + 1) % waypoints.length;
     } else {
       // Smooth turn toward the waypoint, then advance along the heading.
@@ -340,12 +465,15 @@ export function startPatrol(scene: THREE.Scene, opts: PatrolOptions): PatrolHand
 
   return {
     waypoints,
+    rover,
+    mode,
     stop(): void {
       if (stopped) return;
       stopped = true;
       cancelAnimationFrame(rafId);
       scene.remove(rover);
       if (routeLine) scene.remove(routeLine);
+      if (depotMarker) scene.remove(depotMarker);
       label?.remove();
     },
   };

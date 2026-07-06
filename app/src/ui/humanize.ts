@@ -487,6 +487,7 @@ export const BTN = {
   undo: "Undo",
   runAll: "Run the plan",
   export: "Export certificate (JSON)",
+  rawRun: "Raw run (R)",
 } as const;
 
 // ----------------------------------------------------------- fail-and-adapt
@@ -621,6 +622,14 @@ const LOG_RULES: LogRule[] = [
     human: () => "Rover on patrol — over the patches, around the roped-off areas.",
   },
   {
+    re: /^rover delivery started/,
+    human: () => "Delivery run started — verified spawn to the depot, around the roped-off areas.",
+  },
+  {
+    re: /^delivery complete/,
+    human: () => "Delivery complete — the certified route held, end to end.",
+  },
+  {
     re: /^revert \S+ \(stack discipline/,
     human: () => "Undoing — later changes are undone with it.",
   },
@@ -679,6 +688,9 @@ export const HINT = {
   runPlan: "Space — run the repair plan",
   seeVerdict: "Space — see the verdict",
   patrol: "Space — start / stop the rover",
+  /** Twin run (C6). */
+  rawRun: "R — raw twin run",
+  delivery: "Space — run the delivery",
 } as const;
 
 /** Narrator lines. */
@@ -692,6 +704,27 @@ export const NARRATE = {
     "Rover on patrol — driving over the patches we fixed, steering around the areas we roped off.",
   patrolStopped: "Rover parked.",
   surveyFailed: "The survey hit an error — press D for details.",
+  // ---- twin run (C6): raw-world failure + certified delivery ----
+  rawRun: "Raw world, before repairs — same rover, the physics a robot would train on. Watch the floor.",
+  rawRunFell:
+    "It fell through a floor that looks solid — ghost geometry. A training run would never tell you why.",
+  rawRunCrossed:
+    "The rover crossed — its track straddled the confirmed gap this time. The survey's probe falls stand.",
+  rawRunTimeout: "The rover never reached the flagged floor — run it again, or move the camera and watch.",
+  rawRunUnavailable:
+    "The raw world is gone — repairs are baked into the physics now. Reload to run the raw twin again.",
+  rawRunProbing:
+    "Choosing the failure route — dry-running candidates in the raw physics until one fails…",
+  rawRunGhost:
+    "Straight through a shelf that looks solid — there is no physics behind it. Ghost geometry: a robot would learn an affordance that does not exist.",
+  rawRunStuck:
+    "Nose-down in a pit the pixels call floor — beached. Every training episode through here would end exactly like this, and nothing would say why.",
+  rawRunNoRoute:
+    "No confirmed floor hole with a clear approach in this certificate — nothing to drive into.",
+  delivery:
+    "Certified delivery — verified spawn to depot, over the patched floor, around the roped-off areas.",
+  deliveryArrived:
+    "Delivery complete — every meter of that route was physically verified before a wheel turned.",
 } as const;
 
 /** Beat-1 intro card copy (html allowed for the <em> emphasis). */
@@ -744,3 +777,153 @@ export function beforeAfterSummary(cert: CertificateSummary): { found: string; b
 
 /** "Show the work" expander label (raw live log). */
 export const SHOW_THE_WORK = "Show the work";
+
+// ===================================================== MISSION LOG (C7)
+// Beat-4 cassette replay panel. Every user-facing string of missionLog.ts
+// lives here. The reasoning lines themselves are NOT here — they are the
+// agent's own recorded words, rendered verbatim from the cassette.
+
+export const MISSION_LOG = {
+  title: "MISSION LOG",
+  subtitle: "recorded episode replay",
+  /** Honesty chip — always visible in the header. */
+  replayChip: "RECORDED REPLAY",
+  replayTooltip:
+    "A real repair session, recorded to a cassette file and replayed here byte-for-byte — same words, same tool calls, same results, every run. Nothing in this panel is generated live.",
+  loading: "loading cassette…",
+  empty: "no cassette loaded",
+  done: "episode complete — every defect ended in a recorded outcome",
+  agentTag: "agent",
+  toolGlyph: "▸",
+  btnPause: "Pause",
+  btnResume: "Resume",
+  btnReplay: "Replay",
+  /** Chip states for a tool row (running until its recorded result lands). */
+  state: {
+    running: "running…",
+    done: "done ✓",
+    failed: "failed ✗",
+    /** recertify came back with new findings — the certifier caught the repair */
+    flagged: "recheck: new findings",
+  },
+} as const;
+
+// ---- tiny safe accessors (cassette args/results are unknown-typed) --------
+
+function asRecord(v: unknown): Record<string, unknown> | undefined {
+  return v !== null && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : undefined;
+}
+
+function str(v: unknown): string | undefined {
+  return typeof v === "string" ? v : undefined;
+}
+
+function numOf(v: unknown): number | undefined {
+  return typeof v === "number" && Number.isFinite(v) ? v : undefined;
+}
+
+/**
+ * Compact human line for a recorded tool call, e.g.
+ *   "patch_hole fitted_slab d-hole-3" · "recertify regional d-hole-3" ·
+ *   "quarantine d-phantom-15" · "revert a-2" · "apply_vendor_scale".
+ * Falls back to the tool name — the replay renders tools it has never met.
+ */
+export function missionToolLine(name: string, args: unknown): string {
+  const a = asRecord(args) ?? {};
+  const defect = str(a["defectId"]);
+  switch (name) {
+    case "patch_hole":
+      return ["patch_hole", str(a["method"]), defect].filter(Boolean).join(" ");
+    case "recertify":
+      return ["recertify", str(a["scope"]), defect].filter(Boolean).join(" ");
+    case "quarantine":
+      return ["quarantine", defect].filter(Boolean).join(" ");
+    case "accept_defect":
+      return ["accept_defect", defect].filter(Boolean).join(" ");
+    case "inspect_region":
+      return ["inspect_region", defect].filter(Boolean).join(" ");
+    case "revert":
+      return ["revert", str(a["actionId"])].filter(Boolean).join(" ");
+    case "query_measurement":
+      return ["query_measurement", str(a["name"])].filter(Boolean).join(" ");
+    case "carve_opening":
+      return ["carve_opening", defect].filter(Boolean).join(" ");
+    default:
+      return name;
+  }
+}
+
+/**
+ * One dim settle-line under a tool row once its recorded result lands.
+ * undefined = nothing worth saying beyond the state chip.
+ */
+export function missionResultNote(name: string, result: unknown): string | undefined {
+  const r = asRecord(result);
+  if (!r) return undefined;
+  const err = str(r["error"]);
+  if (err) return err;
+  switch (name) {
+    case "get_certificate": {
+      const grade = str(r["grade"]);
+      const defects = Array.isArray(r["defects"]) ? r["defects"].length : undefined;
+      if (grade === undefined) return undefined;
+      return `grade ${grade}${defects !== undefined ? ` · ${defects} defect${defects === 1 ? "" : "s"}` : ""}`;
+    }
+    case "apply_vendor_scale": {
+      const f = numOf(r["factorApplied"]);
+      return f !== undefined ? `×${f.toFixed(3)} applied — the whole world re-measured` : undefined;
+    }
+    case "recertify": {
+      const grade = str(r["grade"]);
+      const resolved = Array.isArray(r["resolvedDefectIds"]) ? r["resolvedDefectIds"].length : 0;
+      const fresh = Array.isArray(r["newDefects"]) ? r["newDefects"].length : 0;
+      const open = Array.isArray(r["openDefects"]) ? r["openDefects"].length : undefined;
+      const bits = [`grade ${grade ?? "?"}`];
+      if (resolved > 0) bits.push(`${resolved} resolved`);
+      if (fresh > 0) bits.push(`${fresh} new finding${fresh === 1 ? "" : "s"}`);
+      if (open !== undefined) bits.push(`${open} open`);
+      return bits.join(" · ");
+    }
+    case "patch_hole": {
+      const y = numOf(r["slabTopY"]);
+      return y !== undefined ? `patched — slab top at y ${y.toFixed(3)} m` : undefined;
+    }
+    case "revert": {
+      const id = str(r["reverted"]);
+      return id ? `undone (${id}) — later actions undone with it` : undefined;
+    }
+    case "rebuild_navmesh_and_spawns": {
+      const spawns = Array.isArray(r["spawns"]) ? r["spawns"].length : undefined;
+      return spawns !== undefined ? `${spawns} verified spawn point${spawns === 1 ? "" : "s"}` : undefined;
+    }
+    case "quarantine":
+      return "roped off — no training episode touches the divergent region";
+    case "accept_defect":
+      return "accepted as a real feature — the per-robot verdict stands";
+    default:
+      return undefined;
+  }
+}
+
+/** Did this recertify result flag new findings? (the certifier-audits moment) */
+export function missionResultFlagged(name: string, result: unknown): boolean {
+  if (name !== "recertify") return false;
+  const r = asRecord(result);
+  return !!r && Array.isArray(r["newDefects"]) && r["newDefects"].length > 0;
+}
+
+/** Recorded result carries an error → the tool call failed on tape. */
+export function missionResultFailed(result: unknown): boolean {
+  const r = asRecord(result);
+  return !!r && typeof r["error"] === "string";
+}
+
+/**
+ * The agent's own recorded justification (quarantine/accept_defect `reason`
+ * args) — rendered verbatim as a quote line under the tool row. This is
+ * agent prose from the episode, not app copy.
+ */
+export function missionReasonQuote(args: unknown): string | undefined {
+  const a = asRecord(args);
+  return a ? str(a["reason"]) : undefined;
+}

@@ -8,6 +8,12 @@ import { defineConfig } from "vite";
 export default defineConfig({
   publicDir: "../assets",
   worker: { format: "es" },
+  server: {
+    // On this Windows setup chokidar misses tool-driven file writes — the
+    // dev server then serves modules one edit behind (hours lost to testing
+    // stale code). Polling is cheap at this project size and never lies.
+    watch: { usePolling: true, interval: 300 },
+  },
   build: {
     target: "es2022",
     // Rapier's embedded wasm + Spark are heavy; silence the size warning.

@@ -1,1 +1,332 @@
-[]
+[
+  {
+    "region": {
+      "min": [
+        -1.8389675617218018,
+        -0.8454985425513091,
+        -1.214156150817871
+      ],
+      "max": [
+        1.1610324382781982,
+        1.654501457448691,
+        2.285843849182129
+      ]
+    },
+    "reason": "Ghost geometry: visual samples >0.15 m from any collider surface (d-visual-38 has zero collider triangles — pure painted-on surface). No closed-menu operation can add matching physics, so these divergent regions are excluded from the navigable area to ensure no training episode learns an affordance that does not physically exist."
+  },
+  {
+    "region": {
+      "min": [
+        1.1610324382781982,
+        -0.8454985425513091,
+        -1.214156150817871
+      ],
+      "max": [
+        1.6610324382781982,
+        1.654501457448691,
+        -0.4641561508178711
+      ]
+    },
+    "reason": "Ghost geometry: visual samples >0.15 m from any collider surface (d-visual-38 has zero collider triangles — pure painted-on surface). No closed-menu operation can add matching physics, so these divergent regions are excluded from the navigable area to ensure no training episode learns an affordance that does not physically exist."
+  },
+  {
+    "region": {
+      "min": [
+        1.4110324382781982,
+        -0.8454985425513091,
+        -0.2141561508178711
+      ],
+      "max": [
+        1.9110324382781982,
+        1.654501457448691,
+        0.7858438491821289
+      ]
+    },
+    "reason": "Ghost geometry: visual samples >0.15 m from any collider surface (d-visual-38 has zero collider triangles — pure painted-on surface). No closed-menu operation can add matching physics, so these divergent regions are excluded from the navigable area to ensure no training episode learns an affordance that does not physically exist."
+  },
+  {
+    "region": {
+      "min": [
+        0.41103243827819824,
+        -0.8454985425513091,
+        2.535843849182129
+      ],
+      "max": [
+        0.9110324382781982,
+        1.654501457448691,
+        2.785843849182129
+      ]
+    },
+    "reason": "Ghost geometry: visual samples >0.15 m from any collider surface (d-visual-38 has zero collider triangles — pure painted-on surface). No closed-menu operation can add matching physics, so these divergent regions are excluded from the navigable area to ensure no training episode learns an affordance that does not physically exist."
+  },
+  {
+    "region": {
+      "min": [
+        0.9110324382781982,
+        -0.8454985425513091,
+        4.785843849182129
+      ],
+      "max": [
+        1.4110324382781982,
+        1.654501457448691,
+        5.785843849182129
+      ]
+    },
+    "reason": "Ghost geometry: visual samples >0.15 m from any collider surface (d-visual-38 has zero collider triangles — pure painted-on surface). No closed-menu operation can add matching physics, so these divergent regions are excluded from the navigable area to ensure no training episode learns an affordance that does not physically exist."
+  },
+  {
+    "region": {
+      "min": [
+        -1.5889675617218018,
+        -0.8454985425513091,
+        8.035843849182129
+      ],
+      "max": [
+        -0.8389675617218018,
+        1.654501457448691,
+        9.535843849182129
+      ]
+    },
+    "reason": "Ghost geometry: visual samples >0.15 m from any collider surface (d-visual-38 has zero collider triangles — pure painted-on surface). No closed-menu operation can add matching physics, so these divergent regions are excluded from the navigable area to ensure no training episode learns an affordance that does not physically exist."
+  },
+  {
+    "region": {
+      "min": [
+        -1.5889675617218018,
+        -0.8454985425513091,
+        4.285843849182129
+      ],
+      "max": [
+        -0.8389675617218018,
+        1.654501457448691,
+        5.535843849182129
+      ]
+    },
+    "reason": "Ghost geometry surfaced by re-probing the mid-corridor (d-visual-26: 372 visual samples >0.15 m from any collider at z[4.29,5.54]; d-visual-27: 9 samples at z[7.04,7.54]) — the visual-only counterpart of the collider/visual misalignment in this segment. No closed-menu operation can add matching physics, so these divergent regions are excluded from the navigable area to prevent training on non-existent affordances."
+  },
+  {
+    "region": {
+      "min": [
+        -1.0889675617218018,
+        -0.8454985425513091,
+        7.035843849182129
+      ],
+      "max": [
+        -0.8389675617218018,
+        1.654501457448691,
+        7.535843849182129
+      ]
+    },
+    "reason": "Ghost geometry surfaced by re-probing the mid-corridor (d-visual-26: 372 visual samples >0.15 m from any collider at z[4.29,5.54]; d-visual-27: 9 samples at z[7.04,7.54]) — the visual-only counterpart of the collider/visual misalignment in this segment. No closed-menu operation can add matching physics, so these divergent regions are excluded from the navigable area to prevent training on non-existent affordances."
+  },
+  {
+    "region": {
+      "min": [
+        -3.1189675331115723,
+        -0.845058030318581,
+        -1.714156150817871
+      ],
+      "max": [
+        -2.8689675331115723,
+        1.6549419696814192,
+        -0.4641561508178711
+      ]
+    },
+    "reason": "Ghost geometry surfaced by re-probing at true scale (visual samples 9–140 sitting >0.15 m from any collider). No closed-menu operation can add matching physics, so these divergent regions are excluded from the navigable area to prevent training on non-existent affordances."
+  },
+  {
+    "region": {
+      "min": [
+        1.1310324668884277,
+        -0.845058030318581,
+        3.785843849182129
+      ],
+      "max": [
+        1.3810324668884277,
+        1.6549419696814192,
+        4.785843849182129
+      ]
+    },
+    "reason": "Ghost geometry surfaced by re-probing at true scale (visual samples 9–140 sitting >0.15 m from any collider). No closed-menu operation can add matching physics, so these divergent regions are excluded from the navigable area to prevent training on non-existent affordances."
+  },
+  {
+    "region": {
+      "min": [
+        0.8810324668884277,
+        -0.845058030318581,
+        7.785843849182129
+      ],
+      "max": [
+        1.3810324668884277,
+        1.6549419696814192,
+        8.035843849182129
+      ]
+    },
+    "reason": "Ghost geometry surfaced by re-probing at true scale (visual samples 9–140 sitting >0.15 m from any collider). No closed-menu operation can add matching physics, so these divergent regions are excluded from the navigable area to prevent training on non-existent affordances."
+  },
+  {
+    "region": {
+      "min": [
+        0.8810324668884277,
+        -0.845058030318581,
+        9.285843849182129
+      ],
+      "max": [
+        1.3810324668884277,
+        1.6549419696814192,
+        9.535843849182129
+      ]
+    },
+    "reason": "Ghost geometry surfaced by re-probing at true scale (visual samples 9–140 sitting >0.15 m from any collider). No closed-menu operation can add matching physics, so these divergent regions are excluded from the navigable area to prevent training on non-existent affordances."
+  },
+  {
+    "region": {
+      "min": [
+        -1.8689675331115723,
+        -0.845058030318581,
+        10.285843849182129
+      ],
+      "max": [
+        -1.6189675331115723,
+        1.6549419696814192,
+        11.535843849182129
+      ]
+    },
+    "reason": "Ghost geometry surfaced by re-probing at true scale (visual samples 9–140 sitting >0.15 m from any collider). No closed-menu operation can add matching physics, so these divergent regions are excluded from the navigable area to prevent training on non-existent affordances."
+  },
+  {
+    "region": {
+      "min": [
+        0.6310324668884277,
+        -0.845058030318581,
+        12.785843849182129
+      ],
+      "max": [
+        0.8810324668884277,
+        1.6549419696814192,
+        13.035843849182129
+      ]
+    },
+    "reason": "Ghost geometry surfaced by re-probing at true scale (visual samples 9–140 sitting >0.15 m from any collider). No closed-menu operation can add matching physics, so these divergent regions are excluded from the navigable area to prevent training on non-existent affordances."
+  },
+  {
+    "region": {
+      "min": [
+        -2.8389675617218018,
+        -0.8454985425513091,
+        -1.714156150817871
+      ],
+      "max": [
+        -2.5889675617218018,
+        1.654501457448691,
+        -1.214156150817871
+      ]
+    },
+    "reason": "d-phantom-14: collider already fully removed (0 triangles) by a prior carve yet flag persists — quarantined for closure after its repair attempt. d-visual-29 (2664 samples), d-visual-31 (50), d-visual-36 (8): ghost geometry with no physics that the menu cannot give collider; excluded from the navigable area so no episode trains on non-existent affordances."
+  },
+  {
+    "region": {
+      "min": [
+        -2.1189675331115723,
+        -0.8523787240042867,
+        -2.4941563606262207
+      ],
+      "max": [
+        1.3810324668884277,
+        1.6476212759957134,
+        2.2558436393737793
+      ]
+    },
+    "reason": "d-phantom-14: collider already fully removed (0 triangles) by a prior carve yet flag persists — quarantined for closure after its repair attempt. d-visual-29 (2664 samples), d-visual-31 (50), d-visual-36 (8): ghost geometry with no physics that the menu cannot give collider; excluded from the navigable area so no episode trains on non-existent affordances."
+  },
+  {
+    "region": {
+      "min": [
+        3.1310324668884277,
+        -0.8523787240042867,
+        -0.4941563606262207
+      ],
+      "max": [
+        3.3810324668884277,
+        1.6476212759957134,
+        0.2558436393737793
+      ]
+    },
+    "reason": "d-phantom-14: collider already fully removed (0 triangles) by a prior carve yet flag persists — quarantined for closure after its repair attempt. d-visual-29 (2664 samples), d-visual-31 (50), d-visual-36 (8): ghost geometry with no physics that the menu cannot give collider; excluded from the navigable area so no episode trains on non-existent affordances."
+  },
+  {
+    "region": {
+      "min": [
+        0.8810324668884277,
+        -0.8523787240042867,
+        8.00584363937378
+      ],
+      "max": [
+        1.1310324668884277,
+        1.6476212759957134,
+        8.25584363937378
+      ]
+    },
+    "reason": "d-phantom-14: collider already fully removed (0 triangles) by a prior carve yet flag persists — quarantined for closure after its repair attempt. d-visual-29 (2664 samples), d-visual-31 (50), d-visual-36 (8): ghost geometry with no physics that the menu cannot give collider; excluded from the navigable area so no episode trains on non-existent affordances."
+  },
+  {
+    "region": {
+      "min": [
+        1.1010324954986572,
+        -0.8474596355915662,
+        -1.9941563606262207
+      ],
+      "max": [
+        1.6010324954986572,
+        1.6525403644084338,
+        -0.4941563606262207
+      ]
+    },
+    "reason": "Ghost geometry (160 and 75 visual samples >0.15 m from any collider). No closed-menu operation can add matching physics; excluded from the navigable area to prevent training on non-existent affordances."
+  },
+  {
+    "region": {
+      "min": [
+        -1.8989675045013428,
+        -0.8474596355915662,
+        10.25584363937378
+      ],
+      "max": [
+        -1.3989675045013428,
+        1.6525403644084338,
+        11.50584363937378
+      ]
+    },
+    "reason": "Ghost geometry (160 and 75 visual samples >0.15 m from any collider). No closed-menu operation can add matching physics; excluded from the navigable area to prevent training on non-existent affordances."
+  },
+  {
+    "region": {
+      "min": [
+        2.8510324954986572,
+        -0.8474403945060397,
+        -1.7441563606262207
+      ],
+      "max": [
+        3.1010324954986572,
+        1.6525596054939604,
+        -1.4941563606262207
+      ]
+    },
+    "reason": "Genuine invisible barriers (d-phantom-6: 7 visual/100 collider; d-phantom-18: 9 visual/238 collider), isolated at the far edges (x≈3.1 and z≈14.5). This collider mesh is layered/misaligned, so repeated carve attempts across four rounds keep exposing fresh sub-surfaces without converging. Per honest-over-invisible discipline, these residual divergent regions are quarantined — excluded from the navigable area so no episode drives a robot into an unseen barrier — rather than carved further."
+  },
+  {
+    "region": {
+      "min": [
+        -0.14896750450134277,
+        -0.8474403945060397,
+        14.25584363937378
+      ],
+      "max": [
+        0.3510324954986572,
+        1.6525596054939604,
+        14.75584363937378
+      ]
+    },
+    "reason": "Genuine invisible barriers (d-phantom-6: 7 visual/100 collider; d-phantom-18: 9 visual/238 collider), isolated at the far edges (x≈3.1 and z≈14.5). This collider mesh is layered/misaligned, so repeated carve attempts across four rounds keep exposing fresh sub-surfaces without converging. Per honest-over-invisible discipline, these residual divergent regions are quarantined — excluded from the navigable area so no episode drives a robot into an unseen barrier — rather than carved further."
+  }
+]

@@ -21,6 +21,7 @@
  *
  * Keys: [1-5]/[→←]/[Space] five-beat stepper  [D] dev overlay
  *       [W] wireframe  [T] trust map  [P] patrol  [B] defect boxes  [F] flip splats  [I] camera
+ *       [R] raw twin run (Beats 1–3 — drives the raw physics into a certificate-confirmed hole)
  */
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
@@ -37,6 +38,8 @@ import type { InitMsg, WorkerToMain } from "./protocol";
 import { CertifyWorkerClient, type SpawnPoint } from "./workerClient";
 import { mountCertificatePanel } from "./ui/certificatePanel";
 import { mountRepairPanel } from "./ui/repairPanel";
+import { mountMissionLog } from "./ui/missionLog";
+import { loadCassette } from "./cassetteReplay";
 import type {
   CertificateSummary,
   DefectSummary,
@@ -46,6 +49,7 @@ import type {
   StepResult,
 } from "./ui/protocol";
 import { startPatrol, type Aabb as PatrolAabb, type PatrolHandle } from "./patrol";
+import { createTwinRun } from "./twinRun";
 import { TrustLayer } from "./trustLayer";
 import { mountStepper, type Beat } from "./ui/stepper";
 import { showGradeReveal, skipGradeReveal } from "./ui/gradeReveal";
@@ -159,7 +163,7 @@ function renderHud(): void {
     `grade    ${hud.grade}   open defects ${hud.defects}\n` +
     `${hud.status}\n` +
     `[1-5] beats  [Space] action  [→/←] step  [D] dev\n` +
-    `[W] wireframe  [T] trust  [P] patrol  [B] boxes  [F] flip  [I] camera`;
+    `[W] wireframe  [T] trust  [P] patrol  [B] boxes  [F] flip  [I] camera  [R] raw run`;
 }
 setInterval(renderHud, 250);
 
@@ -228,6 +232,73 @@ const repairPanel = mountRepairPanel(sidebar, {
 });
 Object.assign(repairPanel.el.style, { flex: "1 1 45%", minHeight: "0", width: "100%" });
 repairPanel.log("waiting for survey…");
+
+// ---- MISSION LOG (C7): recorded-episode replay narrating Beat 4 --------
+// Cassette is a static asset: assets/traces/repair-episode.jsonl (vite
+// publicDir "../assets") → served at /traces/repair-episode.jsonl. Wifi-off.
+const MISSION_LOG_CASSETTE_URL = "/traces/repair-episode.jsonl";
+
+const missionLog = mountMissionLog(sidebar, {
+  onToolCall: (name, args) => driveRepairCard(name, args),
+  // the canonical 305-event episode runs 75.7 s at speed 1 — ×2 lands the
+  // replay on ENDGAME's ~35 s Beat-4 window (setSpeed adjusts live if
+  // rehearsal wants it different)
+  speed: 2,
+});
+Object.assign(missionLog.el.style, {
+  flex: "1 1 50%",
+  minHeight: "0",
+  width: "100%",
+} satisfies Partial<CSSStyleDeclaration>);
+missionLog.el.style.display = "none"; // Beat 4 only — applyBeat owns visibility
+
+let missionLogStarted = false;
+function startMissionLogReplay(): void {
+  if (missionLogStarted) return;
+  missionLogStarted = true;
+  loadCassette(MISSION_LOG_CASSETTE_URL)
+    .then((cassette) => missionLog.start(cassette))
+    .catch((err: unknown) => {
+      missionLogStarted = false; // allow a retry on the next Space
+      repairPanel.log(
+        `mission log: cassette failed to load — ${err instanceof Error ? err.message : String(err)}`,
+        "warn",
+      );
+    });
+}
+
+/**
+ * A recorded tool call visually drives the matching repair-plan card: pulse
+ * the card whose raw footer (".sv-step-defects": rawLabel + defect ids)
+ * mentions the call's defectId, else the card of the same step kind.
+ * Cosmetic only (sv-ml-drive outline) — the card's real status chip stays
+ * owned by the live Run All engine.
+ */
+function driveRepairCard(name: string, args: unknown): void {
+  const a = (args ?? {}) as Record<string, unknown>;
+  const defectId = typeof a["defectId"] === "string" ? (a["defectId"] as string) : undefined;
+  const KIND_LABEL: Record<string, string> = {
+    apply_vendor_scale: "Apply vendor scale",
+    patch_hole: "Patch hole",
+    quarantine: "Quarantine",
+    accept_defect: "Accept",
+  };
+  const label = KIND_LABEL[name];
+  let target: HTMLElement | undefined;
+  for (const card of Array.from(repairPanel.el.querySelectorAll<HTMLElement>(".sv-card"))) {
+    const footer = card.querySelector(".sv-step-defects")?.textContent ?? "";
+    if (defectId && footer.includes(defectId)) {
+      target = card;
+      break;
+    }
+    if (!target && label && footer.includes(label)) target = card;
+  }
+  if (!target) return;
+  target.classList.remove("sv-ml-drive");
+  void target.offsetWidth; // restart the pulse animation
+  target.classList.add("sv-ml-drive");
+  window.setTimeout(() => target.classList.remove("sv-ml-drive"), 900);
+}
 
 // ------------------------------------------------------- integration state
 
@@ -467,6 +538,23 @@ function ensureCertificationStarted(): void {
   void startCertification(bundleDir);
 }
 
+// --------------------------------------------------------- twin run (C6)
+// Raw-world failure run (Beats 1–3, key R) + Beat-5 delivery camera. The raw
+// physics executes in the probe worker, which holds the collider exactly as
+// shipped — repairs only ever mutate the certify engine's copy.
+
+const twinRun = createTwinRun({
+  scene,
+  camera,
+  controls,
+  getCollider: () => colliderWireframe,
+  narrate: narrateStanding,
+  flash: flashNarrate,
+  setStatus: (t) => {
+    hud.status = t;
+  },
+});
+
 // ------------------------------------------------------------ the stepper
 
 const stepper = mountStepper(document.body, {
@@ -499,7 +587,10 @@ const stepper = mountStepper(document.body, {
         break;
       case 4:
         if (finalized) stepper.advance();
-        else repairPanel.runAll();
+        else {
+          startMissionLogReplay(); // the recorded agent narrates…
+          repairPanel.runAll(); // …while the live engine executes the plan
+        }
         break;
       case 5:
         togglePatrol();
@@ -517,8 +608,18 @@ function applyBeat(beat: Beat, from: Beat): void {
   legend.style.display = beat === 2 ? "" : "none";
   sidebar.style.display = beat >= 3 ? "flex" : "none";
   repairPanel.el.style.display = beat === 4 ? "" : "none";
+  missionLog.el.style.display = beat === 4 ? "" : "none";
+  if (beat === 4) missionLog.resume();
+  else missionLog.pause(); // never narrate over other beats (no-op before start)
   beforeAfterCard.style.display = beat === 5 ? "" : "none";
   certificatePanel.setCompact(beat >= 4);
+
+  // twin run (C6): the untouched raw physics only exists during Beats 1–3
+  // (repairs mutate the engine's collider and rescale the viewer from Beat 4)
+  const rawPossible = beat <= 3 && viewerScale === 1;
+  twinRun.setAvailability(rawPossible, rawPossible ? undefined : NARRATE.rawRunUnavailable);
+  if (beat > 3) twinRun.stopRaw();
+  if (beat !== 5) twinRun.stopFollow();
 
   // trust map per beat; the T key stays a free toggle within a beat
   setTrustVisible(beat !== 1);
@@ -562,8 +663,8 @@ function applyBeat(beat: Beat, from: Beat): void {
       break;
     case 5:
       buildBeforeAfterCard();
-      narrateStanding(NARRATE.patrol);
-      stepper.setPrimaryHint(HINT.patrol);
+      narrateStanding(NARRATE.delivery);
+      stepper.setPrimaryHint(HINT.delivery);
       if (!patrolHandle && spawnsCache) beginPatrol();
       break;
   }
@@ -590,6 +691,7 @@ function applyCertificate(cert: CertificateSummary): void {
   hud.grade = cert.grade;
   hud.defects = cert.defects.filter(isOpenDefect).length;
   updateLiveDefects(cert.defects);
+  twinRun.setCertificate(cert); // raw-run route follows the freshest survey
 }
 
 async function refreshFloorY(): Promise<void> {
@@ -923,7 +1025,8 @@ async function finalizeAndPatrol(): Promise<void> {
     const sp = await client.rebuildSpawns();
     spawnsCache = sp.spawns;
     repairPanel.log(`navmesh + spawns rebuilt: ${sp.spawns.length} verified spawn points`, "ok");
-    beginPatrol();
+    // NOTE (C6): the delivery run starts when Beat 5 is ENTERED — departure
+    // and arrival are witnessed, instead of the rover looping in the background.
     if (stepper.current === 4) {
       narrateStanding(NARRATE.recertified);
       stepper.setPrimaryHint(HINT.seeVerdict);
@@ -943,24 +1046,38 @@ function beginPatrol(): void {
     return;
   }
   const quarantine: PatrolAabb[] = [];
+  const patched: PatrolAabb[] = [];
   for (const d of latestCert?.defects ?? []) {
-    if (d.outcome === "quarantined" && d.region) {
-      quarantine.push({
-        min: [d.region.min[0], d.region.min[1], d.region.min[2]],
-        max: [d.region.max[0], d.region.max[1], d.region.max[2]],
-      });
-    }
+    if (!d.region) continue;
+    const box: PatrolAabb = {
+      min: [d.region.min[0], d.region.min[1], d.region.min[2]],
+      max: [d.region.max[0], d.region.max[1], d.region.max[2]],
+    };
+    if (d.outcome === "quarantined") quarantine.push(box);
+    else if (d.outcome === "fixed") patched.push(box);
   }
+  // C6: start→goal delivery — first verified spawn to the farthest verified
+  // spawn (the depot), over patched floor, around the roped-off regions.
   patrolHandle = startPatrol(scene, {
     spawns: spawnsCache,
     quarantine,
+    patched,
+    mode: "delivery",
     collider: colliderWireframe,
     showLabel: false, // sidebar owns the bottom-right corner; HUD carries the honesty line
+    onArrive: () => {
+      if (stepper.current === 5) narrateStanding(NARRATE.deliveryArrived);
+      hud.status = "delivery complete — certified route held end to end";
+      repairPanel.log("delivery complete — the certified route held end to end", "ok");
+    },
   });
-  hud.status = "rover patrol: navmesh waypoint-following (not a learned policy)";
-  if (stepper.current === 5) narrateStanding(NARRATE.patrol);
+  hud.status = "rover delivery: navmesh waypoint-following (not a learned policy)";
+  if (stepper.current === 5) {
+    narrateStanding(NARRATE.delivery);
+    twinRun.followDelivery(patrolHandle.rover, patrolHandle.waypoints);
+  }
   repairPanel.log(
-    `rover patrol started — ${patrolHandle.waypoints.length} waypoints, over patches, around ${quarantine.length} quarantined region(s) [P toggles]`,
+    `rover delivery started — ${patrolHandle.waypoints.length} waypoints, spawn → depot, over ${patched.length} patch(es), around ${quarantine.length} quarantined region(s) [P toggles]`,
     "ok",
   );
 }
@@ -1114,6 +1231,12 @@ function startPhysics(soup: TriSoup): void {
         lastStepCount = msg.stepCount;
         lastStepTime = now;
       }
+    } else if (msg.kind === "rover_frame") {
+      twinRun.onRoverFrame(msg);
+    } else if (msg.kind === "rover_done") {
+      twinRun.onRoverDone(msg);
+    } else if (msg.kind === "rover_probe_result") {
+      twinRun.onRoverProbeResult(msg);
     } else if (msg.kind === "error") {
       hud.status = `probe worker error: ${msg.message}`;
     }
@@ -1121,6 +1244,10 @@ function startPhysics(soup: TriSoup): void {
   worker.onerror = (e) => {
     hud.status = `probe worker failed: ${e.message}`;
   };
+
+  // twin run (C6): the raw-world rover run executes in THIS worker — it holds
+  // the collider exactly as shipped, untouched by repairs.
+  twinRun.attachPhysics((m) => worker.postMessage(m));
 
   const init: InitMsg = {
     kind: "init",
@@ -1143,6 +1270,7 @@ function togglePatrol(): void {
   if (patrolHandle) {
     patrolHandle.stop();
     patrolHandle = undefined;
+    twinRun.stopFollow();
     hud.status = "patrol stopped";
     if (stepper.current === 5) narrateStanding(NARRATE.patrolStopped);
   } else if (spawnsCache) {
@@ -1179,6 +1307,9 @@ addEventListener("keydown", (e) => {
     hud.status = `trust map ${on ? "on" : "off"}${trustLayer.painted ? "" : " (paints when the survey streams states)"}`;
   } else if (k === "p") {
     togglePatrol();
+  } else if (k === "r") {
+    // twin run (C6): raw-world failure run — Beats 1–3 only
+    twinRun.trigger();
   }
 });
 
@@ -1350,7 +1481,7 @@ async function main(): Promise<void> {
   }
 
   splatObject = await loadSplats(dir);
-  (window as unknown as Record<string, unknown>).__dbg = { scene, worldGroup, camera, renderer, client, get splat() { return splatObject; } };
+  (window as unknown as Record<string, unknown>).__dbg = { scene, worldGroup, camera, renderer, client, twinRun, THREE, get splat() { return splatObject; } };
   if (splatObject) {
     worldGroup.add(splatObject);
   } else {
@@ -1368,6 +1499,9 @@ async function main(): Promise<void> {
 
   // --- static certificate overlay (replaced once the live survey lands) ---
   if (certificate) {
+    // twin run (C6): until the live survey lands, the raw-run route derives
+    // from the bundle's canonical certificate — same defects, same coords.
+    twinRun.setCertificate(certificate);
     hud.grade = certificate.grade ?? "-";
     hud.defects = certificate.defects?.length ?? 0;
     staticDefectGroup = buildStaticDefectBoxes(certificate);
