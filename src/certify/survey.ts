@@ -44,6 +44,23 @@ export interface SurveyOptions {
 
 const MAX_GRID_CELLS_DEFAULT = 1_500_000;
 
+/**
+ * Capture envelope: a column is surveyable when its smoothed splat count
+ * reaches this fraction of the world's own median coverage on standable
+ * columns (self-calibrated — absolute point counts vary by export density).
+ */
+const ENVELOPE_DENSITY_FRACTION = 0.05;
+const ENVELOPE_MIN_POINTS = 4;
+/**
+ * Sustained-contact surface confirmation: sample contact every N steps; M
+ * consecutive in-contact samples (N*M steps = 0.5 s at 60 Hz) confirm the
+ * collider surface along the probe's path. On sloped terrain a ball never
+ * sleeps — its contact record is the experiment.
+ */
+const CONTACT_SAMPLE_EVERY_STEPS = 5;
+const CONTACT_CONFIRM_SAMPLES = 6;
+const CONTACT_DISTANCE_FACTOR = 1.6;
+
 export const DEFAULT_SURVEY: SurveyOptions = {
   seed: 1234,
   gravityMps2: 9.81,
@@ -66,9 +83,20 @@ export interface SurveyResult {
     probesRested: number;
     probesFellThrough: number;
     tunnelingArtifactsExcluded: number;
+    /** exited beyond the AABB footprint, claim zone, or capture envelope — never defect evidence */
+    leftSurveyedArea: number;
     simSteps: number;
     fixedTimestep: number;
     stepsPerSecond: number;
+  };
+  /** splat capture envelope: where the visual record permits claims at all */
+  envelope: {
+    /** false when the bundle ships no visual points (nothing to bound the survey with) */
+    active: boolean;
+    thresholdPts: number;
+    envelopeCells: number;
+    colliderCells: number;
+    colliderOutsideEnvelope: number;
   };
   divergence: {
     visualPointsChecked: number;
@@ -78,6 +106,10 @@ export interface SurveyResult {
     /** self-calibrated lie threshold: p99 x 1.5 of splat-to-collider distance on probe-verified cells */
     noiseFloorM: number;
     noiseFloorCalibrated: boolean;
+    /** "no visual support" radius for phantom evidence — self-calibrated to the shipped cloud's density */
+    pnvRadiusM: number;
+    /** mean 2D point spacing of the visual cloud over the surveyed area */
+    meanPointSpacingM: number;
   };
 }
 
@@ -94,6 +126,7 @@ export async function runSurvey(
   pw.step(); // one step so the query pipeline indexes the static collider before raycasting
 
   const aabb = aabbOfPositions(collider.positions);
+  const hasVisuals = visualPoints.length > 0;
   const extentX = aabb.max.x - aabb.min.x;
   const extentZ = aabb.max.z - aabb.min.z;
   const maxCells = opts.maxGridCells ?? MAX_GRID_CELLS_DEFAULT;
@@ -287,8 +320,46 @@ export async function runSurvey(
   const medianFloorBand = standableBands.length > 0 ? standableBands[Math.floor(standableBands.length / 2)] : 0;
   const floorClaimThreshold = Math.max(2, 0.25 * medianFloorBand);
 
+  // ---------------------------------------------------- capture envelope
+  // The splats are the record of what the capture actually observed; the
+  // collider often extends beyond it (terrain skirts, shell backs). Out there
+  // "no visual support" is a capture limit, not an invisible wall, and a
+  // probe exit is "left the surveyed area", not a hole. The survey makes
+  // claims only inside the envelope: columns whose smoothed splat coverage
+  // reaches a fraction of this world's own median surface coverage. The gate
+  // is column-level (2D) on purpose: an invisible barrier standing on a
+  // splat-covered floor keeps its column's floor splats, stays in-envelope,
+  // and remains detectable as a phantom collider.
+  const envelope = rayGrid.channel("envelope");
+  let envelopeThresholdPts = 0;
+  if (hasVisuals) {
+    const standableTotals: number[] = [];
+    for (let i = 0; i < rayGrid.size; i++) {
+      if (standable[i] && visualTotal[i] > 0) standableTotals.push(visualTotal[i]);
+    }
+    standableTotals.sort((a, b) => a - b);
+    const medianTotal = standableTotals.length > 0 ? standableTotals[Math.floor(standableTotals.length / 2)] : 0;
+    envelopeThresholdPts = Math.max(ENVELOPE_MIN_POINTS, ENVELOPE_DENSITY_FRACTION * medianTotal);
+    for (let i = 0; i < rayGrid.size; i++) {
+      if (visualTotal[i] >= envelopeThresholdPts) envelope[i] = 1;
+    }
+  } else {
+    envelope.fill(1); // no visual record shipped — nothing to bound the survey with
+  }
+  let envelopeCells = 0;
+  let colliderCells = 0;
+  let colliderOutsideEnvelope = 0;
+  for (let i = 0; i < rayGrid.size; i++) {
+    if (envelope[i]) envelopeCells++;
+    if (hasHit[i]) {
+      colliderCells++;
+      if (!envelope[i]) colliderOutsideEnvelope++;
+    }
+  }
+
   const dropHeightAt = (x: number, z: number): number | null => {
     const i = rayGrid.index(x, z);
+    if (!envelope[i]) return null; // outside the surveyed area: no claims, so no probes
     if (standable[i]) {
       const head = headroom[i];
       const rise = head >= 990 ? 2.0 : Math.min(Math.max(head - 0.15, 0.3), 2.0);
@@ -328,10 +399,42 @@ export async function runSurvey(
   }
 
   const killY = aabb.min.y - 0.5;
+  // Sustained-contact surface confirmation. Rest-based verification starves
+  // on rolling terrain (a ball on a slope never sleeps), which starves the
+  // noise-floor calibration in turn. A probe that stays in contact with the
+  // collider for CONTACT_CONFIRM_SAMPLES consecutive samples is physically
+  // riding the surface — every cell under its path from then on is a
+  // completed experiment, same epistemic standing as a rest.
+  const pathContactCh = trustGrid.channel("pathContact");
+  const pathSeed = rayGrid.channel("pathSeed");
+  const contactStreak = new Int16Array(probes.length);
   const t0 = performance.now();
   let steps = 0;
   for (; steps < opts.maxSettleSteps; steps++) {
     pw.step();
+    if (steps % CONTACT_SAMPLE_EVERY_STEPS === CONTACT_SAMPLE_EVERY_STEPS - 1) {
+      for (let pi = 0; pi < probes.length; pi++) {
+        const body = probes[pi].body;
+        if (body.isSleeping()) continue;
+        const pos = body.translation();
+        if (
+          pos.y <= killY ||
+          pos.x < aabb.min.x || pos.x > aabb.max.x ||
+          pos.z < aabb.min.z || pos.z > aabb.max.z
+        ) {
+          contactStreak[pi] = 0; // outside the footprint: grid indexing would clamp to rim cells
+          continue;
+        }
+        if (pw.distanceToCollider(pos) <= opts.probeRadius * CONTACT_DISTANCE_FACTOR) {
+          if (++contactStreak[pi] >= CONTACT_CONFIRM_SAMPLES) {
+            pathContactCh[trustGrid.index(pos.x, pos.z)]++;
+            pathSeed[rayGrid.index(pos.x, pos.z)]++;
+          }
+        } else {
+          contactStreak[pi] = 0;
+        }
+      }
+    }
     if (steps % 60 === 59) {
       let active = 0;
       for (const p of probes) {
@@ -364,6 +467,14 @@ export async function runSurvey(
           reachable[i] = 1;
           queue.push(i);
         }
+      }
+    }
+    // cells a probe physically rolled across (sustained contact) are
+    // traversed space — they seed reachability even when nothing rested
+    for (let i = 0; i < rayGrid.size; i++) {
+      if (pathSeed[i] > 0 && standable[i] && !reachable[i]) {
+        reachable[i] = 1;
+        queue.push(i);
       }
     }
     while (queue.length) {
@@ -403,10 +514,10 @@ export async function runSurvey(
   let rested = 0;
   let fell = 0;
   let artifacts = 0;
+  let leftSurveyedArea = 0;
   for (const p of probes) {
     const pos = p.body.translation();
     if (pos.y < killY) {
-      fell++;
       // cross-check at the probe's EXIT column (it may have rolled before
       // falling), from its drop height — casting from above the AABB would
       // hit the roof of an interior world and misread every genuine hole as
@@ -419,16 +530,32 @@ export async function runSurvey(
       } else if (
         pos.x >= aabb.min.x && pos.x <= aabb.max.x &&
         pos.z >= aabb.min.z && pos.z <= aabb.max.z &&
-        inClaimZone(pos.x, pos.z)
+        inClaimZone(pos.x, pos.z) &&
+        envelope[rayGrid.index(pos.x, pos.z)] > 0
       ) {
+        fell++;
         trustGrid.add("fallConfirmed", pos.x, pos.z);
+      } else {
+        // rolled off the world's open edge (beyond the AABB footprint, where
+        // grid indexing would clamp onto rim cells), out of the claim zone,
+        // or past the capture envelope: it LEFT the surveyed area — an exit,
+        // never fall-through evidence
+        leftSurveyedArea++;
       }
-      // exits beyond the AABB footprint (grid indexing would clamp them onto
-      // rim cells) or outside the claim zone: the probe rolled off the
-      // world's open edge — it left the world; never fall-through evidence
     } else {
       rested++;
       trustGrid.add("probeContact", pos.x, pos.z);
+    }
+  }
+
+  // fold sustained-contact confirmations into probe contact: >= 2 samples in
+  // a trust cell means the probe spent real time riding the surface there —
+  // the cell is physics-confirmed for the trust map and for noise-floor
+  // calibration, exactly like a rest
+  {
+    const contactFold = trustGrid.channel("probeContact");
+    for (let i = 0; i < trustGrid.size; i++) {
+      if (pathContactCh[i] >= 2) contactFold[i] += pathContactCh[i];
     }
   }
 
@@ -440,7 +567,6 @@ export async function runSurvey(
   // own demonstrated tolerance, not beyond an arbitrary constant. Per-point
   // Gaussian scale (when available from SPZ) inflates the tolerance: a fat
   // splat's surface extends far from its center.
-  const hasVisuals = visualPoints.length > 0;
   const contactCh = trustGrid.channel("probeContact");
   interface DivergenceSample {
     x: number;
@@ -461,9 +587,16 @@ export async function runSurvey(
       continue;
     }
     if (!inClaimZone(x, z)) continue; // unreachable fuzz beyond the walls is not a claim
+    if (envelope[rayGrid.index(x, z)] === 0) continue; // outside the surveyed area
     let d = pw.distanceToCollider({ x, y, z });
     if (visualScales) d = Math.max(0, d - visualScales[i / 3]); // splat surface, not center
-    samples.push({ x, z, d, verified: contactCh[trustGrid.index(x, z)] > 0 });
+    // Calibration samples are height-banded around the contacted surface:
+    // a probe rolling a canyon floor verifies the FLOOR — splats on the
+    // canyon wall high above that column must not enter the noise-floor
+    // estimate (they'd balloon p99 to meters and blind the ghost gate).
+    const sY = surfaceY[rayGrid.index(x, z)];
+    const nearContactedSurface = !Number.isFinite(sY) || Math.abs(y - sY) <= 0.75;
+    samples.push({ x, z, d, verified: nearContactedSurface && contactCh[trustGrid.index(x, z)] > 0 });
   }
   const verifiedDists = samples.filter((s) => s.verified).map((s) => s.d).sort((a, b) => a - b);
   let noiseFloorM = opts.divergenceThresholdM; // fallback when calibration is undersampled
@@ -483,10 +616,33 @@ export async function runSurvey(
   const colliderSamples = hasVisuals ? sampleMeshSurface(collider, 30, sampleRng) : new Float32Array(0);
   const visualHash = new PointHash(visualPoints, 0.25);
   let physNoVisual = 0;
-  const nearRadius = 0.2;
+  // "No visual support" is only meaningful relative to the cloud's own
+  // density: the shipped point cloud is a downsampled stand-in for the
+  // splats, and a fixed radius below its mean spacing reads EVERY surface
+  // as invisible (moon: 12 pts/m² ≈ 0.29 m spacing vs the old 0.2 m).
+  // Radius = 1.5x the mean 2D spacing over the surveyed area, floored at
+  // the old constant, capped so a genuinely bare barrier still shows.
+  let pointsInEnvelope = 0;
+  for (let i = 0; i < rayGrid.size; i++) if (envelope[i]) pointsInEnvelope += visualRayCells[i];
+  const surveyedAreaM2 = envelopeCells * rayCellSize * rayCellSize;
+  const meanPointSpacingM =
+    pointsInEnvelope > 0 && surveyedAreaM2 > 0 ? Math.sqrt(surveyedAreaM2 / pointsInEnvelope) : 0.2;
+  const nearRadius = Math.min(0.6, Math.max(0.2, 1.5 * meanPointSpacingM));
   for (let i = 0; i < colliderSamples.length; i += 3) {
     const x = colliderSamples[i], y = colliderSamples[i + 1], z = colliderSamples[i + 2];
     if (!inClaimZone(x, z)) continue; // collider beyond reachable space cannot ambush a robot
+    // collider beyond the capture envelope: the visual record never reached
+    // this far — "no visual support" out here is a capture limit, not an
+    // invisible wall. Outside the surveyed area, never phantom evidence.
+    const rIdx = rayGrid.index(x, z);
+    if (envelope[rIdx] === 0) continue;
+    // The experiment defeats phantom evidence AT THE SURFACE IT VALIDATED:
+    // a sample on terrain a probe rested on or rolled across is real by
+    // experiment, however sparse the splats there. Height-banded on purpose —
+    // an invisible barrier RISING from a rolled floor keeps its samples
+    // (they sit far above the validated surface) and stays detectable.
+    const sYp = surfaceY[rIdx];
+    if (contactCh[trustGrid.index(x, z)] > 0 && Number.isFinite(sYp) && Math.abs(y - sYp) <= 0.75) continue;
     const d2 = visualHash.nearestDist2(x, y, z, nearRadius);
     if (d2 > nearRadius * nearRadius) {
       physNoVisual++;
@@ -505,9 +661,17 @@ export async function runSurvey(
       probesRested: rested,
       probesFellThrough: fell,
       tunnelingArtifactsExcluded: artifacts,
+      leftSurveyedArea,
       simSteps: steps,
       fixedTimestep: FIXED_DT,
       stepsPerSecond: elapsed > 0 ? steps / elapsed : 0,
+    },
+    envelope: {
+      active: hasVisuals,
+      thresholdPts: envelopeThresholdPts,
+      envelopeCells,
+      colliderCells,
+      colliderOutsideEnvelope,
     },
     divergence: {
       visualPointsChecked: visualPoints.length / 3,
@@ -516,6 +680,8 @@ export async function runSurvey(
       physNoVisualCount: physNoVisual,
       noiseFloorM,
       noiseFloorCalibrated: verifiedDists.length >= 200,
+      pnvRadiusM: nearRadius,
+      meanPointSpacingM,
     },
   };
 }

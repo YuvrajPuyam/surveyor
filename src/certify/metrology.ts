@@ -23,6 +23,16 @@ export interface StepInfo {
   heightM: Measurement;
 }
 
+export interface InteriorVoid {
+  region: Aabb;
+  /**
+   * The void continues past the region on >=1 side (march finds no collider):
+   * at an open capture boundary this is the end of the world, not a hole —
+   * unless independent probe falls inside the region say otherwise.
+   */
+  openEdge: boolean;
+}
+
 export interface MetrologyResult {
   floorPlane: {
     y: number;
@@ -34,7 +44,7 @@ export interface MetrologyResult {
   doorways: DoorwayInfo[];
   steps: StepInfo[];
   /** interior regions where downward rays hit nothing (candidate collider holes) */
-  interiorVoids: Aabb[];
+  interiorVoids: InteriorVoid[];
   scaleEstimate: Measurement | null;
   measurements: Measurement[];
   /** cell classification channel written back into rayGrid: 0 void, 1 floor, 2 lowObstacle, 3 wall */
@@ -234,10 +244,55 @@ export function runMetrology(rayGrid: Grid2D, seed: number, metadata?: WorldMeta
     visualBand[i] >= claimThreshold &&
     visualBand[i] / Math.max(1, visualTotal[i]) >= 0.3;
   const voidRegions = rayGrid.regions(holeCell);
-  const interiorVoids: Aabb[] = [];
+  const interiorVoids: InteriorVoid[] = [];
   for (const r of voidRegions) {
     const areaCells = ((r.max.x - r.min.x) / cell) * ((r.max.z - r.min.z) / cell);
-    if (areaCells >= 3) interiorVoids.push(r);
+    if (areaCells < 3) continue;
+    // ENCLOSURE: a hole is a void surrounded by collider. On open rolling
+    // terrain, sparse boundary splats "claim" floor just past the collider's
+    // outer edge and mint rim slivers — the void there CONTINUES outward;
+    // it is the end of the world, not a hole in it. March outward from each
+    // side of the region and ask whether the world resumes within reach.
+    // (The immediate ring is useless: the region may be only the claim-zone
+    // band of a wider hole, so its neighbors are the same void.) The verdict
+    // is recorded, not enforced here: probe falls inside the region override
+    // it downstream — a probe falling where pixels show floor is decisive,
+    // capture boundary or not.
+    const MARCH_CELLS = Math.max(3, Math.round(1.5 / cell));
+    const cMin = Math.max(0, Math.floor((r.min.x - rayGrid.x0) / cell));
+    const cMax = Math.min(rayGrid.cols - 1, Math.ceil((r.max.x - rayGrid.x0) / cell) - 1);
+    const rMin = Math.max(0, Math.floor((r.min.z - rayGrid.z0) / cell));
+    const rMax = Math.min(rayGrid.rows - 1, Math.ceil((r.max.z - rayGrid.z0) / cell) - 1);
+    const boundedFrom = (cc: number, rr: number, dc: number, dr: number): boolean => {
+      for (let k = 1; k <= MARCH_CELLS; k++) {
+        const nc = cc + dc * k, nr = rr + dr * k;
+        if (nc < 0 || nc >= rayGrid.cols || nr < 0 || nr >= rayGrid.rows) return false; // ran out of the world
+        if (hasHit[nr * rayGrid.cols + nc]) return true; // the world resumes: enclosed on this ray
+      }
+      return false; // void as far as the march reaches: open
+    };
+    const sideOpen = (side: "-x" | "+x" | "-z" | "+z"): boolean => {
+      let open = 0;
+      let total = 0;
+      if (side === "-x" || side === "+x") {
+        const cc = side === "-x" ? cMin : cMax;
+        const dc = side === "-x" ? -1 : 1;
+        for (let rr = rMin; rr <= rMax; rr++) {
+          total++;
+          if (!boundedFrom(cc, rr, dc, 0)) open++;
+        }
+      } else {
+        const rr = side === "-z" ? rMin : rMax;
+        const dr = side === "-z" ? -1 : 1;
+        for (let cc = cMin; cc <= cMax; cc++) {
+          total++;
+          if (!boundedFrom(cc, rr, 0, dr)) open++;
+        }
+      }
+      return total > 0 && open / total >= 0.5;
+    };
+    const openEdge = sideOpen("-x") || sideOpen("+x") || sideOpen("-z") || sideOpen("+z");
+    interiorVoids.push({ region: r, openEdge });
   }
 
   // ------------------------------------------------- doorway detection

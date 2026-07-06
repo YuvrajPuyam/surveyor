@@ -61,5 +61,7 @@ console.log(`world ${world.worldId} — ${tg.cols}x${tg.rows} cells at ${tg.cell
 console.log(rows.join("\n"));
 console.log(`\nfloor plane y=${metrology.floorPlane.y.toFixed(2)} tilt=${metrology.floorPlane.tiltDeg.toFixed(1)}deg inliers=${metrology.floorPlane.inliers}`);
 console.log(`doorways: ${metrology.doorways.map((d) => `${d.widthM.value.toFixed(2)}x${d.heightM.value.toFixed(2)}m`).join(", ") || "none"}`);
-console.log(`steps: ${metrology.steps.length}, holes: ${metrology.interiorVoids.length}`);
+console.log(
+  `steps: ${metrology.steps.length}, holes: ${metrology.interiorVoids.filter((v) => !v.openEdge).length} enclosed + ${metrology.interiorVoids.filter((v) => v.openEdge).length} open-edge`,
+);
 console.log(`probes: ${JSON.stringify(survey.probeStats)}`);

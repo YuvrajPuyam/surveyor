@@ -53,8 +53,14 @@ export function synthesizeDefects(survey: SurveyResult, metrology: MetrologyResu
   };
 
   // ------------------------------------------------------- collider holes
-  for (const voidRegion of metrology.interiorVoids) {
+  for (const v of metrology.interiorVoids) {
+    const voidRegion = v.region;
     const probeFalls = countInRegion(fall, voidRegion);
+    // An open-edge void with no probe evidence is the world's capture
+    // boundary, not a hole: rays find void because nothing was ever modeled
+    // out there. A probe FALLING there flips the verdict — independent
+    // physics saying the pixel-claimed floor does not hold is decisive.
+    if (v.openEdge && probeFalls === 0) continue;
     const visualCover = countInRegion(grid.channel("visualPts"), voidRegion);
     const evidence: Evidence[] = [
       {
@@ -85,7 +91,9 @@ export function synthesizeDefects(survey: SurveyResult, metrology: MetrologyResu
       evidence,
       description:
         probeFalls > 0
-          ? "Physics hole under visually intact floor: probes fall through and rays pass unobstructed."
+          ? v.openEdge
+            ? "Physics hole at the capture boundary: pixels claim floor, probes fall through, and the collider never resumes beyond — patch or quarantine before training."
+            : "Physics hole under visually intact floor: probes fall through and rays pass unobstructed."
           : "Raycast void inside the floor footprint; no probe landed here — probe-directed follow-up recommended.",
     });
   }
@@ -93,7 +101,10 @@ export function synthesizeDefects(survey: SurveyResult, metrology: MetrologyResu
   // -------------------------------------------------- phantom colliders
   // Minimum evidence mass per cluster: a lone hot cell is sampling noise,
   // not a barrier. Real phantom geometry yields dozens of unsupported samples.
+  // (Samples at probe-validated surfaces were already suppressed in the
+  // survey, height-banded — what reaches this channel is real suspicion.)
   const MIN_CLUSTER_SAMPLES = 8;
+  const pnvRadius = survey.divergence.pnvRadiusM;
   const pnvRegions = grid.regions((i) => pnv[i] >= 3);
   for (const r of pnvRegions) {
     const samples = countInRegion(pnv, r);
@@ -107,7 +118,7 @@ export function synthesizeDefects(survey: SurveyResult, metrology: MetrologyResu
       evidence: [
         {
           kind: "divergence_physics_no_visual",
-          detail: `${samples} collider-surface samples have no visual support within 0.2 m — an invisible barrier`,
+          detail: `${samples} collider-surface samples have no visual support within ${pnvRadius.toFixed(2)} m (radius calibrated to this cloud's ${survey.divergence.meanPointSpacingM.toFixed(2)} m mean point spacing) — an invisible barrier`,
           count: samples,
         },
       ],

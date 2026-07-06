@@ -25,7 +25,7 @@ and validated on INDOOR worlds (rooms, corridors) and works there: 27-world benc
 recall 96.8% / precision 100% on planted defects. On OUTDOOR rolling-terrain worlds
 it misfires badly. Your job is forensic diagnosis with an instrumented run — produce
 NUMBERS, not speculation. Do not modify any file in src/, scripts/, app/, or test/.
-Write your scratch scripts to C:\\Users\\yuvra\\AppData\\Local\\Temp\\claude\\D--worlds-in-action\\9a1e9e8a-465a-4627-9948-6577fec014c6\\scratchpad\\
+Write your scratch scripts to C:\\Users\\yuvra\\AppData\\Local\\Temp\\claude\\D--worlds-in-action\\99c14a26-97bf-4242-b411-a387162a9c34\\scratchpad\\
 and run them with:  npx tsx <script.ts>   (cwd D:\\worlds-in-action; imports work as
 "./src/certify/survey.js" style relative-to-repo paths, or copy how scripts/certify.ts does it).
 

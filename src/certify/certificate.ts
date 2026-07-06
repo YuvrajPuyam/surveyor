@@ -129,24 +129,45 @@ export async function certifyWorld(input: CertifyInput, opts: CertifyOptions = {
           ]
         : []),
       ...robots.map((r) => `${r.label}: ${r.modelClassDisclosure}`),
-      "Probe methodology: seeded probe rain with CCD; every fall-through cross-checked by an independent raycast at the probe's exit point before it counts as a hole.",
+      "Probe methodology: seeded probe rain with CCD; every fall-through cross-checked by an independent raycast at the probe's exit point before it counts as a hole. Surface confirmation counts a probe at rest OR sustained rolling contact (>= 0.5 s of continuous collider contact along its path — on slopes a ball never sleeps; its contact record is the experiment).",
       "Trust states cover robot-REACHABLE space only; 'observed' means no physical experiment touched the cell.",
+      ...(survey.envelope.active && survey.envelope.colliderOutsideEnvelope > 0
+        ? [
+            (() => {
+              const outPct = (100 * survey.envelope.colliderOutsideEnvelope) / Math.max(1, survey.envelope.colliderCells);
+              const cellA = survey.rayGrid.cellSize * survey.rayGrid.cellSize;
+              const outArea = survey.envelope.colliderOutsideEnvelope * cellA;
+              return (
+                `Capture envelope: claims are limited to the splat capture envelope — collider columns whose visual coverage reaches this world's own surveyed-surface baseline. ` +
+                `${outPct.toFixed(1)}% of collider columns (~${outArea.toFixed(0)} m²) lie beyond it and are OUTSIDE THE SURVEYED AREA: ` +
+                `no defect, divergence, or fall-through evidence is drawn there. Absence of visual data beyond the capture is a capture limit, not an invisible wall.`
+              );
+            })(),
+          ]
+        : []),
+      ...(survey.probeStats.leftSurveyedArea > 0
+        ? [
+            `${survey.probeStats.leftSurveyedArea} of ${survey.probeStats.probesDropped} probes exited the surveyed area (rolled off an open edge or beyond the capture envelope) — recorded as exits, excluded from all defect evidence.`,
+          ]
+        : []),
       (() => {
         // detection floor: what "verified" rules out at this coverage —
         // computed on the EFFECTIVE cell size (the guard may have coarsened it)
         const effRayCell = survey.rayGrid.cellSize;
         const domainCh = survey.rayGrid.channel("domain");
-        let domainCells = 0;
-        for (let i = 0; i < survey.rayGrid.size; i++) if (domainCh[i]) domainCells++;
-        const domainArea = domainCells * effRayCell * effRayCell;
-        const probeSpacing = survey.probeStats.probesDropped > 0 ? Math.sqrt(domainArea / survey.probeStats.probesDropped) : Infinity;
+        const envCh = survey.rayGrid.channel("envelope");
+        let surveyedCells = 0;
+        for (let i = 0; i < survey.rayGrid.size; i++) if (domainCh[i] && envCh[i]) surveyedCells++;
+        const surveyedArea = surveyedCells * effRayCell * effRayCell;
+        const probeSpacing = survey.probeStats.probesDropped > 0 ? Math.sqrt(surveyedArea / survey.probeStats.probesDropped) : Infinity;
         const rayFloor = 2 * effRayCell;
         const floor = Math.max(rayFloor, Number.isFinite(probeSpacing) ? probeSpacing : rayFloor);
-        return `Detection floor: at this coverage (ray grid ${Number(effRayCell.toFixed(3))} m, ~${Number.isFinite(probeSpacing) ? probeSpacing.toFixed(2) : "n/a"} m probe spacing over ${domainArea.toFixed(0)} m²), 'verified' rules out collider holes with footprint ≥ ~${floor.toFixed(2)} m; smaller defects are below the instrument's floor.`;
+        return `Detection floor: at this coverage (ray grid ${Number(effRayCell.toFixed(3))} m, ~${Number.isFinite(probeSpacing) ? probeSpacing.toFixed(2) : "n/a"} m probe spacing over the ${surveyedArea.toFixed(0)} m² surveyed area), 'verified' rules out collider holes with footprint ≥ ~${floor.toFixed(2)} m; smaller defects are below the instrument's floor.`;
       })(),
       survey.divergence.noiseFloorCalibrated
-        ? `Divergence threshold self-calibrated to this world's simplification noise floor: ${survey.divergence.noiseFloorM.toFixed(3)} m (1.5x the p99 splat-to-collider distance on probe-verified cells). 'Divergent' means splat/collider disagreement beyond the vendor's own demonstrated simplification tolerance.`
+        ? `Divergence threshold self-calibrated to this world's simplification noise floor: ${survey.divergence.noiseFloorM.toFixed(3)} m (1.5x the p99 splat-to-collider distance on probe-verified cells, height-banded to within 0.75 m of the contacted surface). 'Divergent' means splat/collider disagreement beyond the vendor's own demonstrated simplification tolerance.`
         : `Divergence threshold: default ${survey.divergence.noiseFloorM.toFixed(2)} m (insufficient probe-verified visual samples for self-calibration).`,
+      `Phantom-collider evidence radius self-calibrated to the shipped point cloud: 'no visual support' means no point within ${survey.divergence.pnvRadiusM.toFixed(2)} m (1.5x the cloud's ${survey.divergence.meanPointSpacingM.toFixed(2)} m mean spacing over the surveyed area, bounded to [0.2, 0.6] m). The experiment defeats phantom evidence at the surface it validated: samples within 0.75 m of terrain a probe rested on or rolled across are excluded — geometry rising above a validated surface still counts.`,
       "Single-level survey: one walkable surface per column; multi-level worlds are unsupported in this version.",
       "Scope of the grade: it predicts navmesh-level traversability under the disclosed model class. It does not predict policy transfer or visual-domain fidelity.",
       "All measurements carry uncertainty ranges; the methods line under each number states how it was obtained.",

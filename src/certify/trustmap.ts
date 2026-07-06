@@ -40,6 +40,10 @@ export function buildTrustMap(grid: Grid2D): TrustMap {
 
   for (let i = 0; i < grid.size; i++) {
     let s: TrustCellState;
+    // pnv samples at surfaces the probes physically validated are already
+    // suppressed in the survey (height-banded, so an invisible barrier
+    // rising from a rolled floor still counts). What reaches here is real
+    // suspicion, so the gate stays evidence-first.
     if (fall[i] > 0 || vnp[i] >= lieThreshold || pnv[i] >= 3) s = "lying";
     else if (contact[i] > 0) s = "verified";
     else if (visual[i] > 0) s = "observed";
