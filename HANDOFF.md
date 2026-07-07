@@ -202,10 +202,22 @@ binds over `/isaac-sim/kit/{cache,data,logs}`, `/root/Documents`,
 it crashes in DerivedDataCache). Kit swallows bare stdout prints — in-kit
 scripts must write results to a FILE, not stdout.
 
+**G3a PHYSICS-REST GATE PASSED** (job 11217357, `g3a-results.txt`): opened
+the pack stage in Isaac Sim, pressed Play, dropped a rigid cube 0.5 m above
+the first certificate-verified spawn — it settled by step 60 and held
+bit-identical for 300 steps at z −0.756 vs predicted floor+half −0.755:
+**PhysX agrees with the Rapier-certified repaired floor to 1 mm.** Two
+independent engines vouch for the same geometry — the pack's "press Play"
+promise is cluster-proven (`g3a.py`/`g3a.sbatch` are the template: World +
+DynamicCuboid via `isaacsim.core.api`, spawns from spawns.json, y-up→z-up
+(x,−z,y), results to a FILE).
+
 Next on the cluster, in order:
-1. **G3 proper**: author the scripted pick-and-place (Franka RMPflow, crate
-   shelf→rover bed at 1.62 m/s² — the guaranteed demo ending), record video
-   frames headlessly (`omni.kit.capture` or per-frame renders to scratch);
+1. **G3 proper**: the scripted pick-and-place (Franka RMPflow, crate
+   shelf→rover bed at 1.62 m/s² — the guaranteed demo ending) + headless
+   frame capture. NOTE: compute nodes have no internet — Franka/props assets
+   must be prefetched on the login node (or use container-bundled assets;
+   probe `/isaac-sim` for local assets first);
 2. G4 lift checkpoint; 3. G5 Replicator SDG (per `isaac/README.md`,
    `SURVEYOR_BUNDLE_DIR`/`SURVEYOR_WORLD_USD` env vars).
 
