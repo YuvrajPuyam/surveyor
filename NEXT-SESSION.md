@@ -25,9 +25,26 @@
   APP generations (Mars/Moon NASA photos — casts staged in Live Thread 2)
   then `hero-fish.ts --download <ids>`; foreground-browser fps number;
   Unity Kit access.
-- Cluster queue after that: G4 (lift checkpoint) → G5 (SDG, camera-sensor
-  path ONLY) → NuRec conversion (fixes the gray movie) → splice MP4 into
-  Beat 5′.
+- **NuRec conversion: DONE (later this session).** 3dgrut installed on
+  Gilbreth (`install-3dgrut.sh`; fixes: UV path, conda-base leak, slangtorch,
+  TORCH_CUDA_ARCH_LIST=8.6 set AFTER venv activate, ply_to_usd patched
+  `NuRecExporter(export_cameras=False)`). `hero-100k.usdz` (11.6 MB) sits at
+  `canonical-pack/world/nurec/<worldId>.usdz` on the cluster — **dbg6 proved
+  it RENDERS** (Volume/OmniNuRecFieldAsset, warm photoreal tones; PNG receipt).
+  Local: `hero-100k.ply` conversion via `npx @playcanvas/splat-transform`.
+- **IN FLIGHT AT PAUSE: photoreal G3c re-run (job 11222304)** — g3c.py
+  patched: visuals payload ACTIVE, collider left invisible (splats carry the
+  visuals). If PASS: pull frames → local re-encode H.264 (imageio-ffmpeg;
+  cluster ffmpeg has no libx264 — mpeg4 doesn't play in browsers) → replace
+  `assets/isaac/g3c-box-lift.mp4`. Check
+  `/scratch/.../g3c-results.txt` + `g3c-frames | wc -l` first thing.
+- **100k splats are blurry in the render** — the hero bundle only has the
+  100k tier. `scripts/marble.ts` now takes `MARBLE_TIER=500k` env override
+  (uncommitted-then-committed this session; the 500k download itself was NOT
+  run — user paused). 500k → ply → `nurec-convert.sbatch` → sharper movie.
+- Cluster queue after that: G4 (lift checkpoint — **downloaded**, 1.2 MB at
+  `checkpoints/lift-rsl_rl-5.1.pt`) → G5 (SDG, camera-sensor path ONLY) →
+  splice MP4 into Beat 5′.
 
 Read this first, then `HANDOFF.md` for the full canonical brief. This file is
 the *delta* since the last big handoff: the cluster G3 arc and the two live

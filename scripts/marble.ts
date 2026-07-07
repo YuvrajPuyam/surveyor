@@ -72,7 +72,11 @@ async function downloadWorld(world: MarbleWorld): Promise<string> {
     writeFileSync(join(dir, "collider.glb"), await client().downloadAsset(colliderUrl));
     console.log(`collider.glb downloaded`);
   }
-  const spzKey = spzUrls["100k"] ? "100k" : Object.keys(spzUrls)[0];
+  // MARBLE_TIER=500k (or full) overrides the default 100k — higher tiers feed
+  // the NuRec conversion for the photoreal Isaac render
+  const wantTier = process.env.MARBLE_TIER;
+  const spzKey =
+    wantTier && spzUrls[wantTier] ? wantTier : spzUrls["100k"] ? "100k" : Object.keys(spzUrls)[0];
   if (spzKey) {
     const spzBuf = await client().downloadAsset(spzUrls[spzKey]);
     writeFileSync(join(dir, `splat-${spzKey}.spz`), spzBuf);
