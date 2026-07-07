@@ -13,6 +13,7 @@
 set -x
 cd /scratch/gilbreth/gupta596/surveyor
 rm -rf g4-frames
+rm -f g4-results.txt
 WORK=$(mktemp -d /tmp/isaac-kit-XXXX)
 mkdir -p "$WORK/cache" "$WORK/data" "$WORK/logs" "$WORK/documents" "$WORK/ovcache"
 for try in 1 2 3; do

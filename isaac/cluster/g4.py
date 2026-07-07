@@ -1,12 +1,12 @@
 # G4: the PRETRAINED rsl_rl lift policy (Isaac-Lift-Cube-Franka-v0) running
-# inside the Certified World Pack — hand-rolled inference (no Nucleus, no
+# inside the Certified World Pack --- hand-rolled inference (no Nucleus, no
 # internet): obs = [q_rel(9), qd(9), cube_in_base(3), cmd(7), last_action(8)]
 # = 36, exactly matching actor.0.weight (256, 36). Actor 36-256-128-64-8 ELU,
 # no normalization (actor_obs_normalization=False). Arm action: targets =
 # default + 0.5*a (JointPositionAction, use_default_offset). Gripper binary:
 # a<0 close(0.0) else open(0.04). Trained gains: arm k=80 Nm/rad d=4,
 # fingers k=2e3 N/m d=1e2. Policy 50 Hz, physics 100 Hz (decimation 2).
-# Episode 1 Earth g (sanity), episode 2 lunar 1.62 (the artifact) — no
+# Episode 1 Earth g (sanity), episode 2 lunar 1.62 (the artifact) --- no
 # world.stop(), state restored by hand between episodes.
 # Inherits every g3c law: root-level camera, single reset, dest_path URDF
 # import, NuRec visuals active, center-spread render verification.
@@ -58,7 +58,7 @@ try:
             actor[li * 1 if li == 0 else li].weight.copy_(sd[f"actor.{li}.weight"])
             actor[li].bias.copy_(sd[f"actor.{li}.bias"])
     actor.eval()
-    log(f"actor loaded (iter {ck.get('iter')}) — mean-action inference")
+    log(f"actor loaded (iter {ck.get('iter')}) --- mean-action inference")
 
     ctx = omni.usd.get_context()
     ok = ctx.open_stage(STAGE)
@@ -131,10 +131,17 @@ try:
     # ---- camera + marker (root level; g3c pose family) ---------------------
     cam_path = "/g4_cam"
     UsdGeom.Camera.Define(stage, Sdf.Path(cam_path))
-    eye = Gf.Vec3d(B[0] - 1.05, B[1] - 1.15, B[2] + 1.05)
-    aim = Gf.Vec3d(B[0] + 0.35, B[1], B[2] + 0.22)
+    eye = Gf.Vec3d(B[0] - 1.05, B[1] - 1.15, B[2] + 1.15)
+    aim = Gf.Vec3d(B[0] + 0.35, B[1], B[2] + 0.32)
     view = Gf.Matrix4d().SetLookAt(eye, aim, Gf.Vec3d(0, 0, 1))
     UsdGeom.Xformable(stage.GetPrimAtPath(cam_path)).MakeMatrixXform().Set(view.GetInverse())
+    # visual-only riser under the (to-be-raised) robot base - plain USD, no
+    # physics: renders, never collides
+    riser = UsdGeom.Cube.Define(stage, Sdf.Path("/g4_riser"))
+    riser.CreateSizeAttr(1.0)
+    UsdGeom.XformCommonAPI(riser.GetPrim()).SetTranslate((B[0], B[1], B[2] + 0.052))
+    UsdGeom.XformCommonAPI(riser.GetPrim()).SetScale((0.18, 0.18, 0.105))
+    riser.CreateDisplayColorAttr([Gf.Vec3f(0.3, 0.3, 0.34)])
     marker = UsdGeom.Cube.Define(stage, Sdf.Path("/g4_marker"))
     marker.CreateSizeAttr(0.25)
     marker.CreateDisplayColorAttr([Gf.Vec3f(1.0, 0.1, 0.1)])
@@ -143,7 +150,7 @@ try:
 
     # ---- world + props (all pre-reset; trained geometry replicated) --------
     # trained frame: robot base z=0, cube starts (0.5, 0, 0.055) in BASE frame
-    # (dex cube 0.8 scale ≈ 0.052 m). Pedestal top = base + 0.029.
+    # (dex cube 0.8 scale --- 0.052 m). Pedestal top = base + 0.029.
     from isaacsim.core.api import World
     from isaacsim.core.api.objects import DynamicCuboid, FixedCuboid
     from isaacsim.core.api.robots import Robot
@@ -152,6 +159,9 @@ try:
     robot = world.scene.add(Robot(prim_path=robot_path, name="franka"))
 
     CUBE = 0.052
+    # policy trained with cube ALWAYS at base-frame z=0.055 (reset randomizes
+    # x/y only) - z is out-of-distribution poison. Probe-measure the pedestal
+    # top (the g3b law: never trust FixedCuboid scale math) and correct.
     cube_start = np.array([B[0] + 0.5, B[1] + 0.0, B[2] + 0.055])
     world.scene.add(FixedCuboid(
         prim_path="/World/g4_pedestal", name="pedestal",
@@ -160,10 +170,13 @@ try:
     ))
     cube = world.scene.add(DynamicCuboid(
         prim_path="/World/g4_cube", name="cube",
-        position=tuple(cube_start), size=CUBE, mass=0.15,
+        position=tuple(cube_start + np.array([0.0, 0.0, 0.4])), size=CUBE, mass=0.15,
         color=np.array([0.85, 0.55, 0.1]),
     ))
-    log("pedestal + cube authored (cube at base-frame (0.5, 0, 0.055))")
+    log("pedestal + cube authored (cube dropped from above for measurement)")
+
+    from isaacsim.core.prims import RigidPrim as RigidPrimView
+    hand = RigidPrimView(prim_paths_expr=f"{robot_path}/panda_hand", name="hand_view")
 
     world.get_physics_context().set_gravity(-9.81)
     world.reset()
@@ -192,8 +205,26 @@ try:
             joint_positions=np.array([0.04, 0.04]), joint_indices=fin_idx))
 
     set_pose_to_default()
-    for _ in range(100):
+    for _ in range(150):
         world.step(render=False)
+    # v4: the pedestal cannot be moved mid-sim (USD edits are inert once
+    # physics owns the body - our own law). The policy only sees RELATIVE
+    # geometry, so measure where the cube rests on the untouched pedestal and
+    # TELEPORT THE ROBOT BASE (runtime physics API) so cube - base = 0.055.
+    cp, _ = cube.get_world_pose()
+    rest_z = float(cp[2])
+    log(f"cube rest (untouched pedestal): base-z {rest_z - B[2]:.4f}, xy ({float(cp[0]) - B[0]:.3f}, {float(cp[1]) - B[1]:.3f})")
+    new_base_z = rest_z - 0.055
+    robot.set_world_pose(position=np.array([B[0], B[1], new_base_z]),
+                         orientation=np.array([1.0, 0.0, 0.0, 0.0]))
+    for _ in range(20):
+        world.step(render=False)
+    bp, _ = robot.get_world_pose()
+    B_eff = (float(bp[0]), float(bp[1]), float(bp[2]))
+    log(f"robot base teleported: z {B[2]:.3f} -> {B_eff[2]:.3f} (raise {B_eff[2] - B[2]:+.4f})")
+    cp, _ = cube.get_world_pose()
+    cube_start = np.array([float(cp[0]), float(cp[1]), float(cp[2])])
+    log(f"cube in NEW base frame: ({cube_start[0] - B_eff[0]:.3f}, {cube_start[1] - B_eff[1]:.3f}, {cube_start[2] - B_eff[2]:.4f}) - target z 0.0550")
     log("robot settled at trained default pose")
 
     # ---- capture plumbing (post-reset wrapper; center-spread verified) -----
@@ -226,13 +257,13 @@ try:
     sc = frame_spread()
     log(f"render check: marker {wm:.0f}, scene {sc:.0f}")
     if wm <= 8 or sc <= 8:
-        raise RuntimeError("render check failed — aborting before episodes")
+        raise RuntimeError("render check failed --- aborting before episodes")
 
     # ---- policy loop --------------------------------------------------------
     GOAL = np.array([0.5, 0.0, 0.35])          # base frame
     CMD = np.array([0.5, 0.0, 0.35, 1.0, 0.0, 0.0, 0.0], dtype=np.float32)
 
-    def run_episode(tag, steps=250, record=True):
+    def run_episode(tag, steps=350, record=True):
         last_a = np.zeros(8, dtype=np.float32)
         cp0, _ = cube.get_world_pose()
         start_z = float(cp0[2])
@@ -242,7 +273,7 @@ try:
             q = np.asarray(robot.get_joint_positions())[idx]
             qd = np.asarray(robot.get_joint_velocities())[idx]
             cp, _ = cube.get_world_pose()
-            cube_b = np.array([float(cp[0]) - B[0], float(cp[1]) - B[1], float(cp[2]) - B[2]])
+            cube_b = np.array([float(cp[0]) - B_eff[0], float(cp[1]) - B_eff[1], float(cp[2]) - B_eff[2]])
             obs = np.concatenate([q - DEFAULT, qd, cube_b, CMD, last_a]).astype(np.float32)
             with torch.no_grad():
                 a = actor(torch.from_numpy(obs)).numpy()
@@ -262,11 +293,14 @@ try:
             max_lift = max(max_lift, lift)
             min_goal_d = min(min_goal_d, gd)
             if t % 50 == 0:
-                log(f"  [{tag} t={t}] cube_b ({cube_b[0]:.2f},{cube_b[1]:.2f},{cube_b[2]:.2f}) lift {lift:.3f} goal_d {gd:.3f} grip {'C' if a[7] < 0 else 'O'}")
+                hp, _ = hand.get_world_poses()
+                ee = np.array([float(hp[0][0]) - B_eff[0], float(hp[0][1]) - B_eff[1], float(hp[0][2]) - B_eff[2]])
+                ee_cube = float(np.linalg.norm(ee - cube_b))
+                log(f"  [{tag} t={t}] cube_b ({cube_b[0]:.2f},{cube_b[1]:.2f},{cube_b[2]:.2f}) ee ({ee[0]:.2f},{ee[1]:.2f},{ee[2]:.2f}) ee-cube {ee_cube:.3f} lift {lift:.3f} goal_d {gd:.3f} grip {'C' if a[7] < 0 else 'O'}")
         log(f"episode {tag}: max_lift {max_lift:.3f} m, min_goal_dist {min_goal_d:.3f} m, frames {frame_no[0]}")
         return max_lift, min_goal_d
 
-    lift_e, gd_e = run_episode("earth-g", steps=250)
+    lift_e, gd_e = run_episode("earth-g", steps=350)
 
     # restore state by hand (no stop, no reset) and switch to lunar gravity
     cube.set_world_pose(np.array(cube_start), np.array([1.0, 0.0, 0.0, 0.0]))
@@ -278,7 +312,7 @@ try:
         world.step(render=False)
     log("state restored; gravity 1.62")
 
-    lift_m, gd_m = run_episode("lunar-g", steps=250)
+    lift_m, gd_m = run_episode("lunar-g", steps=350)
 
     ok_earth = lift_e > 0.10
     ok_lunar = lift_m > 0.10
