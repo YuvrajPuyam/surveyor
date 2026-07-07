@@ -29,6 +29,18 @@ threads worth a fresh pair of hands.
 
 ## LIVE THREAD 1 — G3c blank frames (render path)
 
+> **UPDATE 2026-07-07 (this session): ROOT-CAUSED via g3c-dbg bisect on a
+> minimal stage.** `Camera.get_rgba()` works from 8 warmups after a SINGLE
+> `world.reset()` (red cube renders, RTX active). g3c's blank frames come
+> from its THREE stop/reset cycles orphaning the render product bound at the
+> early `cam.initialize()`. Fix landed in `isaac/cluster/g3c.py`: re-bind
+> `cam.initialize()` AFTER the final reset + spread-verified warmup (abort
+> before choreography if still uniform). Full run resubmitted (job 11221410).
+> **Second finding: `rep.orchestrator.step()` HANGS headless in this
+> container** (g3c-dbg died at walltime right after annotator attach) — G5's
+> SDG must use the Camera sensor path or Replicator's writer WITHOUT
+> orchestrator.step. The original hypotheses below are kept for history.
+
 **Symptom:** `G3C_PASS` (physics + 816 frames written), but sampled frames
 (`frame_00010/00330/00500` pulled to scratchpad) are pure `#d0d0d0` — no
 robot, no props, no world. Uniform clear-color = nothing rasterized into the

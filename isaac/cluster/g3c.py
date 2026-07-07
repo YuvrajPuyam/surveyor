@@ -200,7 +200,12 @@ try:
     cp0, _ = crate.get_world_pose()
     log(f"crate re-settled at [{cp0[0]:.3f}, {cp0[1]:.3f}, {cp0[2]:.3f}]")
 
-    # ---- capture plumbing (camera created + initialized earlier)
+    # ---- capture plumbing. The g3c-dbg bisect proved get_rgba() works from
+    # 8 warmups on a single-reset stage; the blank frames came from the THREE
+    # stop/reset cycles above orphaning the render product bound at the early
+    # initialize(). Re-bind AFTER the final reset and verify the first frame
+    # is non-uniform before spending the full choreography.
+    cam.initialize()  # re-bind render product post stop/reset cycles
     os.makedirs(FRAMES, exist_ok=True)
     from PIL import Image
     frame_no = [0]
@@ -210,10 +215,26 @@ try:
             return
         Image.fromarray(rgba[:, :, :3]).save(f"{FRAMES}/frame_{frame_no[0]:05d}.png")
         frame_no[0] += 1
-    for _ in range(8):  # warmup renders
-        world.step(render=True)
+    def frame_spread():
+        rgba = cam.get_rgba()
+        if rgba is None or getattr(rgba, "size", 0) == 0:
+            return -1.0
+        rgb = np.asarray(rgba)[:, :, :3]
+        return float(rgb.max()) - float(rgb.min())
+    spread = -1.0
+    for attempt in range(3):
+        for _ in range(30):
+            world.step(render=True)
+        spread = frame_spread()
+        log(f"warmup attempt {attempt}: frame spread {spread:.0f}")
+        if spread > 8:
+            break
+        cam.initialize()  # still clear-color: re-bind and retry
+    if spread <= 8:
+        log("RENDER_STILL_BLANK after 3 re-binds — aborting before choreography")
+        raise RuntimeError("camera render product produced uniform frames")
     snap()
-    log(f"camera live; warmup frame written: {frame_no[0] > 0}")
+    log(f"camera live (spread {spread:.0f}); warmup frame written: {frame_no[0] > 0}")
 
     # ---- RMPflow
     from isaacsim.robot_motion.motion_generation import ArticulationMotionPolicy
