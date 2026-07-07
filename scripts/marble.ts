@@ -138,6 +138,24 @@ switch (cmd) {
     }
     break;
   }
+  case "image": {
+    // single (non-pano) image → world; is_pano deliberately unset
+    const uri = flag("uri");
+    if (!uri) throw new Error("--uri required (public URL of an image)");
+    const op = await client().generateFromImage(
+      { uri },
+      { model: flag("model"), displayName: flag("name"), textPrompt: flag("prompt") },
+    );
+    const opId = operationIdOf(op);
+    console.log(`operation started: ${opId}`);
+    if (has("wait")) {
+      const world = await client().waitForOperation(opId, (s) => console.log(`  ...generating (${s.toFixed(0)} s)`));
+      await downloadWorld(world);
+    } else {
+      console.log(`poll with: npx tsx scripts/marble.ts wait ${opId}`);
+    }
+    break;
+  }
   case "pano": {
     const uri = flag("uri");
     if (!uri) throw new Error("--uri required (public URL of an equirectangular panorama)");
