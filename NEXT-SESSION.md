@@ -1,5 +1,34 @@
 # SURVEYOR — session pickup (2026-07-07)
 
+## ⏸ PAUSE CHECKPOINT (end of 2026-07-07 session) — read this first
+
+- **G3c CLOSED**: `assets/isaac/g3c-box-lift.mp4` exists (27.2 s box-lift in
+  the pack at lunar g). Root cause + coordinate law in Live Thread 1 below.
+- **Gemini external critique triaged** → ENDGAME "Gemini-review additions"
+  C12–C15. Brief lives at `docs/gemini-review-brief.md` (reusable for any
+  external reviewer).
+- **C12 vision-driven twin run: DONE + VERIFIED live in the viewer.**
+  New `app/src/visualGround.ts` (visual-floor heightfield from splat
+  centers); twinRun plans crossings on the VISUAL surface, physics decides.
+  Hero-world receipt: route d-hole-3, **vision 13/16 sight-lines on visual
+  floor, median Δ 4 mm across a gap the collider doesn't have**, rover fell
+  at step 591. Narration verified: "planned on what the cameras see…" →
+  fall → "The cameras said floor. The collider said nothing." App tsc clean.
+- **C13 batch hero fishing: WRITTEN, NOT YET RUN** — `scripts/hero-fish.ts`
+  (`--scan assets/marble` | `--download <worldId…>` | bundle dirs; certify
+  if needed → hero-check → ranked table). First execution + any fixes are
+  the next session's first move.
+- **C14 (pitch-clarity sentence) and C15 (Q&A arsenal: G3b as the
+  dynamic-contact receipt + Gemini's three breaking questions): NOT DONE** —
+  doc edits to `docs/demo-five-beats.md` + README, specced in ENDGAME.
+- **User lane unchanged and urgent:** rules answer **Jul 8 EOD**; two Marble
+  APP generations (Mars/Moon NASA photos — casts staged in Live Thread 2)
+  then `hero-fish.ts --download <ids>`; foreground-browser fps number;
+  Unity Kit access.
+- Cluster queue after that: G4 (lift checkpoint) → G5 (SDG, camera-sensor
+  path ONLY) → NuRec conversion (fixes the gray movie) → splice MP4 into
+  Beat 5′.
+
 Read this first, then `HANDOFF.md` for the full canonical brief. This file is
 the *delta* since the last big handoff: the cluster G3 arc and the two live
 threads worth a fresh pair of hands.

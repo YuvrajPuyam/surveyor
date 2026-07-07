@@ -25,7 +25,8 @@ import * as THREE from "three";
 import type { MainToWorker, RoverDoneMsg, RoverFrameMsg, RoverOutcome, RoverProbeResultMsg } from "./protocol";
 import { ROVER_HALF_EXTENTS } from "./protocol";
 import { buildRoverMesh } from "./patrol";
-import { BTN, NARRATE } from "./ui/humanize";
+import { BTN, NARRATE, rawRunVisionPlan } from "./ui/humanize";
+import { visionConfirmed, type VisualGround } from "./visualGround";
 
 // ------------------------------------------------------------------- types
 
@@ -54,6 +55,9 @@ export interface TwinRunDeps {
   };
   /** The collider wireframe mesh (raycast target). Undefined until loaded. */
   getCollider(): THREE.Object3D | undefined;
+  /** C12: the visual-floor heightfield (splat centers). The raw-run planner
+   *  justifies its crossing with THIS surface; physics holds the collider. */
+  getVisualGround?(): VisualGround | undefined;
   /** Standing narrator line (persists until replaced). */
   narrate(text: string): void;
   /** 1.5 s narrator flash (refusals, hints). */
@@ -136,6 +140,13 @@ interface RawRoute {
   floorY: number;
   /** Unit XZ direction start → hole. */
   dir: THREE.Vector3;
+  /** C12 vision evidence for the crossing (samples INSIDE the defect region):
+   *  how much of the flagged gap the VISUAL surface covers. seen/total >= 0.7
+   *  means a planner driving on pixels would take this route. 0/0 when no
+   *  visual ground is available (points not loaded). */
+  visionSeen: number;
+  visionTotal: number;
+  visionMedianDeltaM: number;
 }
 
 /** Parse "N probes fell through" out of probe_fallthrough evidence. */
@@ -202,6 +213,7 @@ function deriveApproach(
   defect: TwinDefectLike,
   collider: THREE.Object3D,
   kind: "fall" | "ghost",
+  ground: VisualGround | undefined,
 ): RawRoute[] {
   const r = defect.region!;
   const cx = (r.min[0]! + r.max[0]!) / 2;
@@ -313,6 +325,14 @@ function deriveApproach(
     // Aim PAST the far edge so the rover carries speed across the void.
     const farEdge = edgeDistance(halfX, halfZ, -outX, -outZ);
     const aim = new THREE.Vector3(cx - outX * (farEdge + 0.8), floorY, cz - outZ * (farEdge + 0.8));
+    // C12: what do the PIXELS say about this crossing? Samples restricted to
+    // the defect region — the runway is collider-verified (the rover really
+    // drives there); the crossing is where vision and physics diverge.
+    const insideRegion = (x: number, z: number): boolean =>
+      x >= r.min[0]! && x <= r.max[0]! && z >= r.min[2]! && z <= r.max[2]!;
+    const vision = ground
+      ? ground.crossing(sx, sz, aim.x, aim.z, floorY, insideRegion)
+      : { seen: 0, total: 0, medianAbsDeltaM: Number.NaN };
     return {
       kind,
       defectId: defect.id,
@@ -323,6 +343,9 @@ function deriveApproach(
       holeCenter: new THREE.Vector3(cx, floorY, cz),
       floorY,
       dir: new THREE.Vector3(-outX, 0, -outZ),
+      visionSeen: vision.seen,
+      visionTotal: vision.total,
+      visionMedianDeltaM: vision.medianAbsDeltaM,
     };
   });
 }
@@ -339,17 +362,30 @@ const PROBE_MAX_STEPS = 900;
  * beat), then ghost drive-throughs (guaranteed nothing to wedge on INSIDE
  * the region — a visual-only surface has no collider by definition).
  */
-function deriveCandidateRoutes(cert: TwinCertLike, collider: THREE.Object3D): RawRoute[] {
-  const routes: RawRoute[] = [];
+function deriveCandidateRoutes(
+  cert: TwinCertLike,
+  collider: THREE.Object3D,
+  ground: VisualGround | undefined,
+): RawRoute[] {
+  const falls: RawRoute[] = [];
   for (const hole of holeCandidates(cert)) {
-    routes.push(...deriveApproach(hole, collider, "fall"));
-    if (routes.length >= MAX_ROUTE_PROBES) break;
+    falls.push(...deriveApproach(hole, collider, "fall", ground));
+    if (falls.length >= MAX_ROUTE_PROBES) break;
   }
+  const ghosts: RawRoute[] = [];
   for (const ghost of ghostCandidates(cert)) {
-    if (routes.length >= MAX_ROUTE_PROBES * 2) break;
-    routes.push(...deriveApproach(ghost, collider, "ghost"));
+    if (falls.length + ghosts.length >= MAX_ROUTE_PROBES * 2) break;
+    ghosts.push(...deriveApproach(ghost, collider, "ghost", ground));
   }
-  return routes.slice(0, MAX_ROUTE_PROBES * 2);
+  // C12: within each kind, vision-confirmed crossings probe first — the run
+  // that demonstrates the poisoning ("pixels say floor, collider says void")
+  // beats one that merely falls. Stable: prior runway ordering is preserved
+  // within each vision class.
+  const visionFirst = (rs: RawRoute[]): RawRoute[] => [
+    ...rs.filter((r) => visionConfirmed({ seen: r.visionSeen, total: r.visionTotal })),
+    ...rs.filter((r) => !visionConfirmed({ seen: r.visionSeen, total: r.visionTotal })),
+  ];
+  return [...visionFirst(falls), ...visionFirst(ghosts)].slice(0, MAX_ROUTE_PROBES * 2);
 }
 
 // ------------------------------------------------------------- module body
@@ -513,7 +549,7 @@ export function createTwinRun(deps: TwinRunDeps): TwinRunHandle {
       runRoute(validatedRoute);
       return;
     }
-    const routes = deriveCandidateRoutes(certificate, collider);
+    const routes = deriveCandidateRoutes(certificate, collider, deps.getVisualGround?.());
     if (routes.length === 0) {
       deps.flash(NARRATE.rawRunNoRoute);
       return;
@@ -560,7 +596,10 @@ export function createTwinRun(deps: TwinRunDeps): TwinRunHandle {
             `${res.outcome} at step ${res.step}, end (${res.x.toFixed(2)}, ${res.y.toFixed(2)}, ${res.z.toFixed(2)}), ` +
             `travelled ${Math.hypot(res.x - route.start.x, res.z - route.start.z).toFixed(2)} m`,
         );
-        probeLog.push(`${route.defectId}/${route.kind} ${res.outcome}@${res.step} d=${Math.hypot(res.x - route.start.x, res.z - route.start.z).toFixed(2)}`);
+        probeLog.push(
+          `${route.defectId}/${route.kind} ${res.outcome}@${res.step} d=${Math.hypot(res.x - route.start.x, res.z - route.start.z).toFixed(2)}` +
+            ` vision=${route.visionSeen}/${route.visionTotal}${Number.isFinite(route.visionMedianDeltaM) ? ` Δ${route.visionMedianDeltaM.toFixed(3)}m` : ""}`,
+        );
         // Three provable failure modes:
         //  fall-kind + fell            → dropped past the fall line
         //  fall-kind + beached inside  → nose-down IN the defect, > 0.2 m
@@ -609,9 +648,16 @@ export function createTwinRun(deps: TwinRunDeps): TwinRunHandle {
     frameRoute(route.start, route.holeCenter);
     startFollow(() => roverMesh?.position ?? route.start);
 
-    deps.narrate(NARRATE.rawRun);
+    // C12: when the crossing is vision-confirmed, say the stronger true
+    // sentence — the planner is driving on what the cameras see, and the
+    // physics is about to disagree. Otherwise the classic line.
+    if (route.kind === "fall" && visionConfirmed({ seen: route.visionSeen, total: route.visionTotal })) {
+      deps.narrate(rawRunVisionPlan(route.visionSeen, route.visionTotal));
+    } else {
+      deps.narrate(NARRATE.rawRun);
+    }
     deps.setStatus?.(
-      `raw run #${runId}: defect ${route.defectId}, start (${route.start.x.toFixed(2)}, ${route.start.z.toFixed(2)}) → hole (${route.holeCenter.x.toFixed(2)}, ${route.holeCenter.z.toFixed(2)})`,
+      `raw run #${runId}: defect ${route.defectId}, start (${route.start.x.toFixed(2)}, ${route.start.z.toFixed(2)}) → hole (${route.holeCenter.x.toFixed(2)}, ${route.holeCenter.z.toFixed(2)}), vision ${route.visionSeen}/${route.visionTotal}`,
     );
 
     // A "stuck" run freezes ~1.5 s after the dry-run's terminal step — the
@@ -656,7 +702,11 @@ export function createTwinRun(deps: TwinRunDeps): TwinRunHandle {
     };
     if (msg.outcome === "fell") {
       placeFallMarker(msg.x, msg.z, activeRoute.floorY);
-      deps.narrate(NARRATE.rawRunFell);
+      deps.narrate(
+        activeRoute && visionConfirmed({ seen: activeRoute.visionSeen, total: activeRoute.visionTotal })
+          ? NARRATE.rawRunVisionFell
+          : NARRATE.rawRunFell,
+      );
     } else if (msg.outcome === "arrived") {
       if (activeRoute.kind === "ghost") {
         placeGhostMarker(activeRoute.holeCenter.x, activeRoute.holeCenter.z, activeRoute.floorY);

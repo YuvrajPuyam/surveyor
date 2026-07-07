@@ -50,6 +50,7 @@ import type {
 } from "./ui/protocol";
 import { startPatrol, type Aabb as PatrolAabb, type PatrolHandle } from "./patrol";
 import { createTwinRun } from "./twinRun";
+import { buildVisualGround, type VisualGround } from "./visualGround";
 import { TrustLayer } from "./trustLayer";
 import { mountStepper, type Beat } from "./ui/stepper";
 import { showGradeReveal, skipGradeReveal } from "./ui/gradeReveal";
@@ -543,12 +544,17 @@ function ensureCertificationStarted(): void {
 // Raw-world failure run (Beats 1–3, key R) + Beat-5 delivery camera. The raw
 // physics executes in the probe worker, which holds the collider exactly as
 // shipped — repairs only ever mutate the certify engine's copy.
+// C12: the raw-run planner reads the VISUAL floor (splat centers) to justify
+// its crossing — built once the bundle's points load.
+
+let visualGround: VisualGround | undefined;
 
 const twinRun = createTwinRun({
   scene,
   camera,
   controls,
   getCollider: () => colliderWireframe,
+  getVisualGround: () => visualGround,
   narrate: narrateStanding,
   flash: flashNarrate,
   setStatus: (t) => {
@@ -1451,6 +1457,9 @@ async function main(): Promise<void> {
   // on worlds whose content is offset)
   const pointsForCam = await fetchVisualPoints(dir);
   if (pointsForCam && pointsForCam.length >= 3) {
+    // C12: the vision planner's surface — same splat centers the camera
+    // anchoring uses, gridded into a queryable visual-floor heightfield
+    visualGround = buildVisualGround(pointsForCam);
     // densest vertical slab = the ground mass (naive centroids get dragged
     // under the surface by sky/background splats)
     let yMin = Infinity, yMax = -Infinity;

@@ -98,6 +98,14 @@ card, Unity Kit certificate overlay, MCP, Mars flourish.
 | C10 | Determinism hash chip + Devpost hash | live re-run matches printed hash | 0.25 d |
 | C11 | PREFLIGHT polish: `npx surveyor certify` exit codes + self-contained report.html | Ken's one-liner works on a clean machine | 1 d |
 
+### Gemini-review additions (2026-07-07 external critique triage)
+| # | Item | Bar | Est |
+|---|---|---|---|
+| C12 | **Vision-driven twin run**: the raw-run rover PLANS on the visual surface (splat-derived ground) and physics decides what it hits — upgrades the twin run from "navmesh rover finds the hole" to a direct demonstration of the poisoning thesis ("the planner sees pixels; physics sees the collider"). Honest on-screen label required | raw world: rover routes over visually-continuous floor and falls through the collider hole / is betrayed by ghost geometry; certified world: quarantine mask reroutes it, delivery completes | 1 d |
+| C13 | **Batch hero fishing**: wrapper around marble.ts + certify + hero-check — cast N draft worlds, download, certify all, rank by validated twin-run failure routes ("the certificates pick the hero", mechanically, at fleet scale). Works in rank-only mode on already-downloaded bundles while the API wallet is empty | one command ranks any set of bundles; casts fire the moment credits unblock | 0.5 d |
+| C14 | **Pitch-clarity sentence** (a hostile expert reviewer misread the architecture; judges will too): "the agent never edits geometry — it chooses from nine deterministic, reversible tools, and the instrument re-inspects every choice before it counts." Add to demo doc + README | sentence present in demo script Beat 4 and README | 0.1 d |
+| C15 | **Q&A arsenal — the dynamic-contact receipt**: rehearse Gemini's three "breaking questions"; the answer to "static concordance ≠ dynamic fidelity" is G3b (contact-rich grip/lift/set-down in PhysX on the REPAIRED geometry, 0.3 mm at lunar g — also refutes "LLM patches explode solvers"), bounded by the printed non-claim ("not policy transfer") | answers written into demo doc Q&A section | 0.25 d |
+
 ### Cluster lane (Gilbreth evenings, priority order per pipeline-v2 P1–P8)
 | # | Item | Gate |
 |---|---|---|

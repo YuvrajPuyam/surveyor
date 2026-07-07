@@ -754,6 +754,8 @@ export const NARRATE = {
     "Nose-down in a pit the pixels call floor — beached. Every training episode through here would end exactly like this, and nothing would say why.",
   rawRunNoRoute:
     "No confirmed floor hole with a clear approach in this certificate — nothing to drive into.",
+  rawRunVisionFell:
+    "The cameras said floor. The collider said nothing. A vision policy trained here learns this exact crossing — and finds out on hardware.",
   delivery:
     "Certified delivery — verified spawn to depot, over the patched floor, around the roped-off areas.",
   deliveryArrived:
@@ -816,6 +818,18 @@ export function beforeAfterSummary(
     found,
     breakdown: parts.length > 0 ? `(${parts.join(", ")})` : "",
   };
+}
+
+/**
+ * C12 vision-driven twin run: the planner's own crossing evidence, spoken at
+ * run start. `seen`/`total` are sight-line samples across the flagged gap
+ * that landed on visual (splat) surface.
+ */
+export function rawRunVisionPlan(seen: number, total: number): string {
+  return (
+    `This run is planned on what the cameras see: ${seen} of ${total} sight-lines across the flagged gap land on visual floor. ` +
+    `The physics runs the shipped collider — which has nothing there. Same rover, two realities. Watch.`
+  );
 }
 
 /** "Show the work" expander label (raw live log). */
