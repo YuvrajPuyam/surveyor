@@ -38,12 +38,13 @@
   `canonical-pack/world/nurec/<worldId>.usdz` on the cluster — **dbg6 proved
   it RENDERS** (Volume/OmniNuRecFieldAsset, warm photoreal tones; PNG receipt).
   Local: `hero-100k.ply` conversion via `npx @playcanvas/splat-transform`.
-- **IN FLIGHT AT PAUSE: photoreal G3c re-run (job 11222304)** — g3c.py
-  patched: visuals payload ACTIVE, collider left invisible (splats carry the
-  visuals). If PASS: pull frames → local re-encode H.264 (imageio-ffmpeg;
-  cluster ffmpeg has no libx264 — mpeg4 doesn't play in browsers) → replace
-  `assets/isaac/g3c-box-lift.mp4`. Check
-  `/scratch/.../g3c-results.txt` + `g3c-frames | wc -l` first thing.
+- **PHOTOREAL G3c: DONE (resumed session).** Job 11222304 turned out to have
+  run the OLD script (the pre-pause `.replace` patch silently didn't match —
+  lesson: verify the marker string on BOTH ends before submitting). Re-run
+  as job 11222317 with verified patch: `NuRec visuals active: True`,
+  G3C_PASS, 816 frames — **`assets/isaac/g3c-box-lift.mp4` is now the
+  photoreal version** (Franka + crate inside the Marble habitat splats,
+  same -0.551 physics receipt, H.264).
 - **100k splats are blurry in the render** — the hero bundle only has the
   100k tier. `scripts/marble.ts` now takes `MARBLE_TIER=500k` env override
   (uncommitted-then-committed this session; the 500k download itself was NOT
