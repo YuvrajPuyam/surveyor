@@ -27,19 +27,38 @@ threads worth a fresh pair of hands.
 
 ---
 
-## LIVE THREAD 1 — G3c blank frames (render path)
+## LIVE THREAD 1 — G3c blank frames — **CLOSED (G3C_PASS with real pixels)**
 
-> **UPDATE 2026-07-07 (this session): ROOT-CAUSED via g3c-dbg bisect on a
-> minimal stage.** `Camera.get_rgba()` works from 8 warmups after a SINGLE
-> `world.reset()` (red cube renders, RTX active). g3c's blank frames come
-> from its THREE stop/reset cycles orphaning the render product bound at the
-> early `cam.initialize()`. Fix landed in `isaac/cluster/g3c.py`: re-bind
-> `cam.initialize()` AFTER the final reset + spread-verified warmup (abort
-> before choreography if still uniform). Full run resubmitted (job 11221410).
-> **Second finding: `rep.orchestrator.step()` HANGS headless in this
-> container** (g3c-dbg died at walltime right after annotator attach) — G5's
-> SDG must use the Camera sensor path or Replicator's writer WITHOUT
-> orchestrator.step. The original hypotheses below are kept for history.
+> **RESOLVED 2026-07-07 after a 16-job bisect saga. The renderer was never
+> broken. The camera was.** The pack's `/World` root carries the documented
+> +90° X source-frame rotation (Y-up→Z-up); the capture camera + its
+> diagnostic marker were authored UNDER /World using already-converted Z-up
+> world coordinates → double-rotated together into empty space. The marker
+> always rendered (it rides with the camera); the world never did (it was
+> where the camera wasn't). Physics was correct throughout because
+> isaacsim's `position=` args are world-frame (parent-compensating) and the
+> robot sits at root level.
+>
+> **THE COORDINATE LAW (runbook, applies to G4/G5 and every future capture
+> job):** world-space coordinates go on ROOT-LEVEL prims. Anything authored
+> under `/World` is in the pack's source frame. isaacsim object `position=`
+> compensates; raw `UsdGeom`/`XformCommonAPI` authoring does NOT.
+>
+> Final artifact: `assets/isaac/g3c-box-lift.mp4` (27.2 s, 816 frames,
+> 1280×720@30) — Franka picks the crate off the shelf and sets it on the
+> rover bed inside the Certified World Pack at 1.62 m/s², set-down
+> −0.551 m vs −0.551 m probe-measured. FRANKA logo legible on the gripper.
+> Encode recipe: login node `bash -lc 'module load ffmpeg'`, then
+> `ffmpeg -framerate 30 -i g3c-frames/frame_%05d.png -c:v mpeg4 -q:v 2
+> -pix_fmt yuv420p out.mp4` (this spack ffmpeg has NO libx264).
+>
+> Hard-won side-findings, all still true: `rep.orchestrator.step()` hangs
+> headless (G5 must use the Camera-sensor path); `URDFParseAndImportFile`
+> into the OPEN stage mutates+saves the .usda (always import to a dest_path
+> file and reference it); default USD camera is a ~24° telephoto (50 mm) —
+> compose accordingly; judge frames by CENTER-region spread (border lines
+> fool full-frame checks); one `world.reset()`, no stops, park probes
+> instead of removing them.
 
 **Symptom:** `G3C_PASS` (physics + 816 frames written), but sampled frames
 (`frame_00010/00330/00500` pulled to scratchpad) are pure `#d0d0d0` — no

@@ -76,9 +76,9 @@ try:
             shown += 1
     log(f"world meshes visible-ized pre-attach: {shown}")
 
-    dome = UsdLux.DomeLight.Define(stage, Sdf.Path("/World/g3c_dome"))
+    dome = UsdLux.DomeLight.Define(stage, Sdf.Path("/g3c_dome"))
     dome.CreateIntensityAttr(600)
-    sun = UsdLux.DistantLight.Define(stage, Sdf.Path("/World/g3c_sun"))
+    sun = UsdLux.DistantLight.Define(stage, Sdf.Path("/g3c_sun"))
     sun.CreateIntensityAttr(2500)
     UsdGeom.XformCommonAPI(sun.GetPrim()).SetRotate((55.0, 0.0, 35.0))
 
@@ -126,13 +126,13 @@ try:
             log(f"finger drive skipped ({fj}): {fe!r}")
 
     # camera prim + diagnostic marker (marker goes inactive before the movie)
-    cam_path = "/World/g3c_cam"
+    cam_path = "/g3c_cam"  # ROOT level: /World carries a +90X source-frame rotation that double-rotates raw-USD children authored in world coords (the 14-job lesson)
     UsdGeom.Camera.Define(stage, Sdf.Path(cam_path))
     eye = Gf.Vec3d(B[0] - 1.15, B[1] - 1.05, B[2] + 1.15)
     aim = Gf.Vec3d(B[0] + 0.25, B[1] + 0.22, B[2] + 0.25)
     view = Gf.Matrix4d().SetLookAt(eye, aim, Gf.Vec3d(0, 0, 1))
     UsdGeom.Xformable(stage.GetPrimAtPath(cam_path)).MakeMatrixXform().Set(view.GetInverse())
-    marker = UsdGeom.Cube.Define(stage, Sdf.Path("/World/g3c_marker"))
+    marker = UsdGeom.Cube.Define(stage, Sdf.Path("/g3c_marker"))
     marker.CreateSizeAttr(0.25)
     marker.CreateDisplayColorAttr([Gf.Vec3f(1.0, 0.1, 0.1)])
     UsdGeom.XformCommonAPI(marker.GetPrim()).SetTranslate((aim[0], aim[1], aim[2] + 0.3))
