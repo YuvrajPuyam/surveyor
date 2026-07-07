@@ -31,6 +31,9 @@ export interface PanoDepthOptions {
   grid?: number;
   /** skip this fraction at each crop border (perspective edges are least reliable) */
   margin?: number;
+  /** extra crops AIMED at specific directions (the certificate's defects) —
+   *  appended after the ring crops; indices continue */
+  targeted?: Array<{ yaw: number; pitch: number; fovDeg: number }>;
   onProgress?: (msg: string) => void;
 }
 
@@ -57,46 +60,49 @@ export async function panoDepthRays(pano: Image, opts: PanoDepthOptions = {}): P
   o.onProgress?.(`loading depth model ${o.modelId} (cached after first run)…`);
   const depth = await pipeline("depth-estimation", o.modelId);
 
+  const plan: Array<{ yaw: number; pitch: number; fovDeg: number; targeted: boolean }> = [];
+  for (const pitch of o.pitches) for (const yaw of o.yaws) plan.push({ yaw, pitch, fovDeg: o.fovDeg, targeted: false });
+  for (const t of o.targeted ?? []) plan.push({ ...t, targeted: true });
+
   const rays: DepthRay[] = [];
   let cropIdx = 0;
-  for (const pitch of o.pitches) {
-    for (const yaw of o.yaws) {
-      const crop = renderPinholeCrop(pano, yaw, pitch, o.fovDeg, o.cropSize);
-      const img = new RawImage(crop.data, o.cropSize, o.cropSize, 3);
-      const t0 = Date.now();
-      const out = (await depth(img)) as { predicted_depth: { data: Float32Array; dims: number[] } };
-      const pd = out.predicted_depth;
-      const dims = pd.dims;
-      const ph = dims[dims.length - 2];
-      const pw = dims[dims.length - 1];
-      o.onProgress?.(
-        `crop ${cropIdx + 1}/${o.pitches.length * o.yaws.length} (yaw ${((yaw * 180) / Math.PI).toFixed(0)}°, pitch ${((pitch * 180) / Math.PI).toFixed(0)}°): ${pw}×${ph} depth in ${((Date.now() - t0) / 1000).toFixed(1)} s`,
-      );
-      const lo = o.margin;
-      const hi = 1 - o.margin;
-      for (let gy = 0; gy < o.grid; gy++) {
-        for (let gx = 0; gx < o.grid; gx++) {
-          const fx = lo + ((gx + 0.5) / o.grid) * (hi - lo);
-          const fy = lo + ((gy + 0.5) / o.grid) * (hi - lo);
-          // sample prediction at (fx, fy) of the model's own output grid
-          const px = Math.min(pw - 1, Math.round(fx * pw));
-          const py = Math.min(ph - 1, Math.round(fy * ph));
-          const pred = pd.data[py * pw + px];
-          // matching view direction from the crop's dir buffer
-          const cx = Math.min(o.cropSize - 1, Math.round(fx * o.cropSize));
-          const cy = Math.min(o.cropSize - 1, Math.round(fy * o.cropSize));
-          const di = (cy * o.cropSize + cx) * 3;
-          rays.push({ dx: crop.dirs[di], dy: crop.dirs[di + 1], dz: crop.dirs[di + 2], pred, crop: cropIdx });
-        }
+  for (const spec of plan) {
+    const crop = renderPinholeCrop(pano, spec.yaw, spec.pitch, spec.fovDeg, o.cropSize);
+    const img = new RawImage(crop.data, o.cropSize, o.cropSize, 3);
+    const t0 = Date.now();
+    const out = (await depth(img)) as { predicted_depth: { data: Float32Array; dims: number[] } };
+    const pd = out.predicted_depth;
+    const dims = pd.dims;
+    const ph = dims[dims.length - 2];
+    const pw = dims[dims.length - 1];
+    o.onProgress?.(
+      `crop ${cropIdx + 1}/${plan.length}${spec.targeted ? " [targeted]" : ""} (yaw ${((spec.yaw * 180) / Math.PI).toFixed(0)}°, pitch ${((spec.pitch * 180) / Math.PI).toFixed(0)}°, fov ${spec.fovDeg.toFixed(0)}°): ${pw}×${ph} depth in ${((Date.now() - t0) / 1000).toFixed(1)} s`,
+    );
+    const lo = o.margin;
+    const hi = 1 - o.margin;
+    for (let gy = 0; gy < o.grid; gy++) {
+      for (let gx = 0; gx < o.grid; gx++) {
+        const fx = lo + ((gx + 0.5) / o.grid) * (hi - lo);
+        const fy = lo + ((gy + 0.5) / o.grid) * (hi - lo);
+        // sample prediction at (fx, fy) of the model's own output grid
+        const px = Math.min(pw - 1, Math.round(fx * pw));
+        const py = Math.min(ph - 1, Math.round(fy * ph));
+        const pred = pd.data[py * pw + px];
+        // matching view direction from the crop's dir buffer
+        const cx = Math.min(o.cropSize - 1, Math.round(fx * o.cropSize));
+        const cy = Math.min(o.cropSize - 1, Math.round(fy * o.cropSize));
+        const di = (cy * o.cropSize + cx) * 3;
+        rays.push({ dx: crop.dirs[di], dy: crop.dirs[di + 1], dz: crop.dirs[di + 2], pred, crop: cropIdx });
       }
-      cropIdx++;
     }
+    cropIdx++;
   }
   return {
     rays,
     meta: {
       modelId: o.modelId,
       crops: cropIdx,
+      targetedCrops: (o.targeted ?? []).length,
       cropSize: o.cropSize,
       fovDeg: o.fovDeg,
       grid: o.grid,

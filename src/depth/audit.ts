@@ -79,6 +79,81 @@ export interface DepthAuditReport {
   meta: Record<string, unknown>;
 }
 
+export interface TargetedCropSpec {
+  yaw: number;
+  pitch: number;
+  fovDeg: number;
+  /** defect ids this crop was aimed at (report/debug) */
+  targets: string[];
+}
+
+/**
+ * Plan pinhole crops AIMED AT the certificate's defects — the fixed ring
+ * mostly stares past them, and abstaining crops mean no testimony. Each
+ * defect (ghost / phantom / hole) gets a crop centered on its direction,
+ * wide enough to include calibration context around it; near-coincident
+ * targets share a crop.
+ */
+export function planTargetedCrops(cert: Certificate, origin: Vec3, maxCrops = 10): TargetedCropSpec[] {
+  const targets = cert.defects.filter(
+    (d) => d.type === "visual_only_surface" || d.type === "phantom_collider" || d.type === "collider_hole",
+  );
+  interface Aim {
+    yaw: number;
+    pitch: number;
+    angRadius: number;
+    ids: string[];
+    weight: number;
+  }
+  const aims: Aim[] = [];
+  for (const d of targets) {
+    const cx = (d.region.min[0] + d.region.max[0]) / 2 - origin.x;
+    const cy = (d.region.min[1] + d.region.max[1]) / 2 - origin.y;
+    const cz = (d.region.min[2] + d.region.max[2]) / 2 - origin.z;
+    const dist = Math.hypot(cx, cy, cz);
+    if (dist < 0.4) continue; // too close to aim a perspective crop at
+    const half = Math.max(
+      (d.region.max[0] - d.region.min[0]) / 2,
+      (d.region.max[1] - d.region.min[1]) / 2,
+      (d.region.max[2] - d.region.min[2]) / 2,
+      0.25,
+    );
+    aims.push({
+      yaw: Math.atan2(cx, cz),
+      pitch: Math.asin(Math.max(-1, Math.min(1, cy / dist))),
+      angRadius: Math.min(0.6, Math.atan2(half, dist)),
+      ids: [d.id],
+      weight: d.severity === "critical" ? 3 : d.severity === "major" ? 2 : 1,
+    });
+  }
+  // greedy merge: aims within ~20° share a crop
+  const MERGE = (20 * Math.PI) / 180;
+  const merged: Aim[] = [];
+  aims.sort((a, b) => b.weight - a.weight);
+  for (const a of aims) {
+    const near = merged.find((m) => {
+      const dy = Math.atan2(Math.sin(a.yaw - m.yaw), Math.cos(a.yaw - m.yaw));
+      return Math.hypot(dy, a.pitch - m.pitch) < MERGE;
+    });
+    if (near) {
+      near.ids.push(...a.ids);
+      near.angRadius = Math.max(near.angRadius, a.angRadius);
+      near.weight += a.weight;
+    } else {
+      merged.push({ ...a, ids: [...a.ids] });
+    }
+  }
+  merged.sort((a, b) => b.weight - a.weight);
+  return merged.slice(0, maxCrops).map((m) => ({
+    yaw: m.yaw,
+    // clamp pitch so the crop keeps horizon context for calibration
+    pitch: Math.max(-1.1, Math.min(0.9, m.pitch)),
+    // defect + surrounding calibration context, clamped to sane perspective
+    fovDeg: Math.max(50, Math.min(85, ((2.2 * m.angRadius + (30 * Math.PI) / 180) * 180) / Math.PI)),
+    targets: m.ids,
+  }));
+}
+
 export interface AuditInputs {
   worldId: string;
   collider: TriMesh;
@@ -202,8 +277,26 @@ export async function runDepthAudit(inp: AuditInputs): Promise<DepthAuditReport>
   const nearPeak = scores.filter((s) => s > bestScore / 2).length;
   const yawPeakSharpness = bestScore > 0 ? scores.length / Math.max(1, nearPeak) : 0;
 
+  // Two-lobe degeneracy: depth-only matching in a near-symmetric interior
+  // can self-match ~180° off. Find the best RIVAL lobe ≥ 30° away; if it
+  // scores comparably, break the tie downstream by TOTAL TRIPLE-CONFIRMED
+  // rays (the true frame maximizes three-way agreement over the whole
+  // sphere, not just calibration quality on the consensus cells).
+  let rivalYaw: number | undefined;
+  let rivalScore = -1;
+  const bestIdx = Math.round(((bestYaw * 180) / Math.PI - (((bestYaw * 180) / Math.PI) % 5)) / 5);
+  for (let i = 0; i < scores.length; i++) {
+    const sep = Math.min(Math.abs(i - bestIdx), scores.length - Math.abs(i - bestIdx)) * 5;
+    if (sep < 30) continue;
+    if (scores[i] > rivalScore) {
+      rivalScore = scores[i];
+      rivalYaw = (i * 5 * Math.PI) / 180;
+    }
+  }
+  const yawAmbiguous = rivalYaw !== undefined && rivalScore > 0.7 * bestScore;
+
   // ---- final per-crop calibration at the fitted yaw
-  const crops = fitCrops(consensusPairsByCrop(inp.rays, nCrops, bestYaw, splat, collider));
+  let crops = fitCrops(consensusPairsByCrop(inp.rays, nCrops, bestYaw, splat, collider));
   const calibratedCrops = crops.filter((c) => c.calibrated);
   const cropsCalibrated = calibratedCrops.length;
   const consensusRays = crops.reduce((a, c) => a + c.fit.n, 0);
@@ -242,14 +335,6 @@ export async function runDepthAudit(inp: AuditInputs): Promise<DepthAuditReport>
   const thresholdRel = Math.max(0.12, 3 * (Number.isFinite(relErrMedian) ? relErrMedian : 0.04));
   const rho = rhoMedian;
 
-  const tallies: Record<RayVerdict, number> = {
-    triple_confirmed: 0,
-    both_suspect: 0,
-    sides_with_splat: 0,
-    sides_with_collider: 0,
-    sides_with_neither: 0,
-    unmeasured: 0,
-  };
   interface ClassifiedRay {
     verdict: RayVerdict;
     dir: Vec3;
@@ -257,11 +342,19 @@ export async function runDepthAudit(inp: AuditInputs): Promise<DepthAuditReport>
     dSplat?: number;
     dCollider?: number;
   }
-  const classified: ClassifiedRay[] = [];
-  if (conclusive) {
+  const classifyAt = (yaw: number, cropCals: CropCalibration[]): { classified: ClassifiedRay[]; tallies: Record<RayVerdict, number> } => {
+    const tallies: Record<RayVerdict, number> = {
+      triple_confirmed: 0,
+      both_suspect: 0,
+      sides_with_splat: 0,
+      sides_with_collider: 0,
+      sides_with_neither: 0,
+      unmeasured: 0,
+    };
+    const classified: ClassifiedRay[] = [];
     for (const r of inp.rays) {
-      const cal = crops[r.crop];
-      const dir = rotateYaw({ x: r.dx, y: r.dy, z: r.dz }, bestYaw);
+      const cal = cropCals[r.crop];
+      const dir = rotateYaw({ x: r.dx, y: r.dy, z: r.dz }, yaw);
       const { u, v } = equirectUV(dir, PANO_W, PANO_H);
       const ds = sampleDepthPanoNear(splat, u, v, 1, 1);
       const dc = sampleDepthPanoNear(collider, u, v, 0, 1);
@@ -279,6 +372,40 @@ export async function runDepthAudit(inp: AuditInputs): Promise<DepthAuditReport>
       }
       tallies[verdict]++;
       classified.push({ verdict, dir, dImg, dSplat: Number.isFinite(ds) ? ds : undefined, dCollider: Number.isFinite(dc) ? dc : undefined });
+    }
+    return { classified, tallies };
+  };
+
+  let tallies: Record<RayVerdict, number> = {
+    triple_confirmed: 0,
+    both_suspect: 0,
+    sides_with_splat: 0,
+    sides_with_collider: 0,
+    sides_with_neither: 0,
+    unmeasured: 0,
+  };
+  let classified: ClassifiedRay[] = [];
+  let yawTiebreak: string | undefined;
+  if (conclusive) {
+    ({ classified, tallies } = classifyAt(bestYaw, crops));
+    if (yawAmbiguous && rivalYaw !== undefined) {
+      // score the rival lobe end-to-end with its OWN calibration
+      const rivalCrops = fitCrops(consensusPairsByCrop(inp.rays, nCrops, rivalYaw, splat, collider));
+      const rival = classifyAt(rivalYaw, rivalCrops);
+      if (rival.tallies.triple_confirmed > tallies.triple_confirmed) {
+        yawTiebreak =
+          `two-lobe yaw fit: ${((rivalYaw * 180) / Math.PI).toFixed(0)}° beat ${((bestYaw * 180) / Math.PI).toFixed(0)}° on the triple-confirmed vote ` +
+          `(${rival.tallies.triple_confirmed} vs ${tallies.triple_confirmed}); adopting it`;
+        bestYaw = rivalYaw;
+        crops = rivalCrops;
+        classified = rival.classified;
+        tallies = rival.tallies;
+      } else {
+        yawTiebreak =
+          `two-lobe yaw fit: kept ${((bestYaw * 180) / Math.PI).toFixed(0)}° over rival ${((rivalYaw * 180) / Math.PI).toFixed(0)}° ` +
+          `by the triple-confirmed vote (${tallies.triple_confirmed} vs ${rival.tallies.triple_confirmed})`;
+      }
+      log(yawTiebreak);
     }
   }
 
@@ -327,7 +454,7 @@ export async function runDepthAudit(inp: AuditInputs): Promise<DepthAuditReport>
   const adjudications: DefectAdjudication[] = [];
   if (conclusive && inp.certificate) {
     const targets = inp.certificate.defects.filter(
-      (d) => d.type === "visual_only_surface" || d.type === "phantom_collider",
+      (d) => d.type === "visual_only_surface" || d.type === "phantom_collider" || d.type === "collider_hole",
     );
     for (const d of targets) {
       const adj = adjudicateDefect(d, classified, origin, thresholdRel);
@@ -355,6 +482,11 @@ export async function runDepthAudit(inp: AuditInputs): Promise<DepthAuditReport>
       `Pano→world yaw offset FITTED by 5° sweep + 1° refinement, maximizing total affine inliers across per-crop calibrations: ${((bestYaw * 180) / Math.PI).toFixed(1)}° (peak ×${yawPeakSharpness.toFixed(1)} over the sweep median).`,
       `PER-CROP affine calibration (monocular depth is scale/shift-ambiguous in inverse depth, and only affine-consistent WITHIN a frame): each crop fits its own RANSAC+IRLS line against consensus rays — where splat and collider agree within max(0.15 m, 7%). ${cropsCalibrated}/${nCrops} crops calibrated (needs ≥${CROP_MIN_RAYS} rays, ≥${CROP_MIN_INLIERS * 100}% inliers, |ρ| ≥ 0.55); uncalibrated crops ABSTAIN — their rays are reported unmeasured, not guessed.`,
       `Agreement threshold derives from the calibrated crops' own error: ${(thresholdRel * 100).toFixed(0)}% relative depth (= max(12%, 3× median per-crop calibration error)). 'Both suspect' means the imagery disagrees with BOTH shipped assets where they agree with each other — the failure class the two-instrument certificate cannot see.`,
+      ...(yawTiebreak
+        ? [
+            `Yaw degeneracy handled: ${yawTiebreak}. (Depth-only matching in near-symmetric interiors can self-match ~180° off; the adopted lobe maximizes three-way agreement over the whole sphere.)`,
+          ]
+        : []),
       `Advisory instrument: the deterministic certificate is unchanged; this audit is a sidecar with disclosed model, fits, and refusal conditions.`,
     ],
     meta: inp.rayMeta,
@@ -405,6 +537,13 @@ function adjudicateDefect(
         ? "imagery SAW the surface the splats claim — the ghost is a real visual claim with physics missing (repair or quarantine both defensible)"
         : fc > 0.4 && fc > fs * 2
           ? "imagery sees THROUGH to the collider — the splat surface is hallucinated; quarantine is doubly right"
+          : "imagery is not decisive here";
+  } else if (d.type === "collider_hole") {
+    verdict =
+      fs > 0.4 && fs > fc * 2
+        ? "imagery sees the FLOOR the splats claim — the hole is a true collider gap; patch at the splat surface height"
+        : fc > 0.4 && fc > fs * 2
+          ? "imagery matches the surrounding collider, not the splat floor — the pixel floor may be hallucinated; prefer quarantine over patching"
           : "imagery is not decisive here";
   } else {
     verdict =

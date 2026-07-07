@@ -10,7 +10,7 @@ import { join } from "node:path";
 import { loadWorldBundle } from "../src/ingest/bundleIO.js";
 import { CertificateSchema, type Certificate } from "../src/core/types.js";
 import { loadPano, panoDepthRays } from "../src/depth/panoDepth.js";
-import { runDepthAudit } from "../src/depth/audit.js";
+import { planTargetedCrops, runDepthAudit } from "../src/depth/audit.js";
 
 const args = process.argv.slice(2);
 const dir = args.find((a) => !a.startsWith("--"));
@@ -35,7 +35,18 @@ if (existsSync(certPath)) certificate = CertificateSchema.parse(JSON.parse(readF
 console.log(`\nIMAGE-DEPTH AUDIT — ${world.worldId}\n`);
 const pano = await loadPano(panoPath);
 console.log(`pano ${pano.width}×${pano.height}, ${pano.channels}ch`);
-const { rays, meta } = await panoDepthRays(pano, { onProgress: (m) => console.log(`  ${m}`) });
+// aim extra crops at the certificate's own defects — the fixed ring mostly
+// stares past them, and abstaining crops mean no per-defect testimony
+const targeted = certificate ? planTargetedCrops(certificate, { x: 0, y: 0, z: 0 }) : [];
+if (targeted.length > 0) {
+  console.log(`targeted crops (aimed at defects):`);
+  for (const t of targeted) {
+    console.log(
+      `  yaw ${((t.yaw * 180) / Math.PI).toFixed(0)}° pitch ${((t.pitch * 180) / Math.PI).toFixed(0)}° fov ${t.fovDeg.toFixed(0)}° → ${t.targets.slice(0, 5).join(", ")}${t.targets.length > 5 ? ` +${t.targets.length - 5}` : ""}`,
+    );
+  }
+}
+const { rays, meta } = await panoDepthRays(pano, { targeted, onProgress: (m) => console.log(`  ${m}`) });
 
 const report = await runDepthAudit({
   worldId: world.worldId,

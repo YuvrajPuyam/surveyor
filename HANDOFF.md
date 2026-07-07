@@ -151,6 +151,35 @@ measurements as a metrology cross-check. NOTE: not in ENDGAME §4 — built on
 direct user instruction; folding it into the demo (Q&A tier?) is an ENDGAME
 edit the user should make deliberately.
 
+## 7c. CLUSTER LANE OPENED — G1 PASSED (2026-07-06 night)
+
+Gilbreth is reachable NON-INTERACTIVELY from this machine (`ssh
+gilbreth.rcac.purdue.edu`, user gupta596, key auth — no BoilerKey prompt).
+**G1 verdict: the Isaac layer is GO** — a10 compute node (gilbreth-h013):
+NVIDIA A10 23 GB, driver 590.48.01, CUDA 13.1, glibc 2.34, NVIDIA Vulkan ICD
+present, apptainer available. ENDGAME's P1 kill-risk is dead.
+
+Working state on the cluster (`/scratch/gilbreth/gupta596/surveyor/`):
+- canonical repaired bundle (7188e250…), `canonical-pack/` (USD, ALL RULES
+  PASS, content sha 6b2909f1…), the `isaac/` python package;
+- `isaac-lab-2.3.0.sif` PULLING on the login node (detached nohup; log:
+  `pull-login.log`; download done, squashfs build in progress);
+- `g2-smoke.sbatch` STAGED — run after the .sif exists:
+  `sbatch --qos=standby g2-smoke.sbatch` → proves GPU-in-container, isaaclab
+  import, the pack USD parsing under NVIDIA pxr, and the training contract
+  loading in-container. Output: `g2-smoke.out`.
+
+Slurm lessons (cost an hour): accounts `bera89`/`csml`; every job needs
+`--mem` AND `--gres=gpu:N` (GPU-only cluster); group GPU caps block `normal`
+QoS for hours — **use `--qos=standby`** (runs on idle capacity, ran G1 within
+minutes); **compute nodes have NO direct internet** — container pulls happen
+on the login node. Ship scripts via `scp` after stripping CRLF/BOM
+(PowerShell-written files break bash otherwise).
+
+Next on the cluster, in order: g2-smoke → G3 scripted pick-and-place
+(guaranteed ending) → G4 lift checkpoint → G5 Replicator SDG (per
+`isaac/README.md`, `SURVEYOR_BUNDLE_DIR`/`SURVEYOR_WORLD_USD` env vars).
+
 ## 8. Suggested first moves (next session)
 
 1. `npm test` (35 green) + one full Beat 1→5 rehearsal in the viewer:
