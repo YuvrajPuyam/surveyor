@@ -14,13 +14,19 @@
   floor, median Δ 4 mm across a gap the collider doesn't have**, rover fell
   at step 591. Narration verified: "planned on what the cameras see…" →
   fall → "The cameras said floor. The collider said nothing." App tsc clean.
-- **C13 batch hero fishing: WRITTEN, NOT YET RUN** — `scripts/hero-fish.ts`
-  (`--scan assets/marble` | `--download <worldId…>` | bundle dirs; certify
-  if needed → hero-check → ranked table). First execution + any fixes are
-  the next session's first move.
-- **C14 (pitch-clarity sentence) and C15 (Q&A arsenal: G3b as the
-  dynamic-contact receipt + Gemini's three breaking questions): NOT DONE** —
-  doc edits to `docs/demo-five-beats.md` + README, specced in ENDGAME.
+- **C13 batch hero fishing: DONE + maiden run clean.** `hero-fish.ts --scan
+  assets/marble` → **2/6 HEROES: the habitat 7188e250 AND the moon world
+  f1f4e6b3** (post-recalibration: 18 holes, 4 in-band sills, validated
+  twin-run route — a LUNAR hero fits the Artemis narrative). Nuance
+  unlocked: the habitat has 2 sills IN the rover-fail/quadruped-pass band
+  (0.09 m post-scale) — a **per-sill Beat-3 contrast is truthfully
+  speakable** (point at the sill, not the world-level verdict, which still
+  fails both on the 0.56 m worst step).
+- **C14 + C15 DONE**: architecture line ("the agent never edits geometry —
+  nine deterministic reversible tools, every choice re-inspected") in
+  Beat 4 + README invariants; Q&A arsenal in demo-five-beats.md — the three
+  Gemini breaking questions answered with receipts (G3b = the
+  dynamic-contact answer). 41/41 tests green. **Gemini triage complete.**
 - **User lane unchanged and urgent:** rules answer **Jul 8 EOD**; two Marble
   APP generations (Mars/Moon NASA photos — casts staged in Live Thread 2)
   then `hero-fish.ts --download <ids>`; foreground-browser fps number;
