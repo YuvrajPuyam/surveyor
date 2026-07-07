@@ -1,7 +1,16 @@
 # G3c: g3b's proven pick-and-place, CAPTURED ON CAMERA (headless RGB frames).
-# Franka (bundled URDF) + RMPflow (bundled config), crate shelf -> bed at
-# lunar gravity inside the Certified World Pack; every surface probe-measured.
-# Frames -> /scratch/.../g3c-frames/ at 30 fps via Camera sensor + PIL.
+# Franka (URDF imported to its own file, referenced in) + RMPflow, crate
+# shelf -> rover bed at lunar gravity inside the Certified World Pack.
+#
+# RENDER LAW (7 debug jobs of evidence, dbg1-4 + marker run): with Fabric
+# Scene Delegate, only content present on the stage BEFORE the first
+# world.reset() renders. Attribute edits after attach (purpose flips),
+# late references, and scene.add between stop/reset cycles draw NOTHING
+# while physics works perfectly. Therefore:
+#   - visible-ize the collider BEFORE World creation,
+#   - reference the robot BEFORE World creation,
+#   - author ALL props/probes before the ONE and only reset,
+#   - never world.stop(), never remove content — park probes out of frame.
 import json
 import math
 import os
@@ -11,6 +20,7 @@ FRAMES = "/scratch/gilbreth/gupta596/surveyor/g3c-frames"
 STAGE = "/scratch/gilbreth/gupta596/surveyor/canonical-pack/world/7188e250-e2ff-43e7-babb-73834c22e932.usda"
 SPAWNS = "/scratch/gilbreth/gupta596/surveyor/7188e250-e2ff-43e7-babb-73834c22e932/spawns.json"
 URDF = "/isaac-sim/exts/isaacsim.asset.importer.urdf/data/urdf/robots/franka_description/robots/panda_arm_hand.urdf"
+ROBOT_USD = "/scratch/gilbreth/gupta596/surveyor/franka-imported.usd"
 
 lines = []
 def log(msg):
@@ -18,7 +28,7 @@ def log(msg):
     with open(RESULTS, "w") as f:
         f.write("\n".join(lines) + "\n")
 
-log("g3c start")
+log("g3c start (single-reset flow)")
 from isaaclab.app import AppLauncher
 app = AppLauncher(headless=True, enable_cameras=True).app
 log("kit booted (cameras enabled)")
@@ -29,23 +39,22 @@ try:
     import omni.usd
     from isaacsim.core.utils.extensions import enable_extension
 
-    log("enabling urdf importer ext...")
     enable_extension("isaacsim.asset.importer.urdf")
-    log("enabling motion_generation ext...")
     enable_extension("isaacsim.robot_motion.motion_generation")
-    log("enabling camera sensor ext...")
     enable_extension("isaacsim.sensors.camera")
     log("extensions enabled")
 
     ctx = omni.usd.get_context()
     ok = ctx.open_stage(STAGE)
     log(f"stage open: {ok}")
+    from pxr import Gf, PhysxSchema, Sdf, UsdGeom, UsdLux, UsdPhysics
+    stage = ctx.get_stage()
 
-    from isaacsim.core.api import World
-    from isaacsim.core.api.objects import DynamicCuboid, FixedCuboid
-    from isaacsim.core.api.robots import Robot
-
-    world = World(stage_units_in_meters=1.0, physics_dt=1.0 / 60.0, rendering_dt=1.0 / 60.0)
+    # NuRec payload is absent on the cluster by design — keep it out entirely
+    vis = stage.GetPrimAtPath("/World/Visuals")
+    if vis and vis.IsValid():
+        vis.SetActive(False)
+        log("NuRec visuals prim deactivated")
 
     with open(SPAWNS) as f:
         spawns = json.load(f)
@@ -53,18 +62,43 @@ try:
     B = (s["x"], -s["z"], s["y"])
     log(f"franka base (stage): ({B[0]:.2f}, {B[1]:.2f}, {B[2]:.2f})")
 
+    # ---- PRE-WORLD: everything renderable gets authored NOW ---------------
+    # collider visible + double-sided (splat-derived normals are arbitrary;
+    # single-sided walls are backface-culled from inside the room)
+    shown = 0
+    for prim in stage.Traverse():
+        if prim.IsA(UsdGeom.Mesh):
+            img = UsdGeom.Imageable(prim)
+            img.CreatePurposeAttr().Set(UsdGeom.Tokens.default_)
+            img.MakeVisible()
+            UsdGeom.Mesh(prim).CreateDoubleSidedAttr(True)
+            UsdGeom.Gprim(prim).CreateDisplayColorAttr([Gf.Vec3f(0.55, 0.57, 0.6)])
+            shown += 1
+    log(f"world meshes visible-ized pre-attach: {shown}")
+
+    dome = UsdLux.DomeLight.Define(stage, Sdf.Path("/World/g3c_dome"))
+    dome.CreateIntensityAttr(600)
+    sun = UsdLux.DistantLight.Define(stage, Sdf.Path("/World/g3c_sun"))
+    sun.CreateIntensityAttr(2500)
+    UsdGeom.XformCommonAPI(sun.GetPrim()).SetRotate((55.0, 0.0, 35.0))
+
+    # robot: import into its own USD (never into the open stage), reference in
     status, import_config = omni.kit.commands.execute("URDFCreateImportConfig")
     import_config.merge_fixed_joints = False
     import_config.fix_base = True
-    import_config.make_default_prim = False
+    import_config.make_default_prim = True
     import_config.create_physics_scene = False
-    status, robot_path = omni.kit.commands.execute(
-        "URDFParseAndImportFile", urdf_path=URDF, import_config=import_config
+    status, imported_path = omni.kit.commands.execute(
+        "URDFParseAndImportFile", urdf_path=URDF, import_config=import_config,
+        dest_path=ROBOT_USD,
     )
-    log(f"urdf imported at: {robot_path}")
-
-    from pxr import Gf, PhysxSchema, Sdf, UsdGeom, UsdLux, UsdPhysics
-    stage = ctx.get_stage()
+    existing = stage.GetPrimAtPath(imported_path) if imported_path else None
+    if existing and existing.IsValid():
+        robot_path = str(imported_path)
+    else:
+        stage.DefinePrim("/panda").GetReferences().AddReference(ROBOT_USD)
+        robot_path = "/panda"
+    log(f"robot referenced at {robot_path} (from {ROBOT_USD})")
     omni.kit.commands.execute(
         "TransformPrimSRT",
         path=robot_path,
@@ -75,7 +109,6 @@ try:
     art = PhysxSchema.PhysxArticulationAPI.Get(stage, robot_path)
     art.CreateSolverPositionIterationCountAttr(64)
     art.CreateSolverVelocityIterationCountAttr(64)
-
     for j in range(1, 8):
         drive = UsdPhysics.DriveAPI.Get(
             stage.GetPrimAtPath(f"{robot_path}/joints/panda_joint{j}"), "angular"
@@ -91,123 +124,100 @@ try:
             log(f"finger drive ok: {fj}")
         except Exception as fe:
             log(f"finger drive skipped ({fj}): {fe!r}")
-    log("drives configured")
 
-    # ---- make the collider world visible + lit (splats = absent NuRec payload)
-    shown = 0
-    for prim in stage.Traverse():
-        if prim.IsA(UsdGeom.Mesh) and not str(prim.GetPath()).startswith("/panda"):
-            img = UsdGeom.Imageable(prim)
-            img.CreatePurposeAttr().Set(UsdGeom.Tokens.default_)
-            UsdGeom.Gprim(prim).CreateDisplayColorAttr([Gf.Vec3f(0.55, 0.57, 0.6)])
-            shown += 1
-    dome = UsdLux.DomeLight.Define(stage, Sdf.Path("/World/g3c_dome"))
-    dome.CreateIntensityAttr(600)
-    sun = UsdLux.DistantLight.Define(stage, Sdf.Path("/World/g3c_sun"))
-    sun.CreateIntensityAttr(2500)
-    UsdGeom.XformCommonAPI(sun.GetPrim()).SetRotate((55.0, 0.0, 35.0))
-    log(f"world meshes made visible: {shown}; lights added")
-
-    robot = world.scene.add(Robot(prim_path=robot_path, name="franka"))
-
-    # ---- camera PRIM early (transform baked); the sensor WRAPPER must wait.
-    # dbg1/dbg2 proved: a camera initialized once, with NO world.stop() after
-    # it, renders from 8 warmups — while g3c's stop/reset calibration cycles
-    # leave an early-initialized sensor permanently blank (initialize() is a
-    # no-op the second time). So: define the prim now, wrap it AFTER the last
-    # reset, just before capture.
+    # camera prim + diagnostic marker (marker goes inactive before the movie)
     cam_path = "/World/g3c_cam"
     UsdGeom.Camera.Define(stage, Sdf.Path(cam_path))
     eye = Gf.Vec3d(B[0] - 1.15, B[1] - 1.05, B[2] + 1.15)
     aim = Gf.Vec3d(B[0] + 0.25, B[1] + 0.22, B[2] + 0.25)
     view = Gf.Matrix4d().SetLookAt(eye, aim, Gf.Vec3d(0, 0, 1))
     UsdGeom.Xformable(stage.GetPrimAtPath(cam_path)).MakeMatrixXform().Set(view.GetInverse())
-    log("camera prim created (wrapper deferred until after calibration)")
+    marker = UsdGeom.Cube.Define(stage, Sdf.Path("/World/g3c_marker"))
+    marker.CreateSizeAttr(0.25)
+    marker.CreateDisplayColorAttr([Gf.Vec3f(1.0, 0.1, 0.1)])
+    UsdGeom.XformCommonAPI(marker.GetPrim()).SetTranslate((aim[0], aim[1], aim[2] + 0.3))
+    log("camera + marker authored")
 
-    # ---- CALIBRATION PASS 1: floor support
+    # ---- World + ALL physics content, still before the one reset ----------
+    from isaacsim.core.api import World
+    from isaacsim.core.api.objects import DynamicCuboid, FixedCuboid
+    from isaacsim.core.api.robots import Robot
+
+    world = World(stage_units_in_meters=1.0, physics_dt=1.0 / 60.0, rendering_dt=1.0 / 60.0)
+    robot = world.scene.add(Robot(prim_path=robot_path, name="franka"))
+
+    FLOOR_EST = B[2]  # spawn floor; probes measured it within 3 mm on this world
     pick_xy = (B[0] + 0.45, B[1])
     place_xy = (B[0], B[1] + 0.45)
     PROBE = 0.03
-    probeA = world.scene.add(DynamicCuboid(
-        prim_path="/World/g3b_probeA", name="probeA",
-        position=(pick_xy[0], pick_xy[1], B[2] + 0.6), size=PROBE, mass=0.05,
-    ))
-    probeB = world.scene.add(DynamicCuboid(
-        prim_path="/World/g3b_probeB", name="probeB",
-        position=(place_xy[0], place_xy[1], B[2] + 0.6), size=PROBE, mass=0.05,
-    ))
-    world.get_physics_context().set_gravity(-1.62)
-    world.reset()
-    for _ in range(300):
-        world.step(render=False)
-    pa, _ = probeA.get_world_pose()
-    pb, _ = probeB.get_world_pose()
-    supportA = float(pa[2]) - PROBE / 2
-    supportB = float(pb[2]) - PROBE / 2
-    log(f"measured floor support: pick {supportA:.3f} (spawn floor {B[2]:.3f}), place {supportB:.3f}")
-    world.stop()
-    world.scene.remove_object("probeA")
-    world.scene.remove_object("probeB")
-
-    # ---- props + surface probes
     SHELF_H = 0.35
     BED_H = 0.15
     CRATE = 0.06
+
     world.scene.add(FixedCuboid(
         prim_path="/World/g3b_shelf", name="shelf",
-        position=(pick_xy[0], pick_xy[1], supportA + SHELF_H / 2),
+        position=(pick_xy[0], pick_xy[1], FLOOR_EST + SHELF_H / 2),
         scale=(0.30, 0.30, SHELF_H), color=np.array([0.4, 0.4, 0.45]),
     ))
     world.scene.add(FixedCuboid(
         prim_path="/World/g3b_bed", name="bed",
-        position=(place_xy[0], place_xy[1], supportB + BED_H / 2),
+        position=(place_xy[0], place_xy[1], FLOOR_EST + BED_H / 2),
         scale=(0.35, 0.35, BED_H), color=np.array([0.35, 0.3, 0.25]),
     ))
     crate = world.scene.add(DynamicCuboid(
         prim_path="/World/g3b_crate", name="crate",
-        position=(pick_xy[0], pick_xy[1], supportA + SHELF_H + CRATE / 2 + 0.01),
+        position=(pick_xy[0], pick_xy[1], FLOOR_EST + SHELF_H + CRATE / 2 + 0.02),
         size=CRATE, mass=0.2, color=np.array([0.8, 0.5, 0.1]),
     ))
+    # surface probes: dropped ONTO shelf/bed tops + open floor (offset XY,
+    # clear of the prop footprints); parked out of frame after measuring
     probeC = world.scene.add(DynamicCuboid(
         prim_path="/World/g3b_probeC", name="probeC",
-        position=(pick_xy[0] + 0.08, pick_xy[1] + 0.08, supportA + 1.2), size=PROBE, mass=0.05,
+        position=(pick_xy[0] + 0.08, pick_xy[1] + 0.08, FLOOR_EST + SHELF_H + 0.6),
+        size=PROBE, mass=0.05,
     ))
     probeD = world.scene.add(DynamicCuboid(
         prim_path="/World/g3b_probeD", name="probeD",
-        position=(place_xy[0] + 0.06, place_xy[1] - 0.06, supportB + 1.2), size=PROBE, mass=0.05,
+        position=(place_xy[0] + 0.06, place_xy[1] - 0.06, FLOOR_EST + BED_H + 0.6),
+        size=PROBE, mass=0.05,
     ))
-    log("props + surface probes placed")
+    probeF = world.scene.add(DynamicCuboid(
+        prim_path="/World/g3b_probeF", name="probeF",
+        position=(B[0] - 0.35, B[1] + 0.55, FLOOR_EST + 0.6), size=PROBE, mass=0.05,
+    ))
+    log("props + probes authored (pre-reset)")
 
-    world.reset()
+    world.get_physics_context().set_gravity(-1.62)
+    world.reset()  # THE one and only reset
     dof_names = list(robot.dof_names)
     log(f"world reset (Play); gravity 1.62; dofs: {len(dof_names)}")
     finger_idx = [i for i, n in enumerate(dof_names) if n.startswith("panda_finger_joint")]
 
-    for _ in range(300):
+    for _ in range(360):
         world.step(render=False)
     pc, _ = probeC.get_world_pose()
     pd, _ = probeD.get_world_pose()
+    pf, _ = probeF.get_world_pose()
     cp0, _ = crate.get_world_pose()
     shelf_top = float(pc[2]) - PROBE / 2
     bed_top = float(pd[2]) - PROBE / 2
+    floor_meas = float(pf[2]) - PROBE / 2
     crate_half = float(cp0[2]) - shelf_top
-    log(f"measured surfaces: shelf top {shelf_top:.3f}, bed top {bed_top:.3f}, crate half {crate_half:.3f}")
-    world.stop()
-    world.scene.remove_object("probeC")
-    world.scene.remove_object("probeD")
-    world.reset()
-    for _ in range(300):
-        world.step(render=False)
-    cp0, _ = crate.get_world_pose()
-    log(f"crate re-settled at [{cp0[0]:.3f}, {cp0[1]:.3f}, {cp0[2]:.3f}]")
+    log(f"measured: floor {floor_meas:.3f} (est {FLOOR_EST:.3f}), shelf top {shelf_top:.3f}, bed top {bed_top:.3f}, crate half {crate_half:.3f}")
 
-    # ---- capture plumbing: FIRST touch of the camera sensor. All stop/reset
-    # cycles are behind us (dbg2: wrapper+initialize with no subsequent stop
-    # renders on this exact pack stage).
+    # park the probes out of frame (never remove content mid-play)
+    try:
+        for p, dx in ((probeC, 4.0), (probeD, 4.5), (probeF, 5.0)):
+            p.set_world_pose(np.array([B[0] + dx, B[1] - 4.0, FLOOR_EST + 0.2]), np.array([1.0, 0, 0, 0]))
+            p.set_linear_velocity(np.zeros(3))
+        log("probes parked out of frame")
+    except Exception as pe:
+        log(f"probe parking skipped: {pe!r}")
+
+    # ---- capture: renderer verified via marker, scene via marker-off ------
     from isaacsim.sensors.camera import Camera
     cam = Camera(prim_path=cam_path, resolution=(1280, 720))
     cam.initialize()
-    log("camera wrapper created + initialized (post-calibration)")
     os.makedirs(FRAMES, exist_ok=True)
     from PIL import Image
     frame_no = [0]
@@ -218,8 +228,6 @@ try:
         Image.fromarray(rgba[:, :, :3]).save(f"{FRAMES}/frame_{frame_no[0]:05d}.png")
         frame_no[0] += 1
     def frame_spread():
-        # judge by the CENTER region — a viewport border line fools the
-        # full-frame spread (the lesson of the first "fixed" run)
         rgba = cam.get_rgba()
         if rgba is None or getattr(rgba, "size", 0) == 0:
             return -1.0
@@ -227,21 +235,26 @@ try:
         h, w = rgb.shape[0], rgb.shape[1]
         core = rgb[h // 4 : 3 * h // 4, w // 4 : 3 * w // 4]
         return float(core.max()) - float(core.min())
-    spread = -1.0
-    for attempt in range(3):
-        for _ in range(30):
-            world.step(render=True)
-        spread = frame_spread()
-        log(f"warmup attempt {attempt}: center frame spread {spread:.0f}")
-        if spread > 8:
-            break
-    if spread <= 8:
-        log("RENDER_STILL_BLANK — aborting before choreography")
-        raise RuntimeError("camera render product produced uniform frames")
-    snap()
-    log(f"camera live (center spread {spread:.0f}); warmup frame written: {frame_no[0] > 0}")
 
-    # ---- RMPflow
+    for _ in range(30):
+        world.step(render=True)
+    with_marker = frame_spread()
+    log(f"warmup spread with marker: {with_marker:.0f}")
+    marker.GetPrim().SetActive(False)
+    for _ in range(15):
+        world.step(render=True)
+    scene_spread = frame_spread()
+    log(f"scene-only spread (marker off): {scene_spread:.0f}")
+    if with_marker <= 8:
+        log("RENDER_DEAD — even the marker is invisible; aborting")
+        raise RuntimeError("render product produced uniform frames")
+    if scene_spread <= 8:
+        log("SCENE_CONTENT_INVISIBLE — single-reset flow did NOT cure content ingestion; aborting to save walltime")
+        raise RuntimeError("scene content invisible with healthy renderer")
+    snap()
+    log(f"SCENE RENDERS (spread {scene_spread:.0f}) — proceeding to choreography")
+
+    # ---- RMPflow (verbatim from the proven g3b path) -----------------------
     from isaacsim.robot_motion.motion_generation import ArticulationMotionPolicy
     from isaacsim.robot_motion.motion_generation.interface_config_loader import (
         load_supported_motion_policy_config,
