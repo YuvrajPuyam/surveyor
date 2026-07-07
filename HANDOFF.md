@@ -179,9 +179,22 @@ minutes); **compute nodes have NO direct internet** — container pulls happen
 on the login node. Ship scripts via `scp` after stripping CRLF/BOM
 (PowerShell-written files break bash otherwise).
 
-Next on the cluster, in order: g2-smoke → G3 scripted pick-and-place
-(guaranteed ending) → G4 lift checkpoint → G5 Replicator SDG (per
-`isaac/README.md`, `SURVEYOR_BUNDLE_DIR`/`SURVEYOR_WORLD_USD` env vars).
+**G2 SMOKE PASSED** (job 11217101, `g2-smoke.out`): GPU visible in container
+(A10 via `--nv`), **isaaclab 0.47.1 imports**, and the training contract
+EXECUTES in-container (`CONTRACT OK` — grade-A gate, gravity, DR ranges,
+10 spawns, 22 termination masks). One finding: this image is the pip-based
+Isaac Sim distribution — `pxr` is NOT a bare module; USD loads only once kit
+boots. The stage-parse check therefore belongs to G3's boot. Container exec
+pattern that works: `apptainer exec --cleanenv --nv isaac-lab-2.3.0.sif
+/workspace/isaaclab/isaaclab.sh -p …` (bare `python` does not exist; host
+conda leaks without --cleanenv).
+
+Next on the cluster, in order:
+1. **G3 boot + stage-open test** (also completes G2's USD check):
+   `isaaclab.sh -p -c "from isaaclab.app import AppLauncher; app = AppLauncher(headless=True).app; from pxr import Usd; s = Usd.Stage.Open('<pack usda>'); print(len(list(s.Traverse())), 'prims'); app.close()"`
+   then the scripted pick-and-place recording at 1.62 m/s² (guaranteed ending);
+2. G4 lift checkpoint; 3. G5 Replicator SDG (per `isaac/README.md`,
+   `SURVEYOR_BUNDLE_DIR`/`SURVEYOR_WORLD_USD` env vars).
 
 ## 8. Suggested first moves (next session)
 
