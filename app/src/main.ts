@@ -316,6 +316,7 @@ let certStarted = false;
 let certDone = false;
 let introRevealed = false;
 let beforeGrade: string | undefined; // first live grade — the Beat-5 "before"
+let beforeDefectCount: number | undefined; // first survey's count — explains Beat-5's larger total
 
 client.onPhase = (phase, detail) => {
   hud.status = phase === "ready" ? "ready" : `${phase.replace(/-/g, " ")}${detail ? ` — ${detail}` : ""}`;
@@ -457,7 +458,7 @@ function buildBeforeAfterCard(): void {
   }
   beforeAfterCard.appendChild(sub);
 
-  const summary = beforeAfterSummary(latestCert);
+  const summary = beforeAfterSummary(latestCert, beforeDefectCount);
   const found = document.createElement("div");
   found.className = "sv-beforeafter-found";
   found.textContent = summary.found;
@@ -1091,6 +1092,7 @@ async function startCertification(dir: string): Promise<void> {
     const cert: CertificateSummary = res.certificate;
     applyCertificate(cert);
     if (beforeGrade === undefined) beforeGrade = cert.grade; // the Beat-5 "before"
+    if (beforeDefectCount === undefined) beforeDefectCount = cert.defects.length;
     repairPanel.setPlan(cert);
     const open = cert.defects.filter(isOpenDefect).length;
     repairPanel.log(

@@ -515,15 +515,48 @@ function defectNoun(d: DefectSummary): string {
   }
 }
 
+function defectNounPlural(d: DefectSummary, n: number): string {
+  switch (d.type) {
+    case "collider_hole":
+      return `${n} holes in the floor`;
+    case "phantom_collider":
+      return `${n} invisible walls`;
+    case "visual_only_surface":
+      return `${n} ghost surfaces`;
+    case "scale_error":
+      return `${n} size errors`;
+    case "clearance_violation":
+      return `${n} tight squeezes`;
+    default:
+      return `${n} ${d.type.replace(/_/g, " ")}s`;
+  }
+}
+
 export function caughtBanner(newDefects: DefectSummary[]): CaughtBannerCopy {
-  const lines = newDefects.map((d) => {
+  // one line per defect *kind*, counted — three identical holes must read as
+  // "3 holes", never as the same sentence stacked three times
+  const groups = new Map<string, DefectSummary[]>();
+  for (const d of newDefects) {
+    const key =
+      d.type === "raised_sill"
+        ? `raised_sill:${d.description?.match(METERS_RE)?.[1] ?? ""}`
+        : d.type;
+    const g = groups.get(key);
+    if (g) g.push(d);
+    else groups.set(key, [d]);
+  }
+  const lines = [...groups.values()].map((g) => {
+    const d = g[0];
     if (d.type === "raised_sill") {
       const h = d.description?.match(METERS_RE)?.[1];
-      return h
-        ? `The patch created a new problem: a ${h} m step where the slab meets the floor.`
-        : "The patch created a new problem: a raised step where the slab meets the floor.";
+      const step = h ? `a ${h} m step` : "a raised step";
+      return g.length > 1
+        ? `The patch created ${g.length} new problems: ${step} where each slab meets the floor.`
+        : `The patch created a new problem: ${step} where the slab meets the floor.`;
     }
-    return `The repair created a new problem: ${defectNoun(d)}.`;
+    return g.length > 1
+      ? `The repair created new problems: ${defectNounPlural(d, g.length)}.`
+      : `The repair created a new problem: ${defectNoun(d)}.`;
   });
   return {
     title: "Our own repair just failed inspection",
@@ -751,7 +784,10 @@ export const MODEL_CLASS_DISCLOSURE =
   "Grade predicts navmesh-level traversability under the disclosed model class — not policy transfer.";
 
 /** Beat-5 before/after card numbers, computed live — never hardcoded. */
-export function beforeAfterSummary(cert: CertificateSummary): { found: string; breakdown: string } {
+export function beforeAfterSummary(
+  cert: CertificateSummary,
+  firstSurveyCount?: number,
+): { found: string; breakdown: string } {
   const total = cert.defects.length;
   let fixed = 0;
   let quarantined = 0;
@@ -769,8 +805,15 @@ export function beforeAfterSummary(cert: CertificateSummary): { found: string; b
   if (quarantined > 0) parts.push(`${loc(quarantined)} roped off`);
   if (accepted > 0) parts.push(`${loc(accepted)} accepted as real`);
   if (escalated > 0) parts.push(`${loc(escalated)} escalated to a human`);
+  // the total can exceed the first survey's count: fixing the size error
+  // re-measures the world at the true scale, which surfaces more findings —
+  // say so, or the jump reads as an inconsistency
+  const grew = firstSurveyCount !== undefined && total > firstSurveyCount;
+  const found = grew
+    ? `${loc(firstSurveyCount)} problems at first survey — ${loc(total)} once re-measured at the true size · ${loc(resolved)} resolved`
+    : `${loc(total)} problems found · ${loc(resolved)} resolved`;
   return {
-    found: `${loc(total)} problems found · ${loc(resolved)} resolved`,
+    found,
     breakdown: parts.length > 0 ? `(${parts.join(", ")})` : "",
   };
 }
