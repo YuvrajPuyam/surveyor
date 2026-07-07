@@ -189,10 +189,23 @@ pattern that works: `apptainer exec --cleanenv --nv isaac-lab-2.3.0.sif
 /workspace/isaaclab/isaaclab.sh -p …` (bare `python` does not exist; host
 conda leaks without --cleanenv).
 
+**G3 BOOT GATE PASSED** (job 11217180, `g3-boot.out`, rc=0 in 32 s): Isaac
+Sim kit booted HEADLESS on the A10 through Vulkan (RTX renderer initialized,
+driver table logged) and **omni.usd COMPOSED OUR PACK STAGE** — the log
+shows the composition engine resolving `/World/Visuals` and reporting the
+absent NuRec payload exactly as designed (payload = load-on-demand; the
+.usdz is the NuRec-conversion deliverable, the pack's one outstanding
+artifact). The working sbatch is `g3-boot.sbatch` — reuse its exec pattern
+verbatim for all kit jobs: `--cleanenv --nv` + EULA envs + node-local tmp
+binds over `/isaac-sim/kit/{cache,data,logs}`, `/root/Documents`,
+`/root/.cache` (the SIF is read-only and kit writes at boot; without binds
+it crashes in DerivedDataCache). Kit swallows bare stdout prints — in-kit
+scripts must write results to a FILE, not stdout.
+
 Next on the cluster, in order:
-1. **G3 boot + stage-open test** (also completes G2's USD check):
-   `isaaclab.sh -p -c "from isaaclab.app import AppLauncher; app = AppLauncher(headless=True).app; from pxr import Usd; s = Usd.Stage.Open('<pack usda>'); print(len(list(s.Traverse())), 'prims'); app.close()"`
-   then the scripted pick-and-place recording at 1.62 m/s² (guaranteed ending);
+1. **G3 proper**: author the scripted pick-and-place (Franka RMPflow, crate
+   shelf→rover bed at 1.62 m/s² — the guaranteed demo ending), record video
+   frames headlessly (`omni.kit.capture` or per-frame renders to scratch);
 2. G4 lift checkpoint; 3. G5 Replicator SDG (per `isaac/README.md`,
    `SURVEYOR_BUNDLE_DIR`/`SURVEYOR_WORLD_USD` env vars).
 
