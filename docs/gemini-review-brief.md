@@ -32,18 +32,25 @@ synthetic dataset).
 
 SURVEYOR runs physical experiments inside the world — seeded probe rain,
 virtual LiDAR raycasts, a two-way splat-vs-collider divergence analysis —
-and produces:
+and its END PRODUCT is a **finished, physics-verified USD world, ready for
+robot training in Isaac Sim** — for environments that cannot be scanned,
+only generated: lunar and martian bases, facilities that don't exist yet.
+Drag the one USD file into Isaac Sim, press Play, and train.
 
-1. a **certificate**: per-region trust map (confirmed / observed /
+That training-ready USD is backed by three layers of work inside it:
+
+1. a **repaired world**: scale applied, holes patched (patches
+   re-inspected by the same instruments), unrepairable regions
+   quarantined, verified spawn points — this is the geometry robots
+   actually train on;
+2. a **certificate**: per-region trust map (confirmed / observed /
    divergent), per-robot pass/fail verdicts, every number carrying an
    uncertainty range and a methods line (the schema makes a naked number
-   unrepresentable);
-2. a **repaired copy**: scale applied, holes patched (patches re-inspected
-   by the same instruments), unrepairable regions quarantined, verified
-   spawn points;
+   unrepresentable) — the warranty attached to the world;
 3. an **executable training contract**: spawns → reset poses, quarantine →
    no-go masks, friction uncertainty → domain-randomization ranges,
-   compiled into NVIDIA Isaac Lab configuration.
+   compiled into NVIDIA Isaac Lab configuration — so the certificate
+   doesn't just describe the world, it configures the training run.
 
 Nothing is called a defect unless two independent instruments agree;
 nothing is called repaired until the same instruments pass it again.
@@ -74,8 +81,15 @@ between them."
 
 ## 3. The final output (what we decided actually sells)
 
-We deliberately pivoted from "impressive process" to a holdable artifact —
-the **Certified World Pack**, publicly downloadable before judging:
+We deliberately pivoted from "impressive process" to a holdable artifact:
+**a training-ready lunar/martian world as one USD file** — generated from
+a sentence, physically verified, repaired, and importable into any robot
+training sim (Isaac Sim/Isaac Lab) with a single drag. The space setting
+is not decoration: a moon base cannot be photographed or scanned, so
+generation is the only source of training worlds — and a generated world
+has no real original to check against, which is exactly why physical
+verification is the only way to trust one. Everything ships as the
+**Certified World Pack**, publicly downloadable before judging:
 
 ```
 artemis-supply-hab-pack/
