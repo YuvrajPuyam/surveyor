@@ -106,6 +106,39 @@ card, Unity Kit certificate overlay, MCP, Mars flourish.
 | C14 | **Pitch-clarity sentence** (a hostile expert reviewer misread the architecture; judges will too): "the agent never edits geometry — it chooses from nine deterministic, reversible tools, and the instrument re-inspects every choice before it counts." Add to demo doc + README | sentence present in demo script Beat 4 and README | 0.1 d |
 | C15 | **Q&A arsenal — the dynamic-contact receipt**: rehearse Gemini's three "breaking questions"; the answer to "static concordance ≠ dynamic fidelity" is G3b (contact-rich grip/lift/set-down in PhysX on the REPAIRED geometry, 0.3 mm at lunar g — also refutes "LLM patches explode solvers"), bounded by the printed non-claim ("not policy transfer") | answers written into demo doc Q&A section | 0.25 d |
 
+### Sequencing lock + wording law (Gemini consistency round, 2026-07-07)
+
+**The frozen dependency chain — no artifact is recorded before its inputs
+are locked, and nothing is hashed before everything is frozen:**
+1. **VISUAL TIER LOCKED: 100k is final.** The 500k re-render is CUT (zero
+   rework risk beats a sharper background; the movie already reads).
+2. G4 (policy video) and G5 (dataset — **500-frame teaser is the target**,
+   scale up only if the evening has spare time) record against the locked
+   visuals.
+3. Pull the NuRec usdz into the LOCAL shipped pack; re-validate.
+4. Assemble the final pack folder.
+5. Stamp `HASHES.txt` on the frozen folder — LAST — then publish.
+
+**Two hashes, never conflated:** the Devpost prints the **certificate
+content-hash** (tier-independent; stable across re-renders). `HASHES.txt`
+is the pack-file manifest, stamped in step 5. The stage re-hash beat uses
+the certificate hash only — and the pre-printed value MUST be generated on
+the exact demo laptop + browser that re-hashes it live (rehearse this).
+
+**Wording law (zero ad-lib room):**
+- Beat 3 sill line, verbatim: *"This specific 0.09 m sill fails the rover
+  and passes the quadruped."* NEVER "this world fails the rover" — the
+  world-level verdict fails both robots. (0.09 m is the hero-fish measured
+  post-scale value; 0.15 m was a stale planning example — do not say it.)
+- Beat 5′ video: **G4 policy video if G4 passes; else the G3c scripted
+  video captioned "zero training required."** G3c remains a permanent
+  artifact (fallback + the dynamic-contact receipt) either way.
+- Gravity caption on the lift footage: *"gravity: 1.62 m/s² — set by the
+  pack's training contract."* Say "the habitat," never "moon base," unless
+  the lunar hero world (f1f4e6b3) is the world on screen.
+- Twin-run label, verbatim mechanism: *"planning surface derived from
+  splat centers (visual heightfield); physics runs on the collider."*
+
 ### Cluster lane (Gilbreth evenings, priority order per pipeline-v2 P1–P8)
 | # | Item | Gate |
 |---|---|---|
