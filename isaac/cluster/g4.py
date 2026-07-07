@@ -130,9 +130,11 @@ try:
 
     # ---- camera + marker (root level; g3c pose family) ---------------------
     cam_path = "/g4_cam"
-    UsdGeom.Camera.Define(stage, Sdf.Path(cam_path))
-    eye = Gf.Vec3d(B[0] - 1.05, B[1] - 1.15, B[2] + 1.15)
-    aim = Gf.Vec3d(B[0] + 0.35, B[1], B[2] + 0.32)
+    camprim = UsdGeom.Camera.Define(stage, Sdf.Path(cam_path))
+    camprim.CreateFocalLengthAttr(28.0)  # wider than the 50mm default: the
+    # lift tops out ~0.5 m above the raised base; keep grasp AND carry in frame
+    eye = Gf.Vec3d(B[0] - 1.25, B[1] - 1.35, B[2] + 1.25)
+    aim = Gf.Vec3d(B[0] + 0.40, B[1], B[2] + 0.42)
     view = Gf.Matrix4d().SetLookAt(eye, aim, Gf.Vec3d(0, 0, 1))
     UsdGeom.Xformable(stage.GetPrimAtPath(cam_path)).MakeMatrixXform().Set(view.GetInverse())
     # visual-only riser under the (to-be-raised) robot base - plain USD, no
