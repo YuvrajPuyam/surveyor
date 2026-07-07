@@ -152,6 +152,10 @@ outcomes recorded (cassette in `traces/`).
   own precision/recall on worlds with planted defects.
 - Certificates are byte-identical for the same seed. Determinism is a demo
   claim; keep it true.
+- The repair agent never edits geometry — it chooses from a closed menu of
+  deterministic, reversible tools, and the instrument re-inspects every
+  action before it counts. (Say this out loud before anyone assumes an LLM
+  is moving vertices; an external reviewer already made that mistake.)
 
 ## Where to read next
 

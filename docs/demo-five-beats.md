@@ -43,7 +43,11 @@ sentence, protected narration time.
 ## Beat 4 — One repair, fail-and-adapt (~45s) — THE agentic beat
 
 **Disclosure line first, two seconds:** "here's a failure mode we love —
-watch it recover." Then: diagnosis fork on the scale defect (vendor factor
+watch it recover." **Architecture line second (C14 — a hostile expert
+reviewer misread this, so judges will too):** "the agent never edits
+geometry — it chooses from nine deterministic, reversible tools, and the
+instrument re-inspects every choice before it counts." Then: diagnosis fork
+on the scale defect (vendor factor
 1.624 vs our independent 1.60 estimate — one `apply_vendor_scale` re-measures
 the world: doorway 1.27 → 2.02 m). Then the hole patch: fitted_slab →
 regional recertify catches the NEW 0.48 m step the patch itself created →
@@ -77,3 +81,33 @@ that faked physics would have moved it."
 - The moat slide: the defect-outcome ledger — an accumulating corpus of how
   generated worlds fail and which repairs hold; neither NVIDIA nor World
   Labs has it
+
+## Q&A arsenal — the Gemini breaking questions (C15; rehearse verbatim)
+
+**Q1 "A kinematic test in Rapier can't guarantee dynamic stability in
+PhysX — engines differ exactly where sim-to-real breaks: contact."**
+Answer in three steps. (1) The certificate never claims it: it prints
+"predicts navmesh-level traversability under the disclosed model class —
+not policy transfer." (2) The static receipt: PhysX corroborated the
+Rapier-certified repaired floor to 1 mm (G3a). (3) The DYNAMIC receipt:
+G3b is a contact-rich pick-lift-traverse-place in PhysX ON THE REPAIRED
+GEOMETRY at lunar gravity — set-down 0.3 mm from the probe-measured
+surface. That also answers "LLM patches destabilize solvers": the patched
+mesh ran clean through the whole choreography. Bounded claim, receipted.
+
+**Q2 "Why repair a $1.20 asset instead of regenerating until one is
+clean?"** Agree — filtering IS the pipeline: `hero-fish.ts` certifies a
+fleet and ranks it ("the certificates pick the hero", mechanically).
+Repair is the LAST MILE for the world you've already invested in — and
+the repair tools are deterministic engine operations; the agent only
+chooses among them (see the Beat-4 architecture line). The audited repair
+is also the layer no filter, SimReady rule, or vendor fix replicates.
+
+**Q3 "Your scale prior is circular — a door-height assumption scales the
+whole world."** The prior is one of THREE independent signals: vendor
+metadata (cross-checked, not trusted), the door prior (disclosed ±10%),
+and the pano-depth audit (instrument #3, imagery-side). Where they
+disagree, the certificate says so; where none applies (outdoor, no
+doors), metric verdicts are SUSPENDED and printed as suspended — never
+computed on fake meters. The failure mode Gemini describes is the one
+thing the schema makes unrepresentable.
