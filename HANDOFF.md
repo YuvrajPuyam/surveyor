@@ -162,8 +162,11 @@ present, apptainer available. ENDGAME's P1 kill-risk is dead.
 Working state on the cluster (`/scratch/gilbreth/gupta596/surveyor/`):
 - canonical repaired bundle (7188e250…), `canonical-pack/` (USD, ALL RULES
   PASS, content sha 6b2909f1…), the `isaac/` python package;
-- `isaac-lab-2.3.0.sif` PULLING on the login node (detached nohup; log:
-  `pull-login.log`; download done, squashfs build in progress);
+- `isaac-lab-2.3.0.sif` PULLING on the login node (log: `pull-login.log`) —
+  MUST be launched with `setsid nohup … < /dev/null &`: plain nohup dies with
+  the ssh session (lost one attempt to that; the OCI layer cache in
+  `apptainer-cache/` made the relaunch cheap). Check: `pgrep -u gupta596
+  apptainer` / `ls -lh *.sif`;
 - `g2-smoke.sbatch` STAGED — run after the .sif exists:
   `sbatch --qos=standby g2-smoke.sbatch` → proves GPU-in-container, isaaclab
   import, the pack USD parsing under NVIDIA pxr, and the training contract
