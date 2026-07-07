@@ -222,6 +222,21 @@ Next on the cluster, in order:
 2. G4 lift checkpoint; 3. G5 Replicator SDG (per `isaac/README.md`,
    `SURVEYOR_BUNDLE_DIR`/`SURVEYOR_WORLD_USD` env vars).
 
+## 7d. Positioning: "isn't this NVIDIA Cosmos?" (judge Q&A, verified 2026-07-07)
+
+No — different layer. Cosmos (incl. Cosmos 3, Jun 2026) = world foundation
+models whose output is **video**: Predict (photoreal clips), Transfer
+(structured input → photoreal video for SDG), Reason (video → outcome
+reasoning in language). No collider, no interactive 3D asset, physics = a
+learned prior. You cannot drop a robot into a Cosmos world. SURVEYOR takes
+worlds a robot WILL touch (splats + collider), **measures** visual-vs-physical
+disagreement, repairs it, and signs a deterministic certificate — the thing
+nothing in the NVIDIA stack does (USD validators check schema, not reality).
+Judo: Cosmos-era world proliferation = more uninspected bridges = more need
+for the independent inspector. Receipt: PhysX corroborated our Rapier-certified
+repaired floor to 1 mm (G3a). One-liner: "Cosmos dreams worlds. SURVEYOR
+decides whether a robot may move in — and signs the certificate."
+
 ## 8. Suggested first moves (next session)
 
 1. `npm test` (35 green) + one full Beat 1→5 rehearsal in the viewer:
