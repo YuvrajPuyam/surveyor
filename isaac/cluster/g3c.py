@@ -110,16 +110,19 @@ try:
 
     robot = world.scene.add(Robot(prim_path=robot_path, name="franka"))
 
-    # ---- camera EARLY: render products must exist before sim start/reset
+    # ---- camera PRIM early (transform baked); the sensor WRAPPER must wait.
+    # dbg1/dbg2 proved: a camera initialized once, with NO world.stop() after
+    # it, renders from 8 warmups — while g3c's stop/reset calibration cycles
+    # leave an early-initialized sensor permanently blank (initialize() is a
+    # no-op the second time). So: define the prim now, wrap it AFTER the last
+    # reset, just before capture.
     cam_path = "/World/g3c_cam"
     UsdGeom.Camera.Define(stage, Sdf.Path(cam_path))
     eye = Gf.Vec3d(B[0] - 1.15, B[1] - 1.05, B[2] + 1.15)
     aim = Gf.Vec3d(B[0] + 0.25, B[1] + 0.22, B[2] + 0.25)
     view = Gf.Matrix4d().SetLookAt(eye, aim, Gf.Vec3d(0, 0, 1))
     UsdGeom.Xformable(stage.GetPrimAtPath(cam_path)).MakeMatrixXform().Set(view.GetInverse())
-    from isaacsim.sensors.camera import Camera
-    cam = Camera(prim_path=cam_path, resolution=(1280, 720))
-    log("camera prim + wrapper created (pre-reset)")
+    log("camera prim created (wrapper deferred until after calibration)")
 
     # ---- CALIBRATION PASS 1: floor support
     pick_xy = (B[0] + 0.45, B[1])
@@ -135,8 +138,6 @@ try:
     ))
     world.get_physics_context().set_gravity(-1.62)
     world.reset()
-    cam.initialize()
-    log("camera initialized")
     for _ in range(300):
         world.step(render=False)
     pa, _ = probeA.get_world_pose()
@@ -200,12 +201,13 @@ try:
     cp0, _ = crate.get_world_pose()
     log(f"crate re-settled at [{cp0[0]:.3f}, {cp0[1]:.3f}, {cp0[2]:.3f}]")
 
-    # ---- capture plumbing. The g3c-dbg bisect proved get_rgba() works from
-    # 8 warmups on a single-reset stage; the blank frames came from the THREE
-    # stop/reset cycles above orphaning the render product bound at the early
-    # initialize(). Re-bind AFTER the final reset and verify the first frame
-    # is non-uniform before spending the full choreography.
-    cam.initialize()  # re-bind render product post stop/reset cycles
+    # ---- capture plumbing: FIRST touch of the camera sensor. All stop/reset
+    # cycles are behind us (dbg2: wrapper+initialize with no subsequent stop
+    # renders on this exact pack stage).
+    from isaacsim.sensors.camera import Camera
+    cam = Camera(prim_path=cam_path, resolution=(1280, 720))
+    cam.initialize()
+    log("camera wrapper created + initialized (post-calibration)")
     os.makedirs(FRAMES, exist_ok=True)
     from PIL import Image
     frame_no = [0]
@@ -216,25 +218,28 @@ try:
         Image.fromarray(rgba[:, :, :3]).save(f"{FRAMES}/frame_{frame_no[0]:05d}.png")
         frame_no[0] += 1
     def frame_spread():
+        # judge by the CENTER region — a viewport border line fools the
+        # full-frame spread (the lesson of the first "fixed" run)
         rgba = cam.get_rgba()
         if rgba is None or getattr(rgba, "size", 0) == 0:
             return -1.0
         rgb = np.asarray(rgba)[:, :, :3]
-        return float(rgb.max()) - float(rgb.min())
+        h, w = rgb.shape[0], rgb.shape[1]
+        core = rgb[h // 4 : 3 * h // 4, w // 4 : 3 * w // 4]
+        return float(core.max()) - float(core.min())
     spread = -1.0
     for attempt in range(3):
         for _ in range(30):
             world.step(render=True)
         spread = frame_spread()
-        log(f"warmup attempt {attempt}: frame spread {spread:.0f}")
+        log(f"warmup attempt {attempt}: center frame spread {spread:.0f}")
         if spread > 8:
             break
-        cam.initialize()  # still clear-color: re-bind and retry
     if spread <= 8:
-        log("RENDER_STILL_BLANK after 3 re-binds — aborting before choreography")
+        log("RENDER_STILL_BLANK — aborting before choreography")
         raise RuntimeError("camera render product produced uniform frames")
     snap()
-    log(f"camera live (spread {spread:.0f}); warmup frame written: {frame_no[0] > 0}")
+    log(f"camera live (center spread {spread:.0f}); warmup frame written: {frame_no[0] > 0}")
 
     # ---- RMPflow
     from isaacsim.robot_motion.motion_generation import ArticulationMotionPolicy
