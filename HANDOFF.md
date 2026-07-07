@@ -212,13 +212,31 @@ promise is cluster-proven (`g3a.py`/`g3a.sbatch` are the template: World +
 DynamicCuboid via `isaacsim.core.api`, spawns from spawns.json, y-up→z-up
 (x,−z,y), results to a FILE).
 
+**G3b PICK-AND-PLACE PASSED** (job 11220349, 39 s; scripts in
+`isaac/cluster/g3b.{py,sbatch}`): Franka (bundled URDF, offline) + RMPflow
+(bundled config, EE frame `right_gripper` = fingertip midpoint) picked a 6 cm
+crate off a shelf and set it on the rover bed INSIDE the pack stage at 1.62
+m/s² — final crate [0.302, 4.051, −0.5517] vs measured place target [0.301,
+4.044, −0.552]: **z error 0.3 mm**, bit-stable at rest. Everything is
+probe-calibrated (floor support, built-prop surfaces, crate half-extent) —
+attempts 3–5 "failed" only because assertions trusted size math; the robot
+had been placing correctly all along.
+**Hard-won cluster/Isaac gotchas (all live in the scripts):**
+- USD xform reads are STALE during sim (Fabric owns physics poses) — never
+  read `panda_hand`/bbox for runtime truth; RigidPrim/Articulation APIs only.
+- FixedCuboid `scale` collision extents ≠ what you'd compute — don't do size
+  math; drop a probe body and measure the surface it rests on.
+- NEVER remove prims mid-play (invalidates physics tensor views →
+  "Failed to get DOF position targets") — world.stop() → remove → reset.
+- URDF importer mimics finger_joint2 → DriveAPI.Apply-or-skip, find finger
+  DOFs by name prefix.
+- Kit heap-crashes (~20% of runs: malloc/tcache abort at enable_extension) —
+  sbatch retry-loop until results file has a verdict; node blacklist
+  `-x gilbreth-h000,gilbreth-h014` (h000 also hangs 35 min before aborting).
+
 Next on the cluster, in order:
-1. **G3 proper**: the scripted pick-and-place (Franka, crate shelf→rover bed
-   at 1.62 m/s² — the guaranteed demo ending) + headless frame capture.
-   OFFLINE PATH CONFIRMED: the container bundles the Franka URDF at
-   `/isaac-sim/exts/isaacsim.asset.importer.urdf/data/urdf/robots/franka_description`
-   (+ `isaacsim.cortex.behaviors/franka` and interactive examples to crib
-   from) — no nucleus needed on the internet-less compute nodes;
+1. **G3c**: same run + camera + Replicator RGB frame capture (the watchable
+   asset; also derisks G5's SDG machinery);
 2. G4 lift checkpoint; 3. G5 Replicator SDG (per `isaac/README.md`,
    `SURVEYOR_BUNDLE_DIR`/`SURVEYOR_WORLD_USD` env vars).
 
