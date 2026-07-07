@@ -50,11 +50,10 @@ try:
     from pxr import Gf, PhysxSchema, Sdf, UsdGeom, UsdLux, UsdPhysics
     stage = ctx.get_stage()
 
-    # NuRec payload is absent on the cluster by design — keep it out entirely
+    # NuRec payload PRESENT since the 3dgrut conversion (dbg6 receipt:
+    # Volume/OmniNuRecFieldAsset renders) — keep it ACTIVE: splats ARE the visuals
     vis = stage.GetPrimAtPath("/World/Visuals")
-    if vis and vis.IsValid():
-        vis.SetActive(False)
-        log("NuRec visuals prim deactivated")
+    log(f"NuRec visuals active: {bool(vis and vis.IsValid() and vis.IsActive())}")
 
     with open(SPAWNS) as f:
         spawns = json.load(f)
@@ -62,19 +61,11 @@ try:
     B = (s["x"], -s["z"], s["y"])
     log(f"franka base (stage): ({B[0]:.2f}, {B[1]:.2f}, {B[2]:.2f})")
 
-    # ---- PRE-WORLD: everything renderable gets authored NOW ---------------
-    # collider visible + double-sided (splat-derived normals are arbitrary;
-    # single-sided walls are backface-culled from inside the room)
-    shown = 0
-    for prim in stage.Traverse():
-        if prim.IsA(UsdGeom.Mesh):
-            img = UsdGeom.Imageable(prim)
-            img.CreatePurposeAttr().Set(UsdGeom.Tokens.default_)
-            img.MakeVisible()
-            UsdGeom.Mesh(prim).CreateDoubleSidedAttr(True)
-            UsdGeom.Gprim(prim).CreateDisplayColorAttr([Gf.Vec3f(0.55, 0.57, 0.6)])
-            shown += 1
-    log(f"world meshes visible-ized pre-attach: {shown}")
+    # ---- PRE-WORLD ---------------------------------------------------------
+    # photoreal mode: collider stays invisible-by-design (purpose=guide);
+    # the NuRec splats carry the visuals. (Gray visible-ized collider was the
+    # pre-conversion fallback.)
+    log("collider left invisible (photoreal splats carry the visuals)")
 
     dome = UsdLux.DomeLight.Define(stage, Sdf.Path("/g3c_dome"))
     dome.CreateIntensityAttr(600)
