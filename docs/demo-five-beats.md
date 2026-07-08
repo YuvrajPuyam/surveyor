@@ -86,6 +86,35 @@ Order: **change first, integrity second.** Stopping distance 2.6x on Mars —
 beat lands — then: "and slope: UNCHANGED. atan(µ) — gravity cancels. A tool
 that faked physics would have moved it."
 
+## Q&A arsenal — the three hostile questions, ranked by damage (final review, answers verbatim)
+
+1. **"You claim the certificate is a training contract, but where's the
+   ablation — does a policy trained in an A world beat one trained in an F
+   world?"** — *"We do not have the final policy-transfer correlation yet.
+   What we prove today is kinematic safety: contact dynamics violently
+   reject a robot encountering non-manifold ghost geometry. Surveyor is the
+   prerequisite filter that keeps the physics solver from exploding —
+   mandatory before valid reinforcement learning can even begin. The
+   paired-goals receipt [C16] is the first empirical anchor; the full
+   transfer study is the next one."*
+2. **"You say vision policies never crash to reveal these errors — but your
+   learned robot is state-based and your vision-run is a heightfield
+   planner. Where's the actual vision policy?"** — *"We explicitly isolated
+   the geometric reality gap from the perception gap. A state-based policy
+   plus a perfect geometric depth-planner proves that even with FLAWLESS
+   perception of the visual layer, the physics mismatch still destroys the
+   robot. We certify the environment's integrity, not the robot's brain."*
+3. **"World Labs will ship watertight aligned colliders eventually — isn't
+   the repair shop obsolete then?"** — *"Patching holes is the baseline.
+   Even a mathematically perfect mesh needs semantic parameterization for
+   training: Surveyor generates the executable domain-randomization
+   ranges — friction uncertainty, verified spawn zones — which generative
+   models inherently cannot provide without physical experimentation."*
+
+**Twin-run vocabulary (C12 narration):** *"betrayal by fall"* (ghost
+floor), *"betrayal by block"* (phantom mass). Say "a geometric planner
+relying on the visual surface" — NEVER "a vision-planning robot."
+
 ## Q&A ammunition (not in the 3:00)
 
 - Isaac receipt clip (cross-engine concordance when cluster evenings land)

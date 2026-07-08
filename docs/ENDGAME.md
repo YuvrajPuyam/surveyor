@@ -139,6 +139,42 @@ the exact demo laptop + browser that re-hashes it live (rehearse this).
 - Twin-run label, verbatim mechanism: *"planning surface derived from
   splat centers (visual heightfield); physics runs on the collider."*
 
+### Final-review resolutions (2026-07-07 night, external check on the finished project)
+
+- **Instrument #4 (vision-traversal audit): SHELVED, not built.** Verdict
+  accepted on all five design questions: a hardcoded agree-tolerance
+  contradicts the per-robot verdicts (a 0.3 m phantom step would read AGREE
+  while the certificate fails the rover on 0.09 m); single vertical rays
+  miss lateral phantom walls; threshold drift between it and the trust map
+  is a live on-stage contradiction risk; and C12 already demonstrates the
+  concept embodied. **Adopted instead:** the twin-run narration gains the
+  vocabulary — *"betrayal by fall"* (ghost floor) and *"betrayal by block"*
+  (phantom mass) — and the phrase "vision-planning robot" is banned in
+  favor of *"a geometric planner relying on the visual surface."*
+- **Claim-softening law (B1):** we have PROVEN robots physically fail in
+  unverified worlds (kinematic failure, on camera). "Policies learn false
+  things" is the mechanism at stake, not a receipt — speak it only as
+  "would learn," and answer the gap with the approved line: *"Surveyor is
+  the prerequisite filter — physics solvers violently reject non-manifold
+  ghost geometry; certification is mandatory before valid RL can even
+  begin. The transfer-correlation study is the next receipt."*
+- **Sell reframe (B3):** lead with the EXECUTABLE CONTRACT, not the
+  document — for the agentic track the product is an **automated
+  domain-randomization engine** that emits valid Isaac Lab configuration
+  (spawns→resets, quarantine→masks, friction uncertainty→DR ranges); the
+  certificate is its audit trail. The pack stays as-is; the emphasis moves.
+- **Stage-narrative cuts (B5):** the ecosystem/roadmap bullet is OUT of the
+  3:00 and the memorized spine; the G4 Earth-g fumble detail is OUT of
+  narration (kept in logs/README as an honest note) — the lunar
+  fumble-chase-recover story stays, it is the lunar run's own arc.
+- **C16 (the ONE remaining build, replaces Part-A):** **G6-mini paired
+  receipt** — N≈15 waypoint-navigation goals, same start/goal pairs, same
+  controller, raw collider vs repaired collider, headless + deterministic.
+  Bar: success rates with the honest caveat line ("navmesh-level
+  traversability, kinematic controller, N=15 — a floor for the claim, not
+  a transfer study"). Sidecar artifact; certificate hashes untouched
+  (sha-verified before/after). Est ≤1 day.
+
 ### Cluster lane (Gilbreth evenings, priority order per pipeline-v2 P1–P8)
 | # | Item | Gate |
 |---|---|---|
