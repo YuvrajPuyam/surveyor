@@ -63,6 +63,23 @@ quarantined ghost geometry. Label: "navmesh waypoint-following." Certificate lin
 "grade predicts navmesh-level traversability under the disclosed model
 class — not policy transfer."
 
+## Beat 5′ — The certificate executes (~20s, recorded-but-real)
+
+**Video: `assets/isaac/g4-policy-lift.mp4`** (G4 PASSED — the selection rule
+from ENDGAME's wording law; `g3c-box-lift.mp4` is the pre-committed fallback
+with the "zero training required" caption). Spoken, verbatim: "This policy
+was trained by NVIDIA on their stock task — it has never seen our world. In
+the certified pack, at 1.62 m/s² — gravity set by the pack's training
+contract — it fumbles the grasp, chases the crate, and delivers it to
+within 3 centimeters of the commanded goal. Zero training. Every parameter
+of this run came from the certificate — nothing hand-placed." Say "the
+habitat," never "moon base." Pride line: "download this exact pack — the
+certificate hash on our Devpost was printed before this demo."
+
+**Beat 3 sill line (wording law, verbatim):** "This specific 0.09 m sill
+fails the rover and passes the quadruped." NEVER "this world fails the
+rover" — the world-level verdict fails both robots.
+
 ## Gravity beat (only if time credit; else Q&A)
 
 Order: **change first, integrity second.** Stopping distance 2.6x on Mars —

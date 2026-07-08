@@ -49,9 +49,41 @@
   100k tier. `scripts/marble.ts` now takes `MARBLE_TIER=500k` env override
   (uncommitted-then-committed this session; the 500k download itself was NOT
   run — user paused). 500k → ply → `nurec-convert.sbatch` → sharper movie.
-- Cluster queue after that: G4 (lift checkpoint — **downloaded**, 1.2 MB at
-  `checkpoints/lift-rsl_rl-5.1.pt`) → G5 (SDG, camera-sensor path ONLY) →
-  splice MP4 into Beat 5′.
+- **CLUSTER LANE COMPLETE (G1–G5, later this session).**
+  - **G4_PASS**: the PRETRAINED rsl_rl lift policy (hand-rolled inference,
+    36-dim obs matching the checkpoint exactly, no Nucleus) grasps and
+    delivers the crate at LUNAR gravity in the pack — lift 0.379 m, goal
+    2.6 cm, zero training; it even RECOVERS from knocking the cube to the
+    floor. Winning fix: teleport the ROBOT BASE so cube−base = 0.0550
+    measured (props can't be moved mid-sim; the policy only sees relative
+    state). Video: `assets/isaac/g4-policy-lift.mp4` (14 s H.264).
+    Camera law addendum: splat fog constrains camera placement — reuse
+    verified-clear eyes; 28 mm lens for vertical coverage.
+  - **G5_PASS**: 500-frame labeled SDG teaser (RGB/depth/bbox2d/semseg),
+    labeled crates at verified spawns, eyes above verified spawns,
+    bbox-required gate (every frame provably sees a crate), rejections
+    itemized (1366 fog / 367 no-label), seed 1234. Tarball being pulled to
+    `assets/packs/g5-dataset.tar.gz` (gitignored — ships via HF/Release).
+  - Process hardening now standard: ASCII-only cluster scripts + compile
+    check on BOTH ends before submit; sbatch clears stale results files.
+- **THE PACK IS ASSEMBLED**: `assets/packs/artemis-supply-hab-pack/`
+  (121 MB, 21 files, gitignored): world/ (usda + nurec usdz + validator
+  reports), dataset/ (500-frame tar + manifest), policy/ (checkpoint + both
+  videos + inference-reference.py), contract/, certificate.json,
+  self-validation.json, report.html, HASHES.txt stamped LAST (header =
+  certificate content-hash 6b2909f1, the Devpost value). Beat 5′ spliced
+  into demo-five-beats.md with the verbatim caption + Beat-3 sill wording.
+- **DRIFT INCIDENT + CURE (read before touching any bundle):** a casual
+  marble.ts re-download regenerated visual-points.f32 with the current
+  parser and broke every canonical hash (21→25 defects, f68e3de1→cfc6d0ad).
+  Healed byte-exactly by regenerating the f32 with the era-correct parser
+  from git history (`git show 7aa3e067:src/ingest/spz.ts`) — receipt that
+  Marble server bytes never changed. **marble.ts now REFUSES to overwrite
+  an existing bundle** (frozen instrument inputs; MARBLE_FORCE=1 to
+  override). The regen recipe lives in this incident note.
+- **REMAINING:** publish (GitHub release + HF + Devpost page printing the
+  certificate content-hash — USER-GATED, outward-facing) → stage-laptop
+  hash rehearsal → dress rehearsals. The build queue is otherwise EMPTY.
 
 Read this first, then `HANDOFF.md` for the full canonical brief. This file is
 the *delta* since the last big handoff: the cluster G3 arc and the two live
