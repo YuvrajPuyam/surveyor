@@ -137,14 +137,24 @@ try:
     frame_i = 0
     kept = 0
     attempts = 0
-    while kept < N_TARGET and attempts < N_TARGET * 3:
+    rej_none = 0
+    rej_fog = 0
+    rej_nolabel = 0
+    while kept < N_TARGET and attempts < N_TARGET * 6:
         attempts += 1
         base = pts[int(rng.integers(0, len(pts)))]
         # eye inside certified free space: above a verified spawn, human-ish heights
         eye = (base[0] + float(rng.uniform(-0.3, 0.3)),
                base[1] + float(rng.uniform(-0.3, 0.3)),
-               base[2] + float(rng.uniform(0.5, 1.5)))
-        tgt = crates[int(rng.integers(0, len(crates)))]
+               base[2] + float(rng.uniform(0.4, 1.0)))
+        # aim at the NEAREST crate (random pairing aimed through walls)
+        best, best_d = None, 1e9
+        for c in crates:
+            cp2, _ = c.get_world_pose()
+            d = (float(cp2[0]) - eye[0]) ** 2 + (float(cp2[1]) - eye[1]) ** 2
+            if d < best_d:
+                best, best_d = c, d
+        tgt = best
         tp, _ = tgt.get_world_pose()
         aim = (float(tp[0]) + float(rng.uniform(-0.2, 0.2)),
                float(tp[1]) + float(rng.uniform(-0.2, 0.2)),
@@ -152,13 +162,28 @@ try:
         set_cam(eye, aim)
         for _ in range(6):
             world.step(render=True)
-        frame = cam.get_current_frame()
-        rgba = frame.get("rgba")
+        rgba = cam.get_rgba()  # the PROVEN pixel path (probe used it)
         if rgba is None or getattr(rgba, "size", 0) == 0:
+            rej_none += 1
             continue
         rgb = np.asarray(rgba)[:, :, :3]
         sp = spread_of(rgb)
         if sp < 12:  # splat fog / empty view - certified-clear frames only
+            rej_fog += 1
+            continue
+        frame = cam.get_current_frame()  # annotators only
+        # SDG criterion: keep only frames that actually SEE a labeled crate
+        # (bbox present) - rejects exterior/ceiling views the fog filter missed
+        bbox_probe = frame.get("bounding_box_2d_tight")
+        has_label = False
+        try:
+            if bbox_probe is not None:
+                d = bbox_probe["data"] if isinstance(bbox_probe, dict) else bbox_probe
+                has_label = np.asarray(d).size > 0
+        except Exception:
+            has_label = False
+        if not has_label:
+            rej_nolabel += 1
             continue
         Image.fromarray(rgb.astype(np.uint8)).save(f"{OUT}/rgb_{kept:05d}.png")
         depth = frame.get("distance_to_image_plane")
@@ -199,7 +224,7 @@ try:
                     "frames with core spread < 12 (splat fog / void) rejected",
             "frames": manifest,
         }, f, indent=1)
-    log(f"dataset: {kept} frames kept / {attempts} attempts -> {OUT}")
+    log(f"dataset: {kept} kept / {attempts} attempts (rejected: {rej_none} empty-rgba, {rej_fog} fog, {rej_nolabel} no-label) -> {OUT}")
     log("G5_" + ("PASS" if kept >= N_TARGET else ("PARTIAL" if kept >= 100 else "FAIL")))
 except Exception as e:
     import traceback
