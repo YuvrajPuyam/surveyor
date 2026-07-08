@@ -32,7 +32,7 @@ cd app && npm install && cd ..   # the browser viewer has its own deps
 
 cp .env.example .env             # then fill in MARBLE_API_KEY (ask in the team channel)
 
-npm test                         # 18 regression tests incl. byte-identical determinism — should be green
+npm test                         # 43 regression tests incl. byte-identical determinism — should be green
 ```
 
 Then generate the synthetic validation worlds and run your first
@@ -126,7 +126,7 @@ agents/        Surveyor + Repair agent prompts
 mcp/           MCP stdio servers: certify + stateful repair
 scripts/       CLI entry points (certify, self-validate, marble, repair-agent…)
 docs/          demo script, pipeline v2, review triage, contingency scope
-test/          18 tests incl. the fail-and-adapt hero loop
+test/          43 tests incl. the fail-and-adapt hero loop and the paired receipt
 ```
 
 Current self-validation on the 27-world bench (31 planted defects, including
@@ -137,6 +137,36 @@ Field-validated: the first real Marble world's vendor scale factor (1.624)
 was independently recovered by door-height metrology at 1.60 [1.44..1.76],
 and a live agent episode repaired that world F → A with all 81 defect
 outcomes recorded (cassette in `traces/`).
+
+## The receipts (everything below exists on disk)
+
+The certified world was taken all the way to a working robot on NVIDIA's
+stack (Isaac Sim 5.1, Purdue Gilbreth A10 cluster):
+
+- **Cross-engine (G3a):** PhysX corroborates the Rapier-certified repaired
+  floor to **1 mm** at a certificate-verified spawn point.
+- **Scripted manipulation (G3b/c):** a Franka arm picks a crate and sets it
+  down **0.3 mm** from the probe-measured surface at lunar gravity — on
+  video inside the photoreal splats (`assets/isaac/g3c-box-lift.mp4`).
+- **Learned policy (G4):** NVIDIA's pretrained lift policy — zero training,
+  never saw this world — grasps and delivers the crate to **2.6 cm** of the
+  commanded goal at lunar gravity, recovering from its own fumble on the
+  way (`assets/isaac/g4-policy-lift.mp4`). Rollouts byte-deterministic
+  across three runs.
+- **Labeled data (G5):** 500 frames (RGB/depth/bbox/semseg), labeled crates
+  at verified spawns, cameras in certified free space, every rejection
+  itemized in the manifest.
+- **The paired receipt (C16):** fifteen identical navmesh routes, one
+  controller — **raw world 0/15, repaired world 13/15**. The certified
+  spawn points literally sit above holes in the raw collider.
+- **The Certified World Pack:** one folder — Isaac-ready USD world (splats +
+  repaired collider + spawn/quarantine prims), the dataset, the policy and
+  videos, the executable training contract, and the certificate —
+  `HASHES.txt` stamped last, headed by the certificate content-hash.
+
+Claim discipline: the grade predicts **navmesh-level traversability under a
+disclosed model class — not policy transfer**. The paired receipt is a floor
+for the claim, not a transfer study; that study is the next receipt.
 
 ## Honesty invariants (enforced in code, not prose)
 
@@ -162,8 +192,10 @@ outcomes recorded (cassette in `traces/`).
 - **[HANDOFF.md](HANDOFF.md)** — the deep state-of-the-project brief: active
   work, gotchas that cost hours (Rapier, Spark, Marble API), working
   agreements. **Read §2 (vocabulary) and §8 (gotchas) before touching code.**
-- [PLAN.md](PLAN.md) — execution plan.
-- [docs/demo-five-beats.md](docs/demo-five-beats.md) — the demo script.
+- [docs/ENDGAME.md](docs/ENDGAME.md) — **the locked plan-of-record** (build
+  queue, sequencing law, wording law; if it isn't in ENDGAME, don't build it).
+- [PLAN.md](PLAN.md) — original execution plan (historical).
+- [docs/demo-five-beats.md](docs/demo-five-beats.md) — the demo script + Q&A arsenal.
 - [docs/pipeline-v2.md](docs/pipeline-v2.md) — the Isaac Lab pipeline frame.
 
 Vocabulary note: display language is **confirmed / observed / divergent**,
