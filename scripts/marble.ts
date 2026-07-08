@@ -56,6 +56,18 @@ function findMetadataKeys(obj: unknown, path = "", out: Record<string, unknown> 
 async function downloadWorld(world: MarbleWorld): Promise<string> {
   const worldId = worldIdOf(world);
   const dir = join(MARBLE_ROOT, worldId);
+  // FROZEN-BUNDLE GUARD — before ANY write. A bundle on disk is a frozen
+  // instrument input: re-downloading regenerates derived files
+  // (visual-points.f32) with the CURRENT parser and silently breaks every
+  // canonical certificate hash downstream (2026-07-07 post-mortem: one
+  // casual re-download cost an evening of forensics, twice). MARBLE_FORCE=1
+  // to override deliberately.
+  if (existsSync(join(dir, "visual-points.f32")) && process.env.MARBLE_FORCE !== "1") {
+    console.error(`REFUSED: bundle already exists at ${dir} — frozen instrument input.`);
+    console.error("Re-downloading regenerates derived files with the current parser and breaks");
+    console.error("canonical certificate hashes. Set MARBLE_FORCE=1 to override deliberately.");
+    process.exit(3);
+  }
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, "raw.json"), JSON.stringify(world, null, 2));
 
