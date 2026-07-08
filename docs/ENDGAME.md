@@ -167,13 +167,17 @@ the exact demo laptop + browser that re-hashes it live (rehearse this).
   3:00 and the memorized spine; the G4 Earth-g fumble detail is OUT of
   narration (kept in logs/README as an honest note) — the lunar
   fumble-chase-recover story stays, it is the lunar run's own arc.
-- **C16 (the ONE remaining build, replaces Part-A):** **G6-mini paired
-  receipt** — N≈15 waypoint-navigation goals, same start/goal pairs, same
-  controller, raw collider vs repaired collider, headless + deterministic.
-  Bar: success rates with the honest caveat line ("navmesh-level
-  traversability, kinematic controller, N=15 — a floor for the claim, not
-  a transfer study"). Sidecar artifact; certificate hashes untouched
-  (sha-verified before/after). Est ≤1 day.
+- **C16: DONE — raw 0/15, repaired 13/15.** Fifteen BFS navmesh routes
+  (clearance-eroded grid, waypoint chains, endpoints = verified spawns +
+  seeded certified-floor samples), one driven-sphere controller, seed 1234,
+  deterministic. Every route falls within a meter on the raw collider (the
+  certified spawns sit above raw holes); 13 complete on the repaired one
+  (2 honest `blocked`). Artifact: `paired-receipt.json` in the pack's
+  contract/ (manifest re-stamped; certificate header hash unchanged —
+  sha ritual re-verified f68e3de1). Bench test: same route falls on the
+  planted hole, arrives on the intact floor, byte-deterministic (43/43
+  suite green). Code: `src/validation/pairedGoals.ts`,
+  `scripts/paired-receipt.ts`.
 
 ### Cluster lane (Gilbreth evenings, priority order per pipeline-v2 P1–P8)
 | # | Item | Gate |

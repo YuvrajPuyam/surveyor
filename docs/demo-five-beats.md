@@ -94,9 +94,12 @@ that faked physics would have moved it."
    What we prove today is kinematic safety: contact dynamics violently
    reject a robot encountering non-manifold ghost geometry. Surveyor is the
    prerequisite filter that keeps the physics solver from exploding —
-   mandatory before valid reinforcement learning can even begin. The
-   paired-goals receipt [C16] is the first empirical anchor; the full
-   transfer study is the next one."*
+   mandatory before valid reinforcement learning can even begin. And here
+   is the first empirical anchor: fifteen identical navigation routes, the
+   same waypoint controller — the raw world completes ZERO of fifteen;
+   the repaired world completes thirteen. The full transfer study is the
+   next receipt."* (paired-receipt.json ships in the pack's contract/
+   folder: raw 0/15 vs repaired 13/15, seed 1234, caveat printed.)
 2. **"You say vision policies never crash to reveal these errors — but your
    learned robot is state-based and your vision-run is a heightfield
    planner. Where's the actual vision policy?"** — *"We explicitly isolated
