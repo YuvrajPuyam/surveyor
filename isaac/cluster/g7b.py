@@ -194,7 +194,8 @@ try:
         core = rgb[h // 4 : 3 * h // 4, w // 4 : 3 * w // 4]
         return float(core.max()) - float(core.min())
 
-    obs, _ = wrapped.get_observations()
+    _got = wrapped.get_observations()
+    obs = _got[0] if isinstance(_got, tuple) else _got
     robot = env.scene["robot"]
     start = robot.data.root_pos_w[0].detach().cpu().numpy().copy()
     log(f"reset done; base at ({start[0]:.2f}, {start[1]:.2f}, {start[2]:.2f})")
@@ -203,7 +204,8 @@ try:
     for _ in range(20):
         with torch.inference_mode():
             actions = policy(obs)
-        obs, _, _, _ = wrapped.step(actions)
+        _st = wrapped.step(actions)
+        obs = _st[0]
     fp_s, tp_s = spread(fp), spread(tp)
     log(f"post-warmup spreads: fp {fp_s:.0f}, tp {tp_s:.0f}")
     if fp_s <= 8 or tp_s <= 8:
@@ -215,10 +217,12 @@ try:
     for i in range(STEPS):
         with torch.inference_mode():
             actions = policy(obs)
-        obs, _, dones, _ = wrapped.step(actions)
+        _st = wrapped.step(actions)
+        obs = _st[0]
+        dones = _st[2] if len(_st) > 2 else None
         snap(fp, "fp", FP_FRAMES)
         snap(tp, "tp", TP_FRAMES)
-        if bool(dones[0]) if hasattr(dones, "__getitem__") else False:
+        if dones is not None and bool(dones[0]):
             log(f"episode terminated at control step {i} (fall or reset)")
             break
 

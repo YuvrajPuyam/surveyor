@@ -1,5 +1,40 @@
 # SURVEYOR — session pickup (2026-07-07)
 
+## ⏸ PAUSE CHECKPOINT 2 (2026-07-09) — G7 traversal films, read first
+
+**Goal (user-directed):** rover + walking Go2 quadruped traversing the
+REPAIRED photoreal world, FP + TP recordings. `isaac/cluster/g7a.py` /
+`g7b.py` (+ sbatch). ENDGAME G7 entry exists.
+
+- **g7a rover: G7A_PASS mechanically** (arrives, 166 frames/cam, tracking
+  guard green, direction probing picks the 4.5 m certified corridor) —
+  **but the footage is unusable: NuRec volume does not occlusion-composite
+  with mesh prims.** FP = clear gray (facing out of the splat envelope /
+  volume not drawn); TP = uniform olive fuzz (camera inside splat cloud,
+  and THE ROVER IS INVISIBLE in a frame aimed at it). The g3c box-lift mp4
+  predates the NuRec conversion — mesh+active-splats compositing has NEVER
+  been proven on this stack.
+- **NEXT EXPERIMENT (first move):** link the collider as the NuRec field's
+  PROXY mesh (the Marble→Isaac guide's occlusion step — relationship on the
+  OmniNuRecFieldAsset / Volume prim under /World/Visuals; inspect its attrs
+  with a 3-min dbg job listing properties). If proxy linkage fixes
+  compositing → g7a/g7b/g3c all inherit photoreal. **Bankable fallback
+  (proven g3c recipe): deactivate /World/Visuals + visible-ize collider —
+  gray-world films TODAY, photoreal upgrade later.** Also: route/cameras
+  should face INTO the splat interior (drive the certified corridor
+  REVERSED: spawn at (0.30,-0.91), drive +Y toward (0.30,3.59)).
+- **g7b Go2 walk: 3 iterations in, every hard stage PASSED** (env-in-pack,
+  nested PhysicsScene defused, checkpoint loaded, base link found, cameras
+  init). Last fix: get_observations returns bare obs (not tuple). Job
+  11243023 in queue — check `g7b-results.txt`. Same NuRec compositing
+  caveat applies to its footage.
+- Camera laws learned (in code): inverse-scale rig proxy under scaled prims
+  (LookAt shears under non-uniform scale); near-clip 0.05 (USD default 1 m
+  eats the world); cameras as children of physics bodies DO track (Fabric).
+- Go2 assets offline at `/scratch/.../go2-assets/` (go2.usd +
+  Props/instanceable_meshes.usd + rsl_rl flat checkpoint). Rough-terrain
+  checkpoint = same URL pattern if the flat policy stumbles on stepped floor.
+
 ## ⏸ PAUSE CHECKPOINT (end of 2026-07-07 session) — read this first
 
 - **G3c CLOSED**: `assets/isaac/g3c-box-lift.mp4` exists (27.2 s box-lift in
