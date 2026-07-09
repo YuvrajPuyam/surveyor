@@ -188,6 +188,7 @@ the exact demo laptop + browser that re-hashes it live (rehearse this).
 | G4 | Pretrained lift checkpoint in the pack world (wow layer; fine-tune ≤300 iters if floaty) | P5 |
 | G5 | Replicator SDG: ~5,000 frames, cameras masked to verified free space | P6 |
 | G6 | Twin-run paired receipt if time: N≈10–20 nav goals raw vs repaired, honest caveats | stretch |
+| G7 | **Traversal films in the repaired photoreal world, FP + TP cameras**: (a) G7a driven rover crossing the repaired floor — first-person + third-person chase recorded simultaneously (honest label: "driven rigid body on certified ground"); (b) G7b quadruped WALKING via pretrained Isaac Lab velocity policy (Go2/Anymal checkpoint, zero training) in the pack stage, same two-camera rig — blocked on offline-fetching robot USD + checkpoint to scratch | both camera streams non-blank + traversal completes; quadruped falls back to rover-only if assets unfetchable | user-directed (this session) |
 
 ### User lane (calendar — deadlines, not dependencies)
 - Rules answer **Jul 8 EOD** (else contingency fires, pre-committed)
