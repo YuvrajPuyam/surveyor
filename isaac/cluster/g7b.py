@@ -1,13 +1,13 @@
-# G7b: a QUADRUPED WALKS the repaired photoreal world — pretrained Isaac Lab
+# G7b: a QUADRUPED WALKS the repaired photoreal world â€” pretrained Isaac Lab
 # velocity policy (Unitree Go2, rsl_rl checkpoint, ZERO training), commanded
 # straight ahead, recorded FP + TP. Honest label: "pretrained locomotion
-# policy, fixed forward command — no vision, no training on this world."
+# policy, fixed forward command â€” no vision, no training on this world."
 #
 # Offline assets (fetched on the login node; compute nodes have no internet):
 #   go2-assets/go2.usd + go2-assets/Props/instanceable_meshes.usd
 #   go2-assets/go2-flat-checkpoint.pt
 # Heavy per-stage logging: Isaac Lab module paths vary across versions, and
-# the render law makes post-construction cameras a known risk — every stage
+# the render law makes post-construction cameras a known risk â€” every stage
 # logs before it can crash, so a queue iteration costs one look at RESULTS.
 import json
 import os
@@ -112,7 +112,7 @@ try:
         pass
     cfg.episode_length_s = 60.0
     # rough cfg: terrain curriculum + generator-relative logic assume a
-    # procedural terrain � our terrain is a USD file; kill them
+    # procedural terrain — our terrain is a USD file; kill them
     for attr in ("terrain_levels",):
         try:
             setattr(cfg.curriculum, attr, None)
@@ -167,7 +167,7 @@ try:
     policy = runner.get_inference_policy(device="cuda:0")
     log("policy loaded (pretrained rsl_rl checkpoint)")
 
-    # ---- cameras on the robot base (post-construction: render-law risk —
+    # ---- cameras on the robot base (post-construction: render-law risk â€”
     # guarded below with fast abort) ----------------------------------------
     base_path = None
     for cand in ("/World/envs/env_0/Robot/base", "/World/envs/env_0/Robot/trunk"):

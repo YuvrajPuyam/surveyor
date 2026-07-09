@@ -1,15 +1,15 @@
-# G7a: a DRIVEN ROVER crossing the repaired, photoreal world — recorded from
+# G7a: a DRIVEN ROVER crossing the repaired, photoreal world â€” recorded from
 # TWO cameras simultaneously: first-person (hood cam) + third-person (chase).
 # Honest label: "driven rigid body on certified ground" (velocity-commanded
-# box with visual wheels; no SLAM/vision claim — the traversal + photoreal
+# box with visual wheels; no SLAM/vision claim â€” the traversal + photoreal
 # NuRec visuals are the beat).
 #
 # Inherits every law from the g3c saga:
 #  - single world.reset(), no stops; probes parked, never removed;
 #  - all content authored PRE-reset;
-#  - /World carries a +90X source-frame rotation → raw-USD prims authored in
+#  - /World carries a +90X source-frame rotation â†’ raw-USD prims authored in
 #    world coords go to ROOT LEVEL; isaacsim objects (position=) compensate;
-#  - cameras live in the ROVER'S BODY FRAME (children of the physics body —
+#  - cameras live in the ROVER'S BODY FRAME (children of the physics body â€”
 #    links render while moving, so children track via Fabric); a tracking
 #    guard verifies that assumption before spending the full run.
 import json
@@ -46,7 +46,7 @@ try:
 
     vis = stage.GetPrimAtPath("/World/Visuals")
     log(f"NuRec visuals active: {bool(vis and vis.IsValid() and vis.IsActive())}")
-    # dbg7: the Volume's 'proxy' REL is the occlusion-compositing hook � link
+    # dbg7: the Volume's 'proxy' REL is the occlusion-compositing hook — link
     # the collider so meshes and the NuRec volume composite correctly
     vol = stage.GetPrimAtPath("/World/Visuals/gauss/gauss")
     if vol and vol.IsValid():
@@ -72,7 +72,7 @@ try:
     world = World(stage_units_in_meters=1.0, physics_dt=1.0 / 60.0, rendering_dt=1.0 / 60.0)
 
     ROVER = "/World/g7_rover"
-    BODY = (0.50, 0.34, 0.22)  # x length, y width, z height — browser-rover proportions
+    BODY = (0.50, 0.34, 0.22)  # x length, y width, z height â€” browser-rover proportions
     rover = world.scene.add(DynamicCuboid(
         prim_path=ROVER, name="rover",
         position=(B[0], B[1], B[2] + BODY[2] / 2 + 0.06),
@@ -80,7 +80,7 @@ try:
     ))
 
     # visual dressing in the rover's BODY frame (children of the physics body;
-    # cuboid scale does NOT inherit — DynamicCuboid scales via xform op on the
+    # cuboid scale does NOT inherit â€” DynamicCuboid scales via xform op on the
     # prim, so children DO inherit that scale; compensate by authoring in the
     # scaled space: divide local offsets by BODY scale)
     def child(path, cls):
@@ -100,7 +100,7 @@ try:
     UsdGeom.XformCommonAPI(mast.GetPrim()).SetScale((0.06 / sx, 0.06 / sy, 0.12 / sz))
 
     # cameras in the body frame (scale-compensated local coords), aimed with
-    # the proven SetLookAt pattern — in LOCAL space
+    # the proven SetLookAt pattern â€” in LOCAL space
     def body_cam(name, eye, aim):
         path = f"{ROVER}/{name}"
         c = UsdGeom.Camera.Define(stage, Sdf.Path(path))
@@ -167,7 +167,7 @@ try:
         raise RuntimeError("no drivable direction")
     DX, DY = DIRS[best_di]
     GOAL = (B[0] + DX * best_reach, B[1] + DY * best_reach)
-    log(f"drive: dir ({DX},{DY}), goal ({GOAL[0]:.2f}, {GOAL[1]:.2f}) — {best_reach} m")
+    log(f"drive: dir ({DX},{DY}), goal ({GOAL[0]:.2f}, {GOAL[1]:.2f}) â€” {best_reach} m")
 
     # rotate the ROVER so its +X (and the body-frame cameras) faces travel:
     # yaw about Z; isaacsim set_world_pose compensates the /World rotation
@@ -234,7 +234,7 @@ try:
     p_now, _ = rover.get_world_pose()
     log(f"tracking guard: rover moved {math.hypot(float(p_now[0]) - pos0[0], float(p_now[1]) - pos0[1]):.2f} m, FP frame delta {moved:.1f}")
     if moved < 1.0:
-        log("G7A_FAIL CAMERA_NOT_TRACKING — body-frame cameras do not follow the physics body")
+        log("G7A_FAIL CAMERA_NOT_TRACKING â€” body-frame cameras do not follow the physics body")
         raise RuntimeError("camera not tracking")
 
     # ---- the traversal, on camera ------------------------------------------
