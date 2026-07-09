@@ -34,6 +34,9 @@ log("kit booted")
 try:
     import numpy as np
     import torch
+    from isaacsim.core.utils.extensions import enable_extension
+    enable_extension("isaacsim.sensors.camera")
+    log("camera sensor ext enabled")
 
     with open(SPAWNS) as f:
         spawns = json.load(f)
@@ -155,7 +158,8 @@ try:
 
     def body_cam(name, eye, aim):
         path = f"{base_path}/{name}"
-        UsdGeom.Camera.Define(stage, Sdf.Path(path))
+        c = UsdGeom.Camera.Define(stage, Sdf.Path(path))
+        c.CreateClippingRangeAttr(Gf.Vec2f(0.05, 10000.0))  # default near=1m clips the ground
         view = Gf.Matrix4d().SetLookAt(Gf.Vec3d(*eye), Gf.Vec3d(*aim), Gf.Vec3d(0, 0, 1))
         UsdGeom.Xformable(stage.GetPrimAtPath(path)).MakeMatrixXform().Set(view.GetInverse())
         return path
