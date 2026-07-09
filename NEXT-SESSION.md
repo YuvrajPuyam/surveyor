@@ -2,6 +2,23 @@
 
 ## ⏸ PAUSE CHECKPOINT 2 (2026-07-09) — G7 traversal films, read first
 
+> **UPDATE (later 2026-07-09, iteration 4):** NuRec `proxy` REL found via
+> dbg7 (empty relationship on the Volume prim `/World/Visuals/gauss/gauss`)
+> and linked to the collider in BOTH scripts → **first photoreal
+> robot-camera frame captured** (g7b chase cam, real Marble texture).
+> g7b: render ticks fixed EMPTY cameras (out-of-band sensors need explicit
+> env.sim.render() in isaaclab envs); env.close() before app.close() (else
+> 25-min teardown hang); Go2 WALKED 0.69 m (flat ckpt, far spawn — outside
+> splat envelope y∈[-3.3,12.4]!) then 0.29 m on the rover corridor — flat
+> policy trips on the stepped 3° deck → **rough checkpoint fetched**
+> (go2-assets/go2-rough-checkpoint.pt) + rough-first cfg + terrain
+> curriculum DISABLED (terrain_levels — assumes a generator; USD terrain
+> has none). g7a: sbatch stale-results bug fixed (rm results first);
+> latest mystery = apptainer failed 3× pre-python (no results file at
+> all) — g7a.out head from jobs 11243368/11243369 (watcher b7rqqndm6)
+> names the error. Quadruped spawn NOTE: spawns[-1] sits OUTSIDE the
+> visual envelope; spawns[0] (rover corridor) is inside.
+
 **Goal (user-directed):** rover + walking Go2 quadruped traversing the
 REPAIRED photoreal world, FP + TP recordings. `isaac/cluster/g7a.py` /
 `g7b.py` (+ sbatch). ENDGAME G7 entry exists.

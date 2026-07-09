@@ -111,6 +111,14 @@ try:
     except Exception:
         pass
     cfg.episode_length_s = 60.0
+    # rough cfg: terrain curriculum + generator-relative logic assume a
+    # procedural terrain — our terrain is a USD file; kill them
+    for attr in ("terrain_levels",):
+        try:
+            setattr(cfg.curriculum, attr, None)
+            log(f"curriculum.{attr} disabled")
+        except Exception:
+            pass
     log("cfg overrides applied")
 
     from isaaclab.envs import ManagerBasedRLEnv
