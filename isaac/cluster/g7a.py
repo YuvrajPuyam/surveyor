@@ -46,6 +46,12 @@ try:
 
     vis = stage.GetPrimAtPath("/World/Visuals")
     log(f"NuRec visuals active: {bool(vis and vis.IsValid() and vis.IsActive())}")
+    # dbg7: the Volume's 'proxy' REL is the occlusion-compositing hook — link
+    # the collider so meshes and the NuRec volume composite correctly
+    vol = stage.GetPrimAtPath("/World/Visuals/gauss/gauss")
+    if vol and vol.IsValid():
+        vol.GetRelationship("proxy").SetTargets([Sdf.Path("/World/Geometry/Collider")])
+        log("NuRec proxy REL -> /World/Geometry/Collider")
 
     with open(SPAWNS) as f:
         spawns = json.load(f)
@@ -97,7 +103,8 @@ try:
     # the proven SetLookAt pattern â€” in LOCAL space
     def body_cam(name, eye, aim):
         path = f"{ROVER}/{name}"
-        UsdGeom.Camera.Define(stage, Sdf.Path(path))
+        c = UsdGeom.Camera.Define(stage, Sdf.Path(path))
+        c.CreateClippingRangeAttr(Gf.Vec2f(0.05, 10000.0))  # default near=1m eats the close ground
         e = Gf.Vec3d(eye[0] / sx, eye[1] / sy, eye[2] / sz)
         a = Gf.Vec3d(aim[0] / sx, aim[1] / sy, aim[2] / sz)
         view = Gf.Matrix4d().SetLookAt(e, a, Gf.Vec3d(0, 0, 1 / sz))

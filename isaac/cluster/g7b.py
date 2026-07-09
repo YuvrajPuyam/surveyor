@@ -18,7 +18,9 @@ TP_FRAMES = "/scratch/gilbreth/gupta596/surveyor/g7b-frames-tp"
 STAGE = "/scratch/gilbreth/gupta596/surveyor/canonical-pack/world/7188e250-e2ff-43e7-babb-73834c22e932.usda"
 SPAWNS = "/scratch/gilbreth/gupta596/surveyor/7188e250-e2ff-43e7-babb-73834c22e932/spawns.json"
 GO2_USD = "/scratch/gilbreth/gupta596/surveyor/go2-assets/go2.usd"
-CKPT = "/scratch/gilbreth/gupta596/surveyor/go2-assets/go2-flat-checkpoint.pt"
+import os as _os
+_CK_ROUGH = "/scratch/gilbreth/gupta596/surveyor/go2-assets/go2-rough-checkpoint.pt"
+CKPT = _CK_ROUGH if _os.path.exists(_CK_ROUGH) else "/scratch/gilbreth/gupta596/surveyor/go2-assets/go2-flat-checkpoint.pt"
 
 lines = []
 def log(msg):
@@ -40,16 +42,16 @@ try:
 
     with open(SPAWNS) as f:
         spawns = json.load(f)
-    s = spawns[-1] if len(spawns) > 1 else spawns[0]  # quadruped spawn if present
+    s = spawns[0]  # the certified rover corridor: 4.5 m of probe-confirmed flat floor
     B = (s["x"], -s["z"], s["y"])
     log(f"quadruped spawn (stage): ({B[0]:.2f}, {B[1]:.2f}, {B[2]:.2f})")
 
     # ---- env cfg (module paths vary; try the known layouts) ---------------
     EnvCfg = None
     for mod, name in [
+        ("isaaclab_tasks.manager_based.locomotion.velocity.config.go2.rough_env_cfg", "UnitreeGo2RoughEnvCfg_PLAY"),
         ("isaaclab_tasks.manager_based.locomotion.velocity.config.go2.flat_env_cfg", "UnitreeGo2FlatEnvCfg_PLAY"),
         ("isaaclab_tasks.manager_based.locomotion.velocity.config.unitree_go2.flat_env_cfg", "UnitreeGo2FlatEnvCfg_PLAY"),
-        ("isaaclab_tasks.manager_based.locomotion.velocity.config.go2.flat_env_cfg", "UnitreeGo2FlatEnvCfg"),
     ]:
         try:
             m = __import__(mod, fromlist=[name])
@@ -63,6 +65,7 @@ try:
 
     AgentCfg = None
     for mod, name in [
+        ("isaaclab_tasks.manager_based.locomotion.velocity.config.go2.agents.rsl_rl_ppo_cfg", "UnitreeGo2RoughPPORunnerCfg"),
         ("isaaclab_tasks.manager_based.locomotion.velocity.config.go2.agents.rsl_rl_ppo_cfg", "UnitreeGo2FlatPPORunnerCfg"),
         ("isaaclab_tasks.manager_based.locomotion.velocity.config.unitree_go2.agents.rsl_rl_ppo_cfg", "UnitreeGo2FlatPPORunnerCfg"),
     ]:
@@ -94,7 +97,7 @@ try:
     cfg.scene.robot.init_state.pos = (B[0], B[1], B[2] + 0.45)
     # fixed forward command (no random resampling drama on camera)
     try:
-        cfg.commands.base_velocity.ranges.lin_vel_x = (0.7, 0.7)
+        cfg.commands.base_velocity.ranges.lin_vel_x = (0.5, 0.5)
         cfg.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
         cfg.commands.base_velocity.ranges.ang_vel_z = (0.0, 0.0)
         cfg.commands.base_velocity.resampling_time_range = (1000.0, 1000.0)
@@ -127,6 +130,21 @@ try:
                 prim.SetActive(False)
                 killed.append(str(prim.GetPath()))
     log(f"nested physics scenes deactivated: {killed}")
+    # NuRec occlusion proxy (dbg7): find the volume + collider under the
+    # referenced terrain and link them
+    vol_prim = None
+    coll_prim = None
+    for prim in stage.Traverse():
+        at = prim.GetAttribute("omni:nurec:isNuRecVolume")
+        if at and at.Get():
+            vol_prim = prim
+        if prim.GetName() == "Collider" and "/ground" in str(prim.GetPath()):
+            coll_prim = prim
+    if vol_prim and coll_prim:
+        vol_prim.GetRelationship("proxy").SetTargets([coll_prim.GetPath()])
+        log(f"NuRec proxy REL: {vol_prim.GetPath()} -> {coll_prim.GetPath()}")
+    else:
+        log(f"NuRec proxy link skipped (vol={vol_prim}, coll={coll_prim})")
 
     # ---- policy -------------------------------------------------------------
     from rsl_rl.runners import OnPolicyRunner
@@ -201,11 +219,17 @@ try:
     log(f"reset done; base at ({start[0]:.2f}, {start[1]:.2f}, {start[2]:.2f})")
 
     # warm the renderer + check both cameras before spending the walk
+    def render_tick():
+        try:
+            env.sim.render()
+        except Exception:
+            env.unwrapped.sim.render()
     for _ in range(20):
         with torch.inference_mode():
             actions = policy(obs)
         _st = wrapped.step(actions)
         obs = _st[0]
+        render_tick()
     fp_s, tp_s = spread(fp), spread(tp)
     log(f"post-warmup spreads: fp {fp_s:.0f}, tp {tp_s:.0f}")
     if fp_s <= 8 or tp_s <= 8:
@@ -220,6 +244,7 @@ try:
         _st = wrapped.step(actions)
         obs = _st[0]
         dones = _st[2] if len(_st) > 2 else None
+        render_tick()
         snap(fp, "fp", FP_FRAMES)
         snap(tp, "tp", TP_FRAMES)
         if dones is not None and bool(dones[0]):
@@ -236,4 +261,13 @@ except Exception as e:
     log("G7B_ERROR " + repr(e))
     log(traceback.format_exc())
 finally:
-    app.close()
+    try:
+        env.close()
+    except Exception:
+        pass
+    try:
+        app.close()
+    except Exception:
+        pass
+    import os as _os
+    _os._exit(0)

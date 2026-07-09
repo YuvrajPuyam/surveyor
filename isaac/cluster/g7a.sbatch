@@ -12,7 +12,7 @@
 #SBATCH -o /scratch/gilbreth/gupta596/surveyor/g7a.out
 set -x
 cd /scratch/gilbreth/gupta596/surveyor
-rm -rf g7a-frames-fp g7a-frames-tp
+rm -f g7a-results.txt && rm -rf g7a-frames-fp g7a-frames-tp
 WORK=$(mktemp -d /tmp/isaac-kit-XXXX)
 mkdir -p "$WORK/cache" "$WORK/data" "$WORK/logs" "$WORK/documents" "$WORK/ovcache"
 for try in 1 2 3; do
