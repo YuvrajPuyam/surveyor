@@ -2,6 +2,26 @@
 
 ## ⏸ PAUSE CHECKPOINT 2 (2026-07-09) — G7 traversal films, read first
 
+> **FINAL STATE (context-exhausted handoff, 2026-07-09):** jobs
+> 11243376/11243377 (UTF-8 fix — LAW: write cluster python with
+> encoding='utf-8'; cp1252 em-dashes = instant SyntaxError). **g7a PASS
+> mechanically but TP frame still olive splat-murk — proxy REL alone does
+> NOT composite the chase cam; rover still invisible.** Next levers, in
+> order: (1) camera placement OUT of the dense shell (TP rides at
+> body+(-1.9,0,1.1) — at spawn that's inside the wall fuzz; try low/close
+> chase (-1.0,0,0.45) or a STATIC root-level rail cam beside the corridor
+> watching the drive), (2) `omni:nurec:useProxyTransform`/volume depth
+> settings, (3) BANKABLE: gray-world mode (deactivate Visuals +
+> visible-ize collider — the proven g3c recipe; guaranteed rover films).
+> **g7b: ran full 800 steps, no fall, 800 frames/cam CAPTURED, cameras see
+> photoreal content (fp 119, tp 213) — but rough policy only STOOD
+> (0.08 m; height-scanner likely reads garbage off USD terrain). Footage
+> may still cut as 'Go2 standing/shifting in the certified photoreal
+> world'. Next: eyeball + encode the 800 frames; for a real WALK try flat
+> ckpt at 0.3 m/s on the corridor, or fix the scanner (RayCaster target
+> pattern -> the referenced collider mesh path).** Encode recipe in Live
+> Thread 1 (mpeg4 -q:v 2; no libx264 on login node).
+
 > **UPDATE (later 2026-07-09, iteration 4):** NuRec `proxy` REL found via
 > dbg7 (empty relationship on the Volume prim `/World/Visuals/gauss/gauss`)
 > and linked to the collider in BOTH scripts → **first photoreal
