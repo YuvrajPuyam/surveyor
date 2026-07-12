@@ -1,5 +1,26 @@
 # SURVEYOR — session pickup (2026-07-07)
 
+## ⏸ CHECKPOINT 3 (2026-07-12) — HD + G7 films, read FIRST
+
+- **HD DONE both sides:** browser renders splat-500k.spz (verified, dev HUD);
+  pack usdz swapped to 500k (59MB; BACKUP-100k.usdz kept). New additive
+  fetcher `scripts/fetch-splat-tier.ts` (frozen-bundle-safe).
+- **COMPOSITING PROVEN:** Go2 leg + its shadow on the splat floor in a wide
+  frame (proxy REL + wide static cam at proven eye). The open question died.
+- **Go2 WALKED 1.44 m** (flat brain @0.3 m/s, 800 steps, no fall) — but that
+  run's frames were rm'd by the next submission. **NEW LAW: sbatches now
+  auto-encode mp4s per run (g7X-{fp,tp}-job<ID>.mp4); never lose footage
+  again.** g7a's current run banked: g7a-{fp,tp}-BANKED.mp4 on scratch.
+- Framing truths at 500k: the g3c-proven aim is now FOG (denser splats);
+  the g7b walk-line framing (crisp wall + robot) is the best recipe. g7b
+  hood cam can read blank at spawn — guard relaxed to both-blank.
+- **In queue: job 11264207** (g7b walk re-run, auto-encodes). After it:
+  pull mp4s → eyeball → iterate g7a wide framing toward the g7b recipe
+  (aim across the walk/drive line from the proven eye, NOT down-corridor)
+  → final films into assets/isaac/.
+- Viewer: WASD/arrow fly navigation shipped (V=wireframe, G=dev now);
+  foreground check pending (RAF suspended in hidden tabs).
+
 ## ⏸ PAUSE CHECKPOINT 2 (2026-07-09) — G7 traversal films, read first
 
 > **FINAL STATE (context-exhausted handoff, 2026-07-09):** jobs
