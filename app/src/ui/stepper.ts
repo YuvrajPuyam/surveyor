@@ -126,10 +126,10 @@ export function mountStepper(parent: HTMLElement, opts: StepperOptions): Stepper
   function onKey(e: KeyboardEvent): void {
     if (isUiTarget(e)) return;
     const k = e.key;
-    if (k === "ArrowRight" || k === "n" || k === "N") {
+    // arrows belong to camera flight (main.ts WASD/arrow navigation);
+    // beats advance on N / Space / Enter / 1–5
+    if (k === "n" || k === "N") {
       advance();
-    } else if (k === "ArrowLeft") {
-      back();
     } else if (k.length === 1 && k >= "1" && k <= "5") {
       go(Number(k) as Beat);
     } else if (k === " " || k === "Enter") {

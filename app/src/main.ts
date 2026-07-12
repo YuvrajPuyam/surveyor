@@ -1297,12 +1297,51 @@ function togglePatrol(): void {
   }
 }
 
+// ---- WASD/arrow fly navigation (mouse-only orbit was hard to steer) ----
+// Hold to move, Shift to sprint; the orbit target rides along so the mouse
+// keeps working from wherever you fly. W/D moved off wireframe/dev-mode
+// (now V and G) to free the classic movement cluster.
+const moveKeys = new Set<string>();
+const MOVE_BINDS = new Set(["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright", "shift"]);
 addEventListener("keydown", (e) => {
   if (isUiKeyTarget(e)) return;
   const k = e.key.toLowerCase();
-  if (k === "w") {
+  if (MOVE_BINDS.has(k)) {
+    moveKeys.add(k);
+    if (k.startsWith("arrow")) e.preventDefault(); // keep the page from scrolling
+  }
+});
+addEventListener("keyup", (e) => moveKeys.delete(e.key.toLowerCase()));
+addEventListener("blur", () => moveKeys.clear());
+
+let lastMoveT = performance.now();
+function applyFlyMovement(now: number): void {
+  const dt = Math.min(0.05, (now - lastMoveT) / 1000);
+  lastMoveT = now;
+  const fwd =
+    (moveKeys.has("w") || moveKeys.has("arrowup") ? 1 : 0) -
+    (moveKeys.has("s") || moveKeys.has("arrowdown") ? 1 : 0);
+  const strafe =
+    (moveKeys.has("d") || moveKeys.has("arrowright") ? 1 : 0) -
+    (moveKeys.has("a") || moveKeys.has("arrowleft") ? 1 : 0);
+  if (fwd === 0 && strafe === 0) return;
+  const speed = (moveKeys.has("shift") ? 7.5 : 2.5) * dt;
+  const dir = new THREE.Vector3();
+  camera.getWorldDirection(dir); // full 3D fly: forward follows the view
+  const right = new THREE.Vector3().crossVectors(dir, camera.up).normalize();
+  const delta = new THREE.Vector3()
+    .addScaledVector(dir, fwd * speed)
+    .addScaledVector(right, strafe * speed);
+  camera.position.add(delta);
+  controls.target.add(delta);
+}
+
+addEventListener("keydown", (e) => {
+  if (isUiKeyTarget(e)) return;
+  const k = e.key.toLowerCase();
+  if (k === "v") {
     if (colliderWireframe) colliderWireframe.visible = !colliderWireframe.visible;
-  } else if (k === "d") {
+  } else if (k === "g") {
     setDevMode(!devMode);
   } else if (k === "b") {
     toggleDefectBoxes();
@@ -1556,6 +1595,7 @@ let frames = 0;
 let fpsWindowStart = performance.now();
 
 renderer.setAnimationLoop(() => {
+  applyFlyMovement(performance.now());
   controls.update();
   renderer.render(scene, camera);
   frames++;

@@ -736,7 +736,7 @@ export const NARRATE = {
   patrol:
     "Rover on patrol — driving over the patches we fixed, steering around the areas we roped off.",
   patrolStopped: "Rover parked.",
-  surveyFailed: "The survey hit an error — press D for details.",
+  surveyFailed: "The survey hit an error — press G for details.",
   // ---- twin run (C6): raw-world failure + certified delivery ----
   rawRun: "Raw world, before repairs — same rover, the physics a robot would train on. Watch the floor.",
   rawRunFell:

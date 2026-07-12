@@ -65,9 +65,10 @@ cd app && npm run dev
 # then open http://localhost:5173/?world=/marble/<world-id>
 ```
 
-Five-beat staged demo flow (stepper: Space/Enter/arrows/N/1–5). Keybinds:
-`W` wireframe, `B` defect boxes, `F` flip splats, `I` inside/orbit camera,
-`D` dev mode (raw machine strings; the default UI is the humanized layer).
+Five-beat staged demo flow (stepper: Space/Enter/N/1–5). Keybinds:
+`WASD`/arrows fly the camera (hold Shift to sprint), `V` wireframe,
+`B` defect boxes, `F` flip splats, `I` inside/orbit camera,
+`G` dev mode (raw machine strings; the default UI is the humanized layer).
 
 ## Getting worlds
 
