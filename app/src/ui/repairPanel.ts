@@ -173,9 +173,9 @@ export function proposePlan(cert: CertificateSummary): RepairStep[] {
       detail: "",
       rawLabel: `Accept ${sills.length} raised sill${sills.length === 1 ? "" : "s"}`,
       rawDetail:
-        "negotiability is robot-relative: fails the rover, passes the quadruped — the verdict stands, no repair needed",
+        "negotiability is robot-relative — each sill is judged per robot envelope; the measured verdicts stand, no repair needed",
       defectIds: sills.map((d) => d.id),
-      reason: "genuinely raised sill; robot-relative verdict stands (rover FAIL / quadruped PASS)",
+      reason: "genuinely raised sill; per-robot verdicts stand as measured",
     };
     const copy = repairCardCopy(step, cert);
     step.label = copy.title;

@@ -1338,6 +1338,9 @@ function applyFlyMovement(now: number): void {
 
 addEventListener("keydown", (e) => {
   if (isUiKeyTarget(e)) return;
+  // browser shortcuts (Ctrl+R reload, Ctrl+F find, Ctrl+P print) and OS key
+  // auto-repeat must never fire demo actions
+  if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
   const k = e.key.toLowerCase();
   if (k === "v") {
     if (colliderWireframe) colliderWireframe.visible = !colliderWireframe.visible;

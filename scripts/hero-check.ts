@@ -41,6 +41,11 @@ if (!dir) {
   process.exit(2);
 }
 
+import { existsSync } from "node:fs";
+if (!existsSync(join(dir, "certificate.json"))) {
+  console.error(`no certificate.json in ${dir} — run: node bin/surveyor.mjs certify ${dir} --write-bundle`);
+  process.exit(2);
+}
 const world = await loadWorldBundle(dir);
 const cert: Certificate = CertificateSchema.parse(JSON.parse(readFileSync(join(dir, "certificate.json"), "utf8")));
 await initRapier();

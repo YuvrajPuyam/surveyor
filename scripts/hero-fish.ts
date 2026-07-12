@@ -50,6 +50,10 @@ function sh(cmd: string): { ok: boolean; out: string } {
 let dirs: string[] = [];
 if (rest[0] === "--scan") {
   const root = rest[1] ?? "assets/marble";
+  if (!existsSync(root)) {
+    console.error(`scan root does not exist: ${root}`);
+    process.exit(2);
+  }
   dirs = readdirSync(root)
     .map((n) => join(root, n))
     .filter((d) => existsSync(join(d, "collider.glb")));
@@ -80,8 +84,10 @@ for (const dir of dirs) {
   if (recertify || !existsSync(certPath)) {
     process.stdout.write(`certifying ${world}… `);
     const c = sh(`node bin/surveyor.mjs certify ${JSON.stringify(dir)} --write-bundle --min-grade F`);
-    console.log(c.ok || existsSync(certPath) ? "done" : "FAILED");
-    if (!existsSync(certPath)) {
+    // a failed recertify must NOT silently rank on a stale pre-existing file
+    const certOk = c.ok || (!recertify && existsSync(certPath));
+    console.log(certOk ? "done" : "FAILED");
+    if (!certOk || !existsSync(certPath)) {
       rows.push({ dir, world, grade: "?", hero: false, notes: "certify failed" });
       continue;
     }
@@ -106,7 +112,7 @@ for (const dir of dirs) {
 }
 
 // ---- ranked table: heroes first, then by grade (A best) — the fleet view
-const gradeRank = (g: string): number => "ABCDF".indexOf(g[0] ?? "F");
+const gradeRank = (g: string): number => { const i = "ABCDF".indexOf(g[0] ?? "F"); return i < 0 ? 5 : i; };
 rows.sort((a, b) => Number(b.hero) - Number(a.hero) || gradeRank(a.grade) - gradeRank(b.grade) || a.world.localeCompare(b.world));
 
 console.log("\n=== HERO FISHING — the certificates pick the hero ===");

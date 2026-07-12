@@ -70,10 +70,10 @@ the floor / clips the ghost shelf within seconds. Deterministic, rehearsable.
 
 | Time | Beat | Content |
 |---|---|---|
-| 0:00 | **Output first** | Robot already running the resupply route; pack contents on screen; "download this exact pack right now" |
+| 0:00 | **Output first** | Robot already running the resupply route; pack contents on screen; "this pack, hash on screen, goes up for download today" (present-tense download line unlocks AFTER the publish lane runs) |
 | 0:25 | **Twin run** | Raw world failure. Two files nobody checks: ghost geometry, phantom colliders; "no training run ever crashes to tell you" |
-| 0:55 | **The instrument** | Probe rain + virtual LiDAR + two-way divergence; two independent instruments per claim; trust map paints confirmed/observed/divergent; grade + top defects |
-| 1:25 | **Agent repair (MISSION LOG)** | Reasoning on screen from the cassette; scale-first diagnosis (doorways 1.27→2.02 m); patch FAILS regional recheck → revert → mesh_fill → holds; "the certifier audits our own repairs"; F→A, 81/81 outcomes |
+| 0:55 | **The instrument** | Probe rain + virtual LiDAR + two-way divergence; two independent instruments per claim; trust map paints tested-&-solid / seen-not-tested / divergent (speak the on-screen legend words); grade + top defects |
+| 1:25 | **Agent repair (MISSION LOG)** | Reasoning on screen from the cassette; scale-first diagnosis (doorways 1.27→2.02 m); patch FAILS regional recheck → revert → mesh_fill → holds; "the certifier audits our own repairs"; F→A, 75/75 outcomes (read off the screen) |
 | 2:00 | **Certificate executes** | JSON→Isaac Lab config on screen 5 s; cut to Isaac footage: arm lift at lunar g, "nothing hand-placed"; per-robot sill verdict; "slope: unchanged under lunar gravity — a tool that faked physics would have moved it" |
 | 2:40 | **Close** | Rover completes delivery live; SHA-256 pre-printed on Devpost re-hashed live, match; pipeline sentence; pride disclosure (pre-event open-source library) |
 
@@ -103,7 +103,7 @@ card, Unity Kit certificate overlay, MCP, Mars flourish.
 |---|---|---|---|
 | C12 | **Vision-driven twin run**: the raw-run rover PLANS on the visual surface (splat-derived ground) and physics decides what it hits — upgrades the twin run from "navmesh rover finds the hole" to a direct demonstration of the poisoning thesis ("the planner sees pixels; physics sees the collider"). Honest on-screen label required | raw world: rover routes over visually-continuous floor and falls through the collider hole / is betrayed by ghost geometry; certified world: quarantine mask reroutes it, delivery completes | 1 d |
 | C13 | **Batch hero fishing**: wrapper around marble.ts + certify + hero-check — cast N draft worlds, download, certify all, rank by validated twin-run failure routes ("the certificates pick the hero", mechanically, at fleet scale). Works in rank-only mode on already-downloaded bundles while the API wallet is empty | one command ranks any set of bundles; casts fire the moment credits unblock | 0.5 d |
-| C14 | **Pitch-clarity sentence** (a hostile expert reviewer misread the architecture; judges will too): "the agent never edits geometry — it chooses from nine deterministic, reversible tools, and the instrument re-inspects every choice before it counts." Add to demo doc + README | sentence present in demo script Beat 4 and README | 0.1 d |
+| C14 | **Pitch-clarity sentence** (a hostile expert reviewer misread the architecture; judges will too): "the agent never edits geometry — it chooses from a closed menu of eleven tools (three read-only, eight deterministic reversible actions), and the instrument re-inspects every choice before it counts." Add to demo doc + README | sentence present in demo script Beat 4 and README | 0.1 d |
 | C15 | **Q&A arsenal — the dynamic-contact receipt**: rehearse Gemini's three "breaking questions"; the answer to "static concordance ≠ dynamic fidelity" is G3b (contact-rich grip/lift/set-down in PhysX on the REPAIRED geometry, 0.3 mm at lunar g — also refutes "LLM patches explode solvers"), bounded by the printed non-claim ("not policy transfer") | answers written into demo doc Q&A section | 0.25 d |
 
 ### Sequencing lock + wording law (Gemini consistency round, 2026-07-07)
@@ -133,9 +133,19 @@ the exact demo laptop + browser that re-hashes it live (rehearse this).
 - Beat 5′ video: **G4 policy video if G4 passes; else the G3c scripted
   video captioned "zero training required."** G3c remains a permanent
   artifact (fallback + the dynamic-contact receipt) either way.
-- Gravity caption on the lift footage: *"gravity: 1.62 m/s² — set by the
-  pack's training contract."* Say "the habitat," never "moon base," unless
-  the lunar hero world (f1f4e6b3) is the world on screen.
+- Gravity caption on the lift footage: *"gravity: 1.62 m/s² — set to the
+  lunar mission profile."* Do NOT say "set by the pack's training
+  contract" — the shipped pack contract certifies earth 9.81. Say "the
+  habitat," never "moon base," unless the lunar hero world (f1f4e6b3) is
+  the world on screen.
+- **Lunar-contract receipt (2026-07-12):** both heroes re-certified locally
+  under `--gravity moon --seed 1234` — side-by-side files, canonical earth
+  certs untouched. Habitat hero `274782d1…`, moon world `622a1ded…`
+  (`docs/validation/*-certificate-moon.json`). The receipt shows gravity
+  changes MEASURED verdicts, not just a label: rover braking 0.14 m → 0.87 m,
+  quadruped 0.06 m → 0.39 m (~6× at 1.62 m/s²), slope verdict unchanged —
+  exactly what honest physics predicts. If asked "your films are lunar but
+  your certificate is earth": both contracts exist, hashes printable.
 - Twin-run label, verbatim mechanism: *"planning surface derived from
   splat centers (visual heightfield); physics runs on the collider."*
 
@@ -218,7 +228,7 @@ overlay · further instrument tightening beyond C1–C5.
 
 ## 7. Claims ledger (nothing is spoken until its bucket clears)
 - **True today:** bench CIs (96.8% recall, CI ≥85.6%, n=31); F→A episode,
-  81/81 outcomes incl. organic fail-revert-adapt; byte-identical determinism
+  75/75 outcomes incl. organic fail-revert-adapt (regenerate any spoken count from the artifact); byte-identical determinism
   (tested); gravity-invariant slope verdict (tested); headless CLI; Isaac
   contract compiler.
 - **After C1–C3:** one defect count everywhere; outdoor before/after; grades

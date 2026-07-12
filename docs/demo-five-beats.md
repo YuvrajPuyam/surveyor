@@ -35,17 +35,20 @@ divergent. Certificate line lands on screen:
 
 ## Beat 3 — The sill verdict (~30s)
 
-Same world, two verdicts: 0.15 m sill **fails the rover, passes the
-quadruped**. Both halves are measurements (the quadruped via the traversal
-envelope check). "Sim-readiness is relative to the robot" — the marquee
-sentence, protected narration time.
+Same world, two verdicts — spoken PER-SILL, exactly as the wording law
+below mandates: "This specific **0.09 m sill fails the rover and passes the
+quadruped**." (Camera on that sill; the world-level step verdict fails both
+robots and is never quoted as a contrast.) Both halves are measurements
+(the quadruped via the traversal envelope check). "Sim-readiness is
+relative to the robot" — the marquee sentence, protected narration time.
 
 ## Beat 4 — One repair, fail-and-adapt (~45s) — THE agentic beat
 
 **Disclosure line first, two seconds:** "here's a failure mode we love —
 watch it recover." **Architecture line second (C14 — a hostile expert
 reviewer misread this, so judges will too):** "the agent never edits
-geometry — it chooses from nine deterministic, reversible tools, and the
+geometry — it chooses from a closed menu of eleven tools (three read-only,
+eight deterministic reversible actions), and the
 instrument re-inspects every choice before it counts." Then: diagnosis fork
 on the scale defect (vendor factor
 1.624 vs our independent 1.60 estimate — one `apply_vendor_scale` re-measures
@@ -57,7 +60,8 @@ happened un-staged on the first real Marble world; cassette in traces/.)
 
 ## Beat 5 — Patrol close (~30s)
 
-Re-certified grade on screen (F → A, 81/81 defect outcomes recorded). Rover
+Re-certified grade on screen (F → A, **75/75 defect outcomes recorded** —
+the number is read OFF THE SCREEN, never from memory). Rover
 spawns at a verified point, drives OVER the patch, routes AROUND the
 quarantined ghost geometry. Label: "navmesh waypoint-following." Certificate line:
 "grade predicts navmesh-level traversability under the disclosed model
@@ -69,12 +73,17 @@ class — not policy transfer."
 from ENDGAME's wording law; `g3c-box-lift.mp4` is the pre-committed fallback
 with the "zero training required" caption). Spoken, verbatim: "This policy
 was trained by NVIDIA on their stock task — it has never seen our world. In
-the certified pack, at 1.62 m/s² — gravity set by the pack's training
-contract — it fumbles the grasp, chases the crate, and delivers it to
-within 3 centimeters of the commanded goal. Zero training. Every parameter
-of this run came from the certificate — nothing hand-placed." Say "the
-habitat," never "moon base." Pride line: "download this exact pack — the
-certificate hash on our Devpost was printed before this demo."
+the certified pack, at 1.62 m/s² — gravity set to the lunar mission
+profile — the spawns, the no-go zones, and the friction ranges all came
+from the certificate. It fumbles the grasp, chases the crate, and delivers
+it to within 3 centimeters of the commanded goal. Zero training." (NEVER
+say gravity came from the contract: the shipped contract is the Earth
+compilation and a judge can open it. If the lunar-context contract ships in
+the pack before the event, the stronger sentence unlocks.) Say "the
+habitat," never "moon base." Pride line ONLY AFTER the publish lane runs:
+"download this exact pack — the certificate hash on our Devpost was
+printed before this demo." Until published: "this pack, hash on screen,
+goes up for download today."
 
 **Beat 3 sill line (wording law, verbatim):** "This specific 0.09 m sill
 fails the rover and passes the quadruped." NEVER "this world fails the

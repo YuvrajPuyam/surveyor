@@ -12,7 +12,7 @@ import { MarbleClient } from "../src/ingest/marbleClient.js";
 
 // minimal .env support, same as marble.ts
 if (existsSync(".env")) {
-  for (const line of readFileSync(".env", "utf-8").split("\n")) {
+  for (const line of readFileSync(".env", "utf-8").split(/\r?\n/)) {
     const m = line.match(/^([A-Z_]+)=(.*)$/);
     if (m && !process.env[m[1]!]) process.env[m[1]!] = m[2]!;
   }

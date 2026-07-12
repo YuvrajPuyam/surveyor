@@ -111,7 +111,7 @@ contract between them."*
 | Stage | Receipt |
 |---|---|
 | Certify | 41/41 tests; recall 96.8% (95% CI ≥85.6%, n=31, incl. out-of-taxonomy plants), precision 100% (CI ≥90.5%); byte-identical certificates across runs AND runtimes (Node sha == browser sha == f68e3de1) |
-| Repair | LLM agent, 9 reversible tools, F→A, 81/81 outcomes incl. un-staged fail-revert-adapt; whole repaired bundle regenerates from repo + cassette (re-proven today byte-exactly after a drift incident) |
+| Repair | LLM agent, 11-tool closed menu (3 read + 8 reversible actions), F→A, 75/75 outcomes incl. un-staged fail-revert-adapt; whole repaired bundle regenerates from repo + cassette (re-proven today byte-exactly after a drift incident) |
 | Cross-engine | PhysX corroborates the Rapier-certified repaired floor to 1 mm (G3a) |
 | Robot, scripted | Franka pick-and-place at lunar g, set-down 0.3 mm from probe-measured surface, on video inside the photoreal splats (G3c, 27 s) |
 | Robot, LEARNED | NVIDIA's pretrained lift policy, zero training, never saw this world: grasps and delivers to 2.6 cm of goal at lunar g — after RECOVERING from knocking the crate to the floor (G4, 14 s video); rollouts byte-deterministic across 3 runs |

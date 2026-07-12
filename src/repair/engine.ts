@@ -19,6 +19,7 @@ import { boxTriMesh, mergeTriMeshes } from "../core/geom.js";
 import type { Certificate, Defect, DefectOutcome, Gravity, Region, RobotSpec, WorldMetadata } from "../core/types.js";
 import { GRAVITY, ROBOT_PRESETS } from "../core/types.js";
 import { certifyWorld, type CertifyResult } from "../certify/certificate.js";
+import { computeVerdicts } from "../certify/verdicts.js";
 import { iouXZ } from "../core/geom.js";
 
 export interface RepairWorldState {
@@ -76,6 +77,9 @@ export class RepairEngine {
   private ledger = new Map<string, Defect>();
   private quarantined: { defectId: string; region: Region; reason: string }[] = [];
   private lastResult: CertifyResult | null = null;
+  /** true after apply_vendor_scale until the next recertify: the cached
+   *  survey/metrology is in pre-scale units and must not feed geometry. */
+  private surveyStale = false;
   private spawns: SpawnPoint[] = [];
 
   constructor(
@@ -100,6 +104,7 @@ export class RepairEngine {
   async init(): Promise<Certificate> {
     const result = await this.certify();
     this.lastResult = result;
+    this.surveyStale = false;
     for (const d of result.certificate.defects) this.ledger.set(d.id, { ...d });
     return this.currentCertificate();
   }
@@ -114,7 +119,12 @@ export class RepairEngine {
     return d;
   }
 
-  inspectRegion(defectId: string): {
+  inspectRegion(defectId: string): ReturnType<RepairEngine["inspectRegionImpl"]> {
+    this.assertSurveyFresh("inspect_region");
+    return this.inspectRegionImpl(defectId);
+  }
+
+  private inspectRegionImpl(defectId: string): {
     defect: Defect;
     stats: { visualPointsInRegion: number; colliderTrianglesInRegion: number; floorPlaneY: number };
   } {
@@ -199,10 +209,21 @@ export class RepairEngine {
     for (const d of this.ledger.values()) d.region = scaleRegion(d.region);
     for (const q of this.quarantined) q.region = scaleRegion(q.region);
     this.spawns = this.spawns.map((s) => ({ ...s, x: s.x * factor, y: s.y * factor, z: s.z * factor }));
+    // the cached survey/metrology is now in the WRONG units — geometry tools
+    // must not consume it until a recertify refreshes it (a patch placed at
+    // pre-scale floorY lands 1/factor off; audit finding 2026-07-12)
+    this.surveyStale = true;
     return { actionId: action.actionId, factorApplied: factor };
   }
 
+  private assertSurveyFresh(op: string): void {
+    if (this.surveyStale) {
+      throw new Error(`${op} refused: the survey is stale after apply_vendor_scale — recertify first`);
+    }
+  }
+
   patchHole(defectId: string, method: "fitted_slab" | "mesh_fill"): { actionId: string; slabTopY: number } {
+    this.assertSurveyFresh("patch_hole");
     const defect = this.getDefect(defectId);
     if (defect.type !== "collider_hole") throw new Error(`patch_hole targets collider_hole defects; '${defectId}' is ${defect.type}`);
     const r = regionToAabb(defect.region);
@@ -261,6 +282,7 @@ export class RepairEngine {
   }
 
   rebuildNavmeshAndSpawns(): { actionId: string; spawns: SpawnPoint[] } {
+    this.assertSurveyFresh("rebuild_navmesh_and_spawns");
     if (!this.lastResult) throw new Error("certify before rebuilding spawns");
     const action = this.push("rebuild_navmesh_and_spawns", {});
     const rayGrid = this.lastResult.survey.rayGrid;
@@ -375,6 +397,7 @@ export class RepairEngine {
 
     const result = await this.certify(focusRegion, probeCount);
     this.lastResult = result;
+    this.surveyStale = false;
 
     // ledger reconciliation: which open defects vanished, which are new
     const open = [...this.ledger.values()].filter((d) => !d.outcome);
@@ -521,6 +544,16 @@ export class RepairEngine {
     // rationale gain the outcomes line: a repaired certificate is a
     // different artifact and may say so.
     const outcomes = defects.filter((d) => d.outcome).length;
+    // verdicts must respect outcomes: a quarantined/accepted defect no longer
+    // fails checks (audit finding 2026-07-12: grade A + floor_integrity:fail
+    // contradiction). Fresh certs (no outcomes) recompute to identical
+    // verdicts from identical inputs, preserving the content hash.
+    const verdicts = computeVerdicts(
+      this.robots(),
+      this.lastResult.metrology,
+      open,
+      this.opts.gravity ?? GRAVITY.earth,
+    );
     const baseRationale =
       `${critical} critical, ${major} major, ${minor} minor unresolved defect(s); ` +
       `score ${Math.max(0, score)}/100 (critical -40, major -15, minor -5). ` +
@@ -528,6 +561,7 @@ export class RepairEngine {
     return {
       ...cert,
       defects,
+      robotVerdicts: verdicts,
       grade,
       gradeRationale: outcomes > 0 ? `${baseRationale} Outcomes recorded: ${outcomes}/${defects.length}.` : baseRationale,
     };

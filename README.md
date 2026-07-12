@@ -11,8 +11,9 @@ experiments inside a world — seeded probe rain, virtual LiDAR, divergence
 analysis — and produces a **certificate** (every region graded
 confirmed / observed / divergent, every number with an uncertainty range and
 a methods line) and a **repaired copy** (scale applied, holes patched,
-divergent regions quarantined, verified spawn points), graded per robot: the
-same 0.15 m sill fails a small rover and passes a quadruped.
+divergent regions quarantined, verified spawn points), graded per robot: on
+the hero world, one specific 0.09 m sill fails a small rover and passes a
+quadruped — sim-readiness is relative to the robot.
 
 Named for NASA's 1966–68 Surveyor program, which landed on the Moon to
 certify the ground before Apollo risked humans on it.

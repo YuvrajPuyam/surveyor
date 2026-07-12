@@ -59,7 +59,19 @@ export async function certifyMain(args: string[]): Promise<number> {
     return 2;
   }
   const probes = flag("probes") ? parseInt(flag("probes")!, 10) : 2000;
+  if (!Number.isFinite(probes) || probes <= 0) {
+    console.error(`invalid --probes "${flag("probes")}" — must be a positive integer
+
+${CERTIFY_USAGE}`);
+    return 2;
+  }
   const seed = flag("seed") ? parseInt(flag("seed")!, 10) : 1234;
+  if (!Number.isFinite(seed)) {
+    console.error(`invalid --seed "${flag("seed")}" — must be an integer
+
+${CERTIFY_USAGE}`);
+    return 2;
+  }
 
   let certificate;
   let elapsedS: string;

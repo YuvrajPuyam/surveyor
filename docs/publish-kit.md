@@ -38,7 +38,7 @@ gh release create v0.9-hackathon \
 > **The receipts in this release:**
 > - Self-validation: recall 96.8% (95% CI ≥85.6%, n=31), precision 100%
 >   (CI ≥90.5%); byte-identical certificates across runs and runtimes.
-> - Agent repair: first real Marble world F→A, 81/81 outcomes recorded,
+> - Agent repair: first real Marble world F→A, 75/75 outcomes recorded,
 >   including an un-staged fail-revert-adapt. Replayable cassette included.
 > - PhysX corroborates the Rapier-certified floor to 1 mm.
 > - Scripted Franka pick-and-place at lunar gravity: set-down 0.3 mm from

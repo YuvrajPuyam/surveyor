@@ -1,0 +1,4206 @@
+{
+  "schemaVersion": "0.1",
+  "worldId": "f1f4e6b3-855d-4a73-b36c-2e082a508b50",
+  "seed": 1234,
+  "createdAt": "2026-07-12T21:15:11.598Z",
+  "gravity": {
+    "name": "moon",
+    "g": 1.62
+  },
+  "grade": "F",
+  "gradeRationale": "19 critical, 63 major, 12 minor unresolved defect(s); score 0/100 (critical -40, major -15, minor -5). Repaired/quarantined/accepted defects do not count against the grade but remain listed.",
+  "trust": {
+    "cellSizeM": 0.25,
+    "cols": 268,
+    "rows": 348,
+    "counts": {
+      "unknown": 81940,
+      "verified": 1499,
+      "observed": 9292,
+      "lying": 533
+    },
+    "verifiedPct": 13.237371953373366,
+    "lyingPct": 4.706817379018015
+  },
+  "measurements": [
+    {
+      "name": "floor_plane_height",
+      "value": -0.08894636630686076,
+      "unit": "m",
+      "uncertainty": {
+        "low": -0.12333282508795457,
+        "high": -0.05455990752576695,
+        "basis": "2x RANSAC inlier RMS"
+      },
+      "method": "RANSAC plane fit on 14632 virtual-LiDAR returns (tol 0.03 m, 200 iters); tilt 2.60 deg",
+      "n": 14632
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.40000000000000213,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.30000000000000215,
+        "high": 0.5000000000000021,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.9295740175247191,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.8995740175247191,
+        "high": 0.9595740175247192,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 1.1999999999999993,
+      "unit": "m",
+      "uncertainty": {
+        "low": 1.0999999999999992,
+        "high": 1.2999999999999994,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.7778717923164367,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.7478717923164366,
+        "high": 0.8078717923164367,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 2.299999999999997,
+      "unit": "m",
+      "uncertainty": {
+        "low": 2.199999999999997,
+        "high": 2.3999999999999972,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.663892273902893,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6338922739028929,
+        "high": 0.693892273902893,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 1.0999999999999979,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.9999999999999979,
+        "high": 1.199999999999998,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6657872843742371,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.635787284374237,
+        "high": 0.6957872843742371,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.40000000000000213,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.30000000000000215,
+        "high": 0.5000000000000021,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.8042067337036132,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.7742067337036131,
+        "high": 0.8342067337036132,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.20000000000000284,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.10000000000000284,
+        "high": 0.3000000000000028,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6691035676002502,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6391035676002502,
+        "high": 0.6991035676002503,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 1.2999999999999972,
+      "unit": "m",
+      "uncertainty": {
+        "low": 1.199999999999997,
+        "high": 1.3999999999999972,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6709681797027588,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6409681797027588,
+        "high": 0.7009681797027588,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 1.2000000000000028,
+      "unit": "m",
+      "uncertainty": {
+        "low": 1.1000000000000028,
+        "high": 1.300000000000003,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6906021285057068,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6606021285057068,
+        "high": 0.7206021285057068,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 20.6,
+      "unit": "m",
+      "uncertainty": {
+        "low": 20.5,
+        "high": 20.700000000000003,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6505073356628418,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6205073356628418,
+        "high": 0.6805073356628418,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 3.6999999999999993,
+      "unit": "m",
+      "uncertainty": {
+        "low": 3.599999999999999,
+        "high": 3.7999999999999994,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6510000276565552,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6210000276565552,
+        "high": 0.6810000276565552,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.1999999999999993,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.09999999999999928,
+        "high": 0.29999999999999927,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.801166718006134,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.771166718006134,
+        "high": 0.8311667180061341,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 10.8,
+      "unit": "m",
+      "uncertainty": {
+        "low": 10.700000000000001,
+        "high": 10.9,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6510000276565552,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6210000276565552,
+        "high": 0.6810000276565552,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.5,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.4,
+        "high": 0.6,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6510517644882202,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6210517644882202,
+        "high": 0.6810517644882202,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 1.3000000000000007,
+      "unit": "m",
+      "uncertainty": {
+        "low": 1.2000000000000006,
+        "high": 1.4000000000000008,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.656567280292511,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.626567280292511,
+        "high": 0.686567280292511,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.20000000000000284,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.10000000000000284,
+        "high": 0.3000000000000028,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.8988862085342407,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.8688862085342407,
+        "high": 0.9288862085342408,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.3000000000000007,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.2000000000000007,
+        "high": 0.4000000000000007,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.7885525274276732,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.7585525274276732,
+        "high": 0.8185525274276733,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 8.600000000000001,
+      "unit": "m",
+      "uncertainty": {
+        "low": 8.500000000000002,
+        "high": 8.700000000000001,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6594947624206542,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6294947624206542,
+        "high": 0.6894947624206542,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 1.3999999999999986,
+      "unit": "m",
+      "uncertainty": {
+        "low": 1.2999999999999985,
+        "high": 1.4999999999999987,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6656862545013428,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6356862545013428,
+        "high": 0.6956862545013428,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.20000000000000284,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.10000000000000284,
+        "high": 0.3000000000000028,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 1.840525870323181,
+      "unit": "m",
+      "uncertainty": {
+        "low": 1.810525870323181,
+        "high": 1.870525870323181,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 1.1000000000000014,
+      "unit": "m",
+      "uncertainty": {
+        "low": 1.0000000000000013,
+        "high": 1.2000000000000015,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6744068908691406,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6444068908691406,
+        "high": 0.7044068908691407,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.29999999999999716,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.19999999999999715,
+        "high": 0.39999999999999714,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 1.7875738191604613,
+      "unit": "m",
+      "uncertainty": {
+        "low": 1.7575738191604613,
+        "high": 1.8175738191604613,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.6000000000000014,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.5000000000000014,
+        "high": 0.7000000000000014,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.7054093527793884,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6754093527793884,
+        "high": 0.7354093527793885,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.20000000000000284,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.10000000000000284,
+        "high": 0.3000000000000028,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6623804616928101,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.63238046169281,
+        "high": 0.6923804616928101,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.3999999999999986,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.2999999999999986,
+        "high": 0.49999999999999856,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 1.4454315948486327,
+      "unit": "m",
+      "uncertainty": {
+        "low": 1.4154315948486327,
+        "high": 1.4754315948486327,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.30000000000000426,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.20000000000000426,
+        "high": 0.40000000000000424,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.7267752933502196,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6967752933502196,
+        "high": 0.7567752933502196,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.20000000000000284,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.10000000000000284,
+        "high": 0.3000000000000028,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 1.0950344848632811,
+      "unit": "m",
+      "uncertainty": {
+        "low": 1.0650344848632811,
+        "high": 1.1250344848632812,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.40000000000000213,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.30000000000000215,
+        "high": 0.5000000000000021,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6618759083747864,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6318759083747864,
+        "high": 0.6918759083747864,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.3000000000000007,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.2000000000000007,
+        "high": 0.4000000000000007,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6697034287452698,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6397034287452698,
+        "high": 0.6997034287452698,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 1.2999999999999972,
+      "unit": "m",
+      "uncertainty": {
+        "low": 1.199999999999997,
+        "high": 1.3999999999999972,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6536926674842833,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6236926674842833,
+        "high": 0.6836926674842834,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.7000000000000028,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6000000000000029,
+        "high": 0.8000000000000028,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6508219885826111,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6208219885826111,
+        "high": 0.6808219885826111,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.20000000000000284,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.10000000000000284,
+        "high": 0.3000000000000028,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6518683481216431,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.621868348121643,
+        "high": 0.6818683481216431,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.6000000000000014,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.5000000000000014,
+        "high": 0.7000000000000014,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6560685086250304,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6260685086250304,
+        "high": 0.6860685086250304,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 1.0999999999999943,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.9999999999999943,
+        "high": 1.1999999999999944,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6543365168571472,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6243365168571472,
+        "high": 0.6843365168571472,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.30000000000000426,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.20000000000000426,
+        "high": 0.40000000000000424,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6603853750228881,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.630385375022888,
+        "high": 0.6903853750228881,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.20000000000000284,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.10000000000000284,
+        "high": 0.3000000000000028,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 2.3756262111663817,
+      "unit": "m",
+      "uncertainty": {
+        "low": 2.345626211166382,
+        "high": 2.4056262111663815,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.8999999999999986,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.7999999999999986,
+        "high": 0.9999999999999986,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6583763408660888,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6283763408660887,
+        "high": 0.6883763408660888,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 1.3999999999999986,
+      "unit": "m",
+      "uncertainty": {
+        "low": 1.2999999999999985,
+        "high": 1.4999999999999987,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6522347378730773,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6222347378730773,
+        "high": 0.6822347378730773,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.3999999999999986,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.2999999999999986,
+        "high": 0.49999999999999856,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6516786265373229,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6216786265373229,
+        "high": 0.6816786265373229,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.5,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.4,
+        "high": 0.6,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6527451920509337,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6227451920509337,
+        "high": 0.6827451920509338,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.5,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.4,
+        "high": 0.6,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.7468044209480285,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.7168044209480284,
+        "high": 0.7768044209480285,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 1.5999999999999943,
+      "unit": "m",
+      "uncertainty": {
+        "low": 1.4999999999999942,
+        "high": 1.6999999999999944,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6612533378601073,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6312533378601073,
+        "high": 0.6912533378601073,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 2.200000000000003,
+      "unit": "m",
+      "uncertainty": {
+        "low": 2.1000000000000028,
+        "high": 2.300000000000003,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.6959274458885192,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.6659274458885192,
+        "high": 0.7259274458885192,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.30000000000000426,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.20000000000000426,
+        "high": 0.40000000000000424,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 0.8378093290328978,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.8078093290328978,
+        "high": 0.8678093290328979,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "doorway_width",
+      "value": 0.5,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.4,
+        "high": 0.6,
+        "basis": "raycast grid resolution 0.1 m"
+      },
+      "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+    },
+    {
+      "name": "doorway_height",
+      "value": 1.3352557468414306,
+      "unit": "m",
+      "uncertainty": {
+        "low": 1.3052557468414305,
+        "high": 1.3652557468414306,
+        "basis": "vertical ray quantization"
+      },
+      "method": "min upward-ray headroom over doorway cells, measured from local surface"
+    },
+    {
+      "name": "step_height",
+      "value": 0.13466191291809082,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.11466191291809082,
+        "high": 0.1546619129180908,
+        "basis": "adjacent-cell surface delta quantization"
+      },
+      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+    },
+    {
+      "name": "step_height",
+      "value": 0.24029994010925293,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.22029994010925294,
+        "high": 0.26029994010925295,
+        "basis": "adjacent-cell surface delta quantization"
+      },
+      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+    },
+    {
+      "name": "step_height",
+      "value": 0.4995478391647339,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.47954783916473387,
+        "high": 0.5195478391647339,
+        "basis": "adjacent-cell surface delta quantization"
+      },
+      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+    },
+    {
+      "name": "step_height",
+      "value": 0.47338080406188965,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.45338080406188963,
+        "high": 0.49338080406188967,
+        "basis": "adjacent-cell surface delta quantization"
+      },
+      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+    },
+    {
+      "name": "step_height",
+      "value": 0.044364213943481445,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.024364213943481445,
+        "high": 0.06436421394348145,
+        "basis": "adjacent-cell surface delta quantization"
+      },
+      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+    },
+    {
+      "name": "step_height",
+      "value": 0.054979681968688965,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.03497968196868896,
+        "high": 0.07497968196868897,
+        "basis": "adjacent-cell surface delta quantization"
+      },
+      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+    },
+    {
+      "name": "step_height",
+      "value": 0.49271583557128906,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.47271583557128904,
+        "high": 0.5127158355712891,
+        "basis": "adjacent-cell surface delta quantization"
+      },
+      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+    },
+    {
+      "name": "step_height",
+      "value": 0.06608963012695312,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.04608963012695312,
+        "high": 0.08608963012695313,
+        "basis": "adjacent-cell surface delta quantization"
+      },
+      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+    },
+    {
+      "name": "step_height",
+      "value": 0.041097402572631836,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.021097402572631836,
+        "high": 0.06109740257263184,
+        "basis": "adjacent-cell surface delta quantization"
+      },
+      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+    },
+    {
+      "name": "step_height",
+      "value": 0.17716658115386963,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.15716658115386964,
+        "high": 0.19716658115386962,
+        "basis": "adjacent-cell surface delta quantization"
+      },
+      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+    },
+    {
+      "name": "step_height",
+      "value": 0.49271583557128906,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.47271583557128904,
+        "high": 0.5127158355712891,
+        "basis": "adjacent-cell surface delta quantization"
+      },
+      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+    },
+    {
+      "name": "step_height",
+      "value": 0.23106050491333008,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.2110605049133301,
+        "high": 0.2510605049133301,
+        "basis": "adjacent-cell surface delta quantization"
+      },
+      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+    },
+    {
+      "name": "step_height",
+      "value": 0.06896042823791504,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.048960428237915035,
+        "high": 0.08896042823791504,
+        "basis": "adjacent-cell surface delta quantization"
+      },
+      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+    },
+    {
+      "name": "step_height",
+      "value": 0.24904561042785645,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.22904561042785646,
+        "high": 0.26904561042785646,
+        "basis": "adjacent-cell surface delta quantization"
+      },
+      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+    },
+    {
+      "name": "step_height",
+      "value": 0.3850588798522949,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.3650588798522949,
+        "high": 0.40505887985229494,
+        "basis": "adjacent-cell surface delta quantization"
+      },
+      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+    },
+    {
+      "name": "step_height",
+      "value": 0.3699069023132324,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.3499069023132324,
+        "high": 0.38990690231323244,
+        "basis": "adjacent-cell surface delta quantization"
+      },
+      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+    },
+    {
+      "name": "step_height",
+      "value": 0.19244861602783203,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.17244861602783204,
+        "high": 0.21244861602783202,
+        "basis": "adjacent-cell surface delta quantization"
+      },
+      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+    },
+    {
+      "name": "step_height",
+      "value": 0.17174553871154785,
+      "unit": "m",
+      "uncertainty": {
+        "low": 0.15174553871154786,
+        "high": 0.19174553871154784,
+        "basis": "adjacent-cell surface delta quantization"
+      },
+      "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+    },
+    {
+      "name": "metric_scale_factor_estimate",
+      "value": 0.8545115348779189,
+      "unit": "x",
+      "uncertainty": {
+        "low": 0.7703232063185179,
+        "high": 0.9386998634373198,
+        "basis": "door-height prior 2.03±0.1 m (2 SD)"
+      },
+      "method": "tallest measured doorway height 2.38 m vs standard-passage prior; single-cue estimate — cross-check against vendor metadata",
+      "n": 44
+    },
+    {
+      "name": "vendor_metric_scale_factor",
+      "value": 1.614799976348877,
+      "unit": "x",
+      "uncertainty": {
+        "low": 1.614799976348877,
+        "high": 1.614799976348877,
+        "basis": "vendor-shipped metadata (exact as shipped)"
+      },
+      "method": "read from world metadata; accuracy unverified until cross-checked"
+    }
+  ],
+  "defects": [
+    {
+      "id": "d-hole-0",
+      "type": "collider_hole",
+      "region": {
+        "min": [
+          7.1327785491943345,
+          -0.38894636630686075,
+          -12.395089721679685
+        ],
+        "max": [
+          7.332778549194337,
+          0.21105363369313923,
+          -12.195089721679686
+        ]
+      },
+      "severity": "critical",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "raycast_miss",
+          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
+        }
+      ],
+      "description": "Raycast void inside the floor footprint; no probe landed here — probe-directed follow-up recommended."
+    },
+    {
+      "id": "d-hole-1",
+      "type": "collider_hole",
+      "region": {
+        "min": [
+          9.332778549194337,
+          -0.38894636630686075,
+          -12.095089721679685
+        ],
+        "max": [
+          9.732778549194336,
+          0.21105363369313923,
+          -11.495089721679687
+        ]
+      },
+      "severity": "critical",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "raycast_miss",
+          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
+        },
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "3 visual samples cover this region — the floor LOOKS intact",
+          "count": 3
+        }
+      ],
+      "description": "Raycast void inside the floor footprint; no probe landed here — probe-directed follow-up recommended."
+    },
+    {
+      "id": "d-hole-2",
+      "type": "collider_hole",
+      "region": {
+        "min": [
+          7.332778549194337,
+          -0.38894636630686075,
+          -11.795089721679688
+        ],
+        "max": [
+          7.832778549194337,
+          0.21105363369313923,
+          -11.395089721679685
+        ]
+      },
+      "severity": "critical",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "raycast_miss",
+          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
+        },
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "4 visual samples cover this region — the floor LOOKS intact",
+          "count": 4
+        }
+      ],
+      "description": "Raycast void inside the floor footprint; no probe landed here — probe-directed follow-up recommended."
+    },
+    {
+      "id": "d-hole-3",
+      "type": "collider_hole",
+      "region": {
+        "min": [
+          6.6327785491943345,
+          -0.38894636630686075,
+          -11.495089721679687
+        ],
+        "max": [
+          7.332778549194337,
+          0.21105363369313923,
+          -10.795089721679688
+        ]
+      },
+      "severity": "critical",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "raycast_miss",
+          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
+        },
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "4 visual samples cover this region — the floor LOOKS intact",
+          "count": 4
+        }
+      ],
+      "description": "Raycast void inside the floor footprint; no probe landed here — probe-directed follow-up recommended."
+    },
+    {
+      "id": "d-hole-4",
+      "type": "collider_hole",
+      "region": {
+        "min": [
+          9.132778549194335,
+          -0.38894636630686075,
+          -11.195089721679686
+        ],
+        "max": [
+          9.632778549194335,
+          0.21105363369313923,
+          -10.395089721679685
+        ]
+      },
+      "severity": "critical",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "raycast_miss",
+          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
+        },
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "3 visual samples cover this region — the floor LOOKS intact",
+          "count": 3
+        }
+      ],
+      "description": "Raycast void inside the floor footprint; no probe landed here — probe-directed follow-up recommended."
+    },
+    {
+      "id": "d-hole-5",
+      "type": "collider_hole",
+      "region": {
+        "min": [
+          7.832778549194337,
+          -0.38894636630686075,
+          -9.895089721679685
+        ],
+        "max": [
+          8.732778549194336,
+          0.21105363369313923,
+          -8.995089721679687
+        ]
+      },
+      "severity": "critical",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "raycast_miss",
+          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
+        },
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "5 visual samples cover this region — the floor LOOKS intact",
+          "count": 5
+        }
+      ],
+      "description": "Raycast void inside the floor footprint; no probe landed here — probe-directed follow-up recommended."
+    },
+    {
+      "id": "d-hole-6",
+      "type": "collider_hole",
+      "region": {
+        "min": [
+          2.632778549194338,
+          -0.38894636630686075,
+          -2.4950897216796832
+        ],
+        "max": [
+          2.8327785491943374,
+          0.21105363369313923,
+          -2.0950897216796847
+        ]
+      },
+      "severity": "critical",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "raycast_miss",
+          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
+        }
+      ],
+      "description": "Raycast void inside the floor footprint; no probe landed here — probe-directed follow-up recommended."
+    },
+    {
+      "id": "d-hole-7",
+      "type": "collider_hole",
+      "region": {
+        "min": [
+          2.0327785491943366,
+          -0.38894636630686075,
+          -1.7950897216796875
+        ],
+        "max": [
+          2.432778549194339,
+          0.21105363369313923,
+          -1.5950897216796847
+        ]
+      },
+      "severity": "critical",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "raycast_miss",
+          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
+        },
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "58 visual samples cover this region — the floor LOOKS intact",
+          "count": 58
+        }
+      ],
+      "description": "Raycast void inside the floor footprint; no probe landed here — probe-directed follow-up recommended."
+    },
+    {
+      "id": "d-hole-8",
+      "type": "collider_hole",
+      "region": {
+        "min": [
+          -9.067221450805661,
+          -0.38894636630686075,
+          -1.195089721679686
+        ],
+        "max": [
+          -8.467221450805663,
+          0.21105363369313923,
+          -0.9950897216796832
+        ]
+      },
+      "severity": "critical",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "raycast_miss",
+          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
+        }
+      ],
+      "description": "Raycast void inside the floor footprint; no probe landed here — probe-directed follow-up recommended."
+    },
+    {
+      "id": "d-hole-9",
+      "type": "collider_hole",
+      "region": {
+        "min": [
+          -8.067221450805661,
+          -0.38894636630686075,
+          -0.7950897216796875
+        ],
+        "max": [
+          -6.567221450805661,
+          0.21105363369313923,
+          0.10491027832031108
+        ]
+      },
+      "severity": "critical",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "raycast_miss",
+          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
+        },
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "66 visual samples cover this region — the floor LOOKS intact",
+          "count": 66
+        }
+      ],
+      "description": "Raycast void inside the floor footprint; no probe landed here — probe-directed follow-up recommended."
+    },
+    {
+      "id": "d-hole-10",
+      "type": "collider_hole",
+      "region": {
+        "min": [
+          2.8327785491943374,
+          -0.38894636630686075,
+          1.4049102783203153
+        ],
+        "max": [
+          3.232778549194336,
+          0.21105363369313923,
+          1.7049102783203125
+        ]
+      },
+      "severity": "critical",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "raycast_miss",
+          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
+        },
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "38 visual samples cover this region — the floor LOOKS intact",
+          "count": 38
+        }
+      ],
+      "description": "Raycast void inside the floor footprint; no probe landed here — probe-directed follow-up recommended."
+    },
+    {
+      "id": "d-hole-11",
+      "type": "collider_hole",
+      "region": {
+        "min": [
+          -18.667221450805663,
+          -0.38894636630686075,
+          5.504910278320317
+        ],
+        "max": [
+          -18.367221450805665,
+          0.21105363369313923,
+          5.604910278320318
+        ]
+      },
+      "severity": "critical",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "raycast_miss",
+          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
+        }
+      ],
+      "description": "Raycast void inside the floor footprint; no probe landed here — probe-directed follow-up recommended."
+    },
+    {
+      "id": "d-hole-12",
+      "type": "collider_hole",
+      "region": {
+        "min": [
+          -17.367221450805665,
+          -0.38894636630686075,
+          8.804910278320314
+        ],
+        "max": [
+          -17.167221450805663,
+          0.21105363369313923,
+          9.004910278320317
+        ]
+      },
+      "severity": "critical",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "raycast_miss",
+          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
+        }
+      ],
+      "description": "Raycast void inside the floor footprint; no probe landed here — probe-directed follow-up recommended."
+    },
+    {
+      "id": "d-hole-13",
+      "type": "collider_hole",
+      "region": {
+        "min": [
+          -17.367221450805665,
+          -0.38894636630686075,
+          9.104910278320318
+        ],
+        "max": [
+          -16.767221450805664,
+          0.21105363369313923,
+          10.604910278320318
+        ]
+      },
+      "severity": "critical",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "raycast_miss",
+          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
+        },
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "4 visual samples cover this region — the floor LOOKS intact",
+          "count": 4
+        }
+      ],
+      "description": "Raycast void inside the floor footprint; no probe landed here — probe-directed follow-up recommended."
+    },
+    {
+      "id": "d-hole-14",
+      "type": "collider_hole",
+      "region": {
+        "min": [
+          16.232778549194336,
+          -0.38894636630686075,
+          11.404910278320315
+        ],
+        "max": [
+          16.53277854919434,
+          0.21105363369313923,
+          12.304910278320314
+        ]
+      },
+      "severity": "critical",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "raycast_miss",
+          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
+        },
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "2 visual samples cover this region — the floor LOOKS intact",
+          "count": 2
+        }
+      ],
+      "description": "Raycast void inside the floor footprint; no probe landed here — probe-directed follow-up recommended."
+    },
+    {
+      "id": "d-hole-15",
+      "type": "collider_hole",
+      "region": {
+        "min": [
+          21.832778549194337,
+          -0.38894636630686075,
+          21.604910278320318
+        ],
+        "max": [
+          22.332778549194337,
+          0.21105363369313923,
+          22.104910278320318
+        ]
+      },
+      "severity": "critical",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "raycast_miss",
+          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
+        },
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "2 visual samples cover this region — the floor LOOKS intact",
+          "count": 2
+        }
+      ],
+      "description": "Raycast void inside the floor footprint; no probe landed here — probe-directed follow-up recommended."
+    },
+    {
+      "id": "d-hole-16",
+      "type": "collider_hole",
+      "region": {
+        "min": [
+          21.832778549194337,
+          -0.38894636630686075,
+          22.204910278320312
+        ],
+        "max": [
+          22.53277854919434,
+          0.21105363369313923,
+          23.004910278320317
+        ]
+      },
+      "severity": "critical",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "raycast_miss",
+          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
+        },
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "5 visual samples cover this region — the floor LOOKS intact",
+          "count": 5
+        }
+      ],
+      "description": "Raycast void inside the floor footprint; no probe landed here — probe-directed follow-up recommended."
+    },
+    {
+      "id": "d-hole-17",
+      "type": "collider_hole",
+      "region": {
+        "min": [
+          24.232778549194336,
+          -0.38894636630686075,
+          26.604910278320318
+        ],
+        "max": [
+          24.53277854919434,
+          0.21105363369313923,
+          27.104910278320318
+        ]
+      },
+      "severity": "critical",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "raycast_miss",
+          "detail": "downward virtual-LiDAR rays pass through this region unobstructed"
+        },
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "1 visual samples cover this region — the floor LOOKS intact",
+          "count": 1
+        }
+      ],
+      "description": "Raycast void inside the floor footprint; no probe landed here — probe-directed follow-up recommended."
+    },
+    {
+      "id": "d-phantom-18",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          21.482778549194336,
+          -0.08894636630686076,
+          -23.795089721679688
+        ],
+        "max": [
+          21.732778549194336,
+          2.411053633693139,
+          -23.545089721679688
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "8 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 8
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-19",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -18.017221450805664,
+          -0.08894636630686076,
+          -14.045089721679688
+        ],
+        "max": [
+          -17.517221450805664,
+          2.411053633693139,
+          -13.295089721679688
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.925,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "17 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 17
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-20",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -17.017221450805664,
+          -0.08894636630686076,
+          -14.045089721679688
+        ],
+        "max": [
+          -16.767221450805664,
+          2.411053633693139,
+          -13.545089721679688
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.775,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "11 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 11
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-21",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -10.017221450805664,
+          -0.08894636630686076,
+          -14.045089721679688
+        ],
+        "max": [
+          -9.517221450805664,
+          2.411053633693139,
+          -13.545089721679688
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "19 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 19
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-22",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -4.767221450805664,
+          -0.08894636630686076,
+          -13.045089721679688
+        ],
+        "max": [
+          -4.517221450805664,
+          2.411053633693139,
+          -12.545089721679688
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.725,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "9 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 9
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-23",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -6.767221450805664,
+          -0.08894636630686076,
+          -11.545089721679688
+        ],
+        "max": [
+          -6.267221450805664,
+          2.411053633693139,
+          -11.045089721679688
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "14 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 14
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-24",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          6.732778549194336,
+          -0.08894636630686076,
+          -11.545089721679688
+        ],
+        "max": [
+          6.982778549194336,
+          2.411053633693139,
+          -11.045089721679688
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.775,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "11 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 11
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-25",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -8.017221450805664,
+          -0.08894636630686076,
+          -10.295089721679688
+        ],
+        "max": [
+          -7.267221450805664,
+          2.411053633693139,
+          -10.045089721679688
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.875,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "15 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 15
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-26",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          6.482778549194336,
+          -0.08894636630686076,
+          -9.045089721679688
+        ],
+        "max": [
+          6.982778549194336,
+          2.411053633693139,
+          -8.545089721679688
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "14 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 14
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-27",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          11.232778549194336,
+          -0.08894636630686076,
+          -8.545089721679688
+        ],
+        "max": [
+          11.982778549194336,
+          2.411053633693139,
+          -8.295089721679688
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.75,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "10 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 10
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-28",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -8.017221450805664,
+          -0.08894636630686076,
+          -7.7950897216796875
+        ],
+        "max": [
+          -7.517221450805664,
+          2.411053633693139,
+          -7.5450897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.75,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "10 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 10
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-29",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -6.767221450805664,
+          -0.08894636630686076,
+          -7.7950897216796875
+        ],
+        "max": [
+          -4.517221450805664,
+          2.411053633693139,
+          -6.5450897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "97 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 97
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-30",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -3.017221450805664,
+          -0.08894636630686076,
+          -7.7950897216796875
+        ],
+        "max": [
+          -2.267221450805664,
+          2.411053633693139,
+          -7.5450897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.725,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "9 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 9
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-31",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -10.767221450805664,
+          -0.08894636630686076,
+          -7.5450897216796875
+        ],
+        "max": [
+          -10.017221450805664,
+          2.411053633693139,
+          -6.7950897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "23 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 23
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-32",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -10.517221450805664,
+          -0.08894636630686076,
+          -6.5450897216796875
+        ],
+        "max": [
+          -9.767221450805664,
+          2.411053633693139,
+          -5.5450897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "31 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 31
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-33",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          2.982778549194336,
+          -0.08894636630686076,
+          -5.7950897216796875
+        ],
+        "max": [
+          4.732778549194336,
+          2.411053633693139,
+          -5.0450897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "70 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 70
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-34",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -5.267221450805664,
+          -0.08894636630686076,
+          -5.2950897216796875
+        ],
+        "max": [
+          -2.517221450805664,
+          2.411053633693139,
+          -2.7950897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "267 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 267
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-35",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          4.482778549194336,
+          -0.08894636630686076,
+          -5.0450897216796875
+        ],
+        "max": [
+          5.982778549194336,
+          2.411053633693139,
+          -4.0450897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "56 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 56
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-36",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -17.267221450805664,
+          -0.08894636630686076,
+          -4.5450897216796875
+        ],
+        "max": [
+          -16.767221450805664,
+          2.411053633693139,
+          -4.0450897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.725,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "9 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 9
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-37",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -13.517221450805664,
+          -0.08894636630686076,
+          -4.2950897216796875
+        ],
+        "max": [
+          -13.017221450805664,
+          2.411053633693139,
+          -3.2950897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "33 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 33
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-38",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          6.232778549194336,
+          -0.08894636630686076,
+          -4.2950897216796875
+        ],
+        "max": [
+          7.232778549194336,
+          2.411053633693139,
+          -3.2950897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "44 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 44
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-39",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -3.517221450805664,
+          -0.08894636630686076,
+          -4.0450897216796875
+        ],
+        "max": [
+          -1.767221450805664,
+          2.411053633693139,
+          -3.0450897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "82 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 82
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-40",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          3.482778549194336,
+          -0.08894636630686076,
+          -3.7950897216796875
+        ],
+        "max": [
+          3.982778549194336,
+          2.411053633693139,
+          -3.5450897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.75,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "10 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 10
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-41",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          4.982778549194336,
+          -0.08894636630686076,
+          -3.7950897216796875
+        ],
+        "max": [
+          5.482778549194336,
+          2.411053633693139,
+          -3.5450897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "8 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 8
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-42",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -5.767221450805664,
+          -0.08894636630686076,
+          -3.5450897216796875
+        ],
+        "max": [
+          -5.267221450805664,
+          2.411053633693139,
+          -3.0450897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "14 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 14
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-43",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -4.017221450805664,
+          -0.08894636630686076,
+          -3.5450897216796875
+        ],
+        "max": [
+          -3.767221450805664,
+          2.411053633693139,
+          -3.0450897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.875,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "15 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 15
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-44",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          2.482778549194336,
+          -0.08894636630686076,
+          -3.5450897216796875
+        ],
+        "max": [
+          3.732778549194336,
+          2.411053633693139,
+          -2.2950897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "78 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 78
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-45",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -13.767221450805664,
+          -0.08894636630686076,
+          -3.2950897216796875
+        ],
+        "max": [
+          -13.267221450805664,
+          2.411053633693139,
+          -2.5450897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "20 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 20
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-46",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -6.267221450805664,
+          -0.08894636630686076,
+          -3.0450897216796875
+        ],
+        "max": [
+          -6.017221450805664,
+          2.411053633693139,
+          -2.7950897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.775,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "11 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 11
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-47",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -3.767221450805664,
+          -0.08894636630686076,
+          -3.0450897216796875
+        ],
+        "max": [
+          -1.517221450805664,
+          2.411053633693139,
+          -2.0450897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "108 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 108
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-48",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -3.517221450805664,
+          -0.08894636630686076,
+          -2.0450897216796875
+        ],
+        "max": [
+          -1.517221450805664,
+          2.411053633693139,
+          0.7049102783203125
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "239 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 239
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-49",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          2.232778549194336,
+          -0.08894636630686076,
+          -2.0450897216796875
+        ],
+        "max": [
+          2.482778549194336,
+          2.411053633693139,
+          -1.7950897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "8 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 8
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-50",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -8.517221450805664,
+          -0.08894636630686076,
+          -1.5450897216796875
+        ],
+        "max": [
+          -8.017221450805664,
+          2.411053633693139,
+          -1.2950897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.775,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "11 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 11
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-51",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          8.982778549194336,
+          -0.08894636630686076,
+          -1.2950897216796875
+        ],
+        "max": [
+          9.732778549194336,
+          2.411053633693139,
+          -1.0450897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.825,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "13 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 13
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-52",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -8.267221450805664,
+          -0.08894636630686076,
+          -1.0450897216796875
+        ],
+        "max": [
+          -7.267221450805664,
+          2.411053633693139,
+          -0.7950897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "35 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 35
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-53",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -7.017221450805664,
+          -0.08894636630686076,
+          -0.7950897216796875
+        ],
+        "max": [
+          -6.517221450805664,
+          2.411053633693139,
+          -0.0450897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.875,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "15 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 15
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-54",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          6.232778549194336,
+          -0.08894636630686076,
+          -0.7950897216796875
+        ],
+        "max": [
+          6.482778549194336,
+          2.411053633693139,
+          -0.2950897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "8 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 8
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-55",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -4.767221450805664,
+          -0.08894636630686076,
+          -0.5450897216796875
+        ],
+        "max": [
+          -3.767221450805664,
+          2.411053633693139,
+          1.2049102783203125
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "79 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 79
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-56",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -8.267221450805664,
+          -0.08894636630686076,
+          -0.0450897216796875
+        ],
+        "max": [
+          -8.017221450805664,
+          2.411053633693139,
+          0.4549102783203125
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "8 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 8
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-57",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -7.517221450805664,
+          -0.08894636630686076,
+          -0.0450897216796875
+        ],
+        "max": [
+          -6.767221450805664,
+          2.411053633693139,
+          0.4549102783203125
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.925,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "17 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 17
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-58",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          4.732778549194336,
+          -0.08894636630686076,
+          -0.0450897216796875
+        ],
+        "max": [
+          5.482778549194336,
+          2.411053633693139,
+          0.7049102783203125
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "24 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 24
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-59",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -13.267221450805664,
+          -0.08894636630686076,
+          0.4549102783203125
+        ],
+        "max": [
+          -13.017221450805664,
+          2.411053633693139,
+          0.9549102783203125
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.775,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "11 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 11
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-60",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -5.767221450805664,
+          -0.08894636630686076,
+          0.4549102783203125
+        ],
+        "max": [
+          -5.017221450805664,
+          2.411053633693139,
+          1.7049102783203125
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "52 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 52
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-61",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -4.017221450805664,
+          -0.08894636630686076,
+          0.9549102783203125
+        ],
+        "max": [
+          -3.517221450805664,
+          2.411053633693139,
+          1.4549102783203125
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.775,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "11 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 11
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-62",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          3.232778549194336,
+          -0.08894636630686076,
+          0.9549102783203125
+        ],
+        "max": [
+          5.232778549194336,
+          2.411053633693139,
+          2.4549102783203125
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "144 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 144
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-63",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          8.232778549194336,
+          -0.08894636630686076,
+          1.2049102783203125
+        ],
+        "max": [
+          8.732778549194336,
+          2.411053633693139,
+          1.7049102783203125
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.775,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "11 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 11
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-64",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -7.767221450805664,
+          -0.08894636630686076,
+          1.4549102783203125
+        ],
+        "max": [
+          -7.267221450805664,
+          2.411053633693139,
+          2.2049102783203125
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.925,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "17 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 17
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-65",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -5.017221450805664,
+          -0.08894636630686076,
+          1.4549102783203125
+        ],
+        "max": [
+          -4.767221450805664,
+          2.411053633693139,
+          1.9549102783203125
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.725,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "9 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 9
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-66",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -5.517221450805664,
+          -0.08894636630686076,
+          1.9549102783203125
+        ],
+        "max": [
+          -5.267221450805664,
+          2.411053633693139,
+          2.4549102783203125
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "8 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 8
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-67",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          4.982778549194336,
+          -0.08894636630686076,
+          2.2049102783203125
+        ],
+        "max": [
+          5.482778549194336,
+          2.411053633693139,
+          2.7049102783203125
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "18 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 18
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-68",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -7.767221450805664,
+          -0.08894636630686076,
+          2.4549102783203125
+        ],
+        "max": [
+          -7.267221450805664,
+          2.411053633693139,
+          2.9549102783203125
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.75,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "10 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 10
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-69",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          7.732778549194336,
+          -0.08894636630686076,
+          3.2049102783203125
+        ],
+        "max": [
+          8.232778549194336,
+          2.411053633693139,
+          3.7049102783203125
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.75,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "10 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 10
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-70",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          6.232778549194336,
+          -0.08894636630686076,
+          4.2049102783203125
+        ],
+        "max": [
+          6.732778549194336,
+          2.411053633693139,
+          4.4549102783203125
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "8 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 8
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-71",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          -11.517221450805664,
+          -0.08894636630686076,
+          4.7049102783203125
+        ],
+        "max": [
+          -11.267221450805664,
+          2.411053633693139,
+          5.2049102783203125
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.775,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "11 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 11
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-72",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          16.482778549194336,
+          -0.08894636630686076,
+          11.204910278320312
+        ],
+        "max": [
+          16.732778549194336,
+          2.411053633693139,
+          11.704910278320312
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.7,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "8 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 8
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-phantom-73",
+      "type": "phantom_collider",
+      "region": {
+        "min": [
+          19.232778549194336,
+          -0.08894636630686076,
+          13.204910278320312
+        ],
+        "max": [
+          19.482778549194336,
+          2.411053633693139,
+          13.704910278320312
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.775,
+      "evidence": [
+        {
+          "kind": "divergence_physics_no_visual",
+          "detail": "11 collider-surface samples have no visual support within 0.20 m (radius calibrated to this cloud's 0.07 m mean point spacing) — an invisible barrier",
+          "count": 11
+        }
+      ],
+      "description": "Collider surface with no visual counterpart: robots collide with something the camera cannot see."
+    },
+    {
+      "id": "d-visual-74",
+      "type": "visual_only_surface",
+      "region": {
+        "min": [
+          -1.517221450805664,
+          -0.08894636630686076,
+          -0.2950897216796875
+        ],
+        "max": [
+          -0.7672214508056641,
+          2.411053633693139,
+          0.7049102783203125
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.95,
+      "evidence": [
+        {
+          "kind": "divergence_visual_no_physics",
+          "detail": "74 visual samples are >0.15 m from any collider surface — painted-on geometry",
+          "count": 74
+        }
+      ],
+      "description": "Ghost geometry: a visual surface with no physics behind it — looks solid, is not. Training episodes touching it learn an affordance that does not exist."
+    },
+    {
+      "id": "d-sill-75",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          9.932778549194339,
+          -0.08894636630686076,
+          -32.695089721679686
+        ],
+        "max": [
+          10.432778549194339,
+          0.09571554661123007,
+          -31.995089721679687
+        ]
+      },
+      "severity": "minor",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.135 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.13466191291809082,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.11466191291809082,
+              "high": 0.1546619129180908,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.13 m — negotiability is robot-relative (see per-robot verdicts)."
+    },
+    {
+      "id": "d-sill-76",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          9.632778549194335,
+          -0.08894636630686076,
+          -31.39508972167969
+        ],
+        "max": [
+          10.03277854919434,
+          0.20135357380239216,
+          -30.695089721679686
+        ]
+      },
+      "severity": "minor",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.240 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.24029994010925293,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.22029994010925294,
+              "high": 0.26029994010925295,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.24 m — negotiability is robot-relative (see per-robot verdicts)."
+    },
+    {
+      "id": "d-sill-77",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          -8.467221450805663,
+          -0.08894636630686076,
+          -30.39508972167969
+        ],
+        "max": [
+          33.43277854919434,
+          0.4606014728578731,
+          48.80491027832032
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.500 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.4995478391647339,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.47954783916473387,
+              "high": 0.5195478391647339,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.50 m — negotiability is robot-relative (see per-robot verdicts)."
+    },
+    {
+      "id": "d-sill-78",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          8.932778549194339,
+          -0.08894636630686076,
+          -29.89508972167969
+        ],
+        "max": [
+          9.732778549194336,
+          0.4344344377550289,
+          -28.095089721679685
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.473 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.47338080406188965,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.45338080406188963,
+              "high": 0.49338080406188967,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.47 m — negotiability is robot-relative (see per-robot verdicts)."
+    },
+    {
+      "id": "d-sill-79",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          6.932778549194339,
+          -0.08894636630686076,
+          -29.795089721679688
+        ],
+        "max": [
+          7.232778549194336,
+          0.00541784763662069,
+          -29.595089721679685
+        ]
+      },
+      "severity": "minor",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.044 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.044364213943481445,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.024364213943481445,
+              "high": 0.06436421394348145,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.04 m — negotiability is robot-relative (see per-robot verdicts)."
+    },
+    {
+      "id": "d-sill-80",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          -0.9672214508056634,
+          -0.08894636630686076,
+          -27.295089721679688
+        ],
+        "max": [
+          0.03277854919433665,
+          0.01603331566182821,
+          -24.495089721679687
+        ]
+      },
+      "severity": "minor",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.055 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.054979681968688965,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.03497968196868896,
+              "high": 0.07497968196868897,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.05 m — negotiability is robot-relative (see per-robot verdicts)."
+    },
+    {
+      "id": "d-sill-81",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          -25.367221450805665,
+          -0.08894636630686076,
+          -26.89508972167969
+        ],
+        "max": [
+          -0.6672214508056626,
+          0.4537694692644283,
+          42.004910278320324
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.493 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.49271583557128906,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.47271583557128904,
+              "high": 0.5127158355712891,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.49 m — negotiability is robot-relative (see per-robot verdicts)."
+    },
+    {
+      "id": "d-sill-82",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          30.43277854919434,
+          -0.08894636630686076,
+          -25.495089721679687
+        ],
+        "max": [
+          31.43277854919434,
+          0.02714326382009237,
+          -24.595089721679685
+        ]
+      },
+      "severity": "minor",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.066 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.06608963012695312,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.04608963012695312,
+              "high": 0.08608963012695313,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.07 m — negotiability is robot-relative (see per-robot verdicts)."
+    },
+    {
+      "id": "d-sill-83",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          22.732778549194336,
+          -0.08894636630686076,
+          -24.995089721679687
+        ],
+        "max": [
+          22.93277854919434,
+          0.0021510362657710808,
+          -24.89508972167969
+        ]
+      },
+      "severity": "minor",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.041 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.041097402572631836,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.021097402572631836,
+              "high": 0.06109740257263184,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.04 m — negotiability is robot-relative (see per-robot verdicts)."
+    },
+    {
+      "id": "d-sill-84",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          28.13277854919434,
+          -0.08894636630686076,
+          -23.495089721679687
+        ],
+        "max": [
+          29.332778549194337,
+          0.13822021484700886,
+          -22.39508972167969
+        ]
+      },
+      "severity": "minor",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.177 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.17716658115386963,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.15716658115386964,
+              "high": 0.19716658115386962,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.18 m — negotiability is robot-relative (see per-robot verdicts)."
+    },
+    {
+      "id": "d-sill-85",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          -23.867221450805665,
+          -0.08894636630686076,
+          -22.295089721679688
+        ],
+        "max": [
+          -9.467221450805663,
+          0.4537694692644283,
+          -4.2950897216796875
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.493 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.49271583557128906,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.47271583557128904,
+              "high": 0.5127158355712891,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.49 m — negotiability is robot-relative (see per-robot verdicts)."
+    },
+    {
+      "id": "d-sill-86",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          -17.06722145080566,
+          -0.08894636630686076,
+          -22.295089721679688
+        ],
+        "max": [
+          -16.967221450805663,
+          0.1921141386064693,
+          -22.095089721679685
+        ]
+      },
+      "severity": "minor",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.231 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.23106050491333008,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.2110605049133301,
+              "high": 0.2510605049133301,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.23 m — negotiability is robot-relative (see per-robot verdicts)."
+    },
+    {
+      "id": "d-sill-87",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          -8.567221450805661,
+          -0.08894636630686076,
+          -18.495089721679687
+        ],
+        "max": [
+          -8.367221450805662,
+          0.030014061931054284,
+          -18.295089721679688
+        ]
+      },
+      "severity": "minor",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.069 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.06896042823791504,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.048960428237915035,
+              "high": 0.08896042823791504,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.07 m — negotiability is robot-relative (see per-robot verdicts)."
+    },
+    {
+      "id": "d-sill-88",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          -9.367221450805662,
+          -0.08894636630686076,
+          -17.695089721679686
+        ],
+        "max": [
+          -7.167221450805663,
+          0.21009924412099568,
+          -14.795089721679688
+        ]
+      },
+      "severity": "minor",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.249 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.24904561042785645,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.22904561042785646,
+              "high": 0.26904561042785646,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.25 m — negotiability is robot-relative (see per-robot verdicts)."
+    },
+    {
+      "id": "d-sill-89",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          33.93277854919434,
+          -0.08894636630686076,
+          -12.195089721679686
+        ],
+        "max": [
+          34.33277854919434,
+          0.34611251354543415,
+          -12.095089721679685
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.385 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.3850588798522949,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.3650588798522949,
+              "high": 0.40505887985229494,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.39 m — negotiability is robot-relative (see per-robot verdicts)."
+    },
+    {
+      "id": "d-sill-90",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          30.232778549194336,
+          -0.08894636630686076,
+          -10.795089721679688
+        ],
+        "max": [
+          31.13277854919434,
+          0.33096053600637165,
+          -10.395089721679685
+        ]
+      },
+      "severity": "major",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.370 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.3699069023132324,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.3499069023132324,
+              "high": 0.38990690231323244,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.37 m — negotiability is robot-relative (see per-robot verdicts)."
+    },
+    {
+      "id": "d-sill-91",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          -21.567221450805665,
+          -0.08894636630686076,
+          -3.0950897216796847
+        ],
+        "max": [
+          -21.367221450805665,
+          0.15350224972097126,
+          -2.9950897216796832
+        ]
+      },
+      "severity": "minor",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.192 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.19244861602783203,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.17244861602783204,
+              "high": 0.21244861602783202,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.19 m — negotiability is robot-relative (see per-robot verdicts)."
+    },
+    {
+      "id": "d-sill-92",
+      "type": "raised_sill",
+      "region": {
+        "min": [
+          33.13277854919434,
+          -0.08894636630686076,
+          -0.09508972167968466
+        ],
+        "max": [
+          36.332778549194344,
+          0.13279917240468708,
+          5.304910278320314
+        ]
+      },
+      "severity": "minor",
+      "confidence": 0.85,
+      "evidence": [
+        {
+          "kind": "floor_step_measurement",
+          "detail": "surface discontinuity of 0.172 m between adjacent traversable cells",
+          "measurement": {
+            "name": "step_height",
+            "value": 0.17174553871154785,
+            "unit": "m",
+            "uncertainty": {
+              "low": 0.15174553871154786,
+              "high": 0.19174553871154784,
+              "basis": "adjacent-cell surface delta quantization"
+            },
+            "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+          }
+        }
+      ],
+      "description": "Raised step/sill of 0.17 m — negotiability is robot-relative (see per-robot verdicts)."
+    },
+    {
+      "id": "d-scale-93",
+      "type": "scale_error",
+      "region": {
+        "min": [
+          -28.267221450805664,
+          -18.357933044433594,
+          -37.79508972167969
+        ],
+        "max": [
+          38.62222671508789,
+          0.6289339065551758,
+          49.18540573120117
+        ]
+      },
+      "severity": "critical",
+      "confidence": 0.6,
+      "evidence": [
+        {
+          "kind": "vendor_metadata",
+          "detail": "vendor ships metric_scale_factor 1.615 — the world declares itself non-metric as exported; door-height estimate 0.85 available for cross-check",
+          "measurement": {
+            "name": "vendor_metric_scale_factor",
+            "value": 1.614799976348877,
+            "unit": "x",
+            "uncertainty": {
+              "low": 1.614799976348877,
+              "high": 1.614799976348877,
+              "basis": "vendor-shipped metadata (exact as shipped)"
+            },
+            "method": "read from world metadata; accuracy unverified until cross-checked"
+          }
+        }
+      ],
+      "description": "Vendor metadata declares a non-metric export. Metric verdicts are suspended until apply_vendor_scale bakes the factor and re-certification confirms."
+    }
+  ],
+  "robotVerdicts": [
+    {
+      "robotId": "rover",
+      "check": "floor_integrity",
+      "pass": false,
+      "requirement": "no unresolved collider holes in the navigable area",
+      "gravitySensitivity": "unchanged_by_gravity",
+      "gravityNote": "unchanged under moon gravity: a missing collider is missing at any g",
+      "defectIds": [
+        "d-hole-0",
+        "d-hole-1",
+        "d-hole-2",
+        "d-hole-3",
+        "d-hole-4",
+        "d-hole-5",
+        "d-hole-6",
+        "d-hole-7",
+        "d-hole-8",
+        "d-hole-9",
+        "d-hole-10",
+        "d-hole-11",
+        "d-hole-12",
+        "d-hole-13",
+        "d-hole-14",
+        "d-hole-15",
+        "d-hole-16",
+        "d-hole-17"
+      ]
+    },
+    {
+      "robotId": "rover",
+      "check": "passage_clearance_width",
+      "pass": "not_evaluated",
+      "measured": {
+        "name": "doorway_width",
+        "value": 0.1999999999999993,
+        "unit": "m",
+        "uncertainty": {
+          "low": 0.09999999999999928,
+          "high": 0.29999999999999927,
+          "basis": "raycast grid resolution 0.1 m"
+        },
+        "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+      },
+      "requirement": "suspended: metric verdict withheld until the diagnosed scale defect is resolved and the world re-certified",
+      "gravitySensitivity": "unchanged_by_gravity",
+      "gravityNote": "unchanged under moon gravity: geometry does not scale with g",
+      "defectIds": []
+    },
+    {
+      "robotId": "rover",
+      "check": "step_negotiation",
+      "pass": "not_evaluated",
+      "measured": {
+        "name": "step_height",
+        "value": 0.4995478391647339,
+        "unit": "m",
+        "uncertainty": {
+          "low": 0.47954783916473387,
+          "high": 0.5195478391647339,
+          "basis": "adjacent-cell surface delta quantization"
+        },
+        "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+      },
+      "requirement": "suspended: metric verdict withheld until the diagnosed scale defect is resolved and the world re-certified",
+      "gravitySensitivity": "unchanged_by_gravity",
+      "gravityNote": "unchanged under moon gravity: step negotiability in this model class is kinematic",
+      "defectIds": [
+        "d-sill-75",
+        "d-sill-76",
+        "d-sill-77",
+        "d-sill-78",
+        "d-sill-79",
+        "d-sill-80",
+        "d-sill-81",
+        "d-sill-82",
+        "d-sill-83",
+        "d-sill-84",
+        "d-sill-85",
+        "d-sill-86",
+        "d-sill-87",
+        "d-sill-88",
+        "d-sill-89",
+        "d-sill-90",
+        "d-sill-91",
+        "d-sill-92"
+      ]
+    },
+    {
+      "robotId": "rover",
+      "check": "slope_capability",
+      "pass": true,
+      "measured": {
+        "name": "max_traversal_slope",
+        "value": 2.599586957257933,
+        "unit": "deg",
+        "uncertainty": {
+          "low": 2.099586957257933,
+          "high": 3.099586957257933,
+          "basis": "RANSAC plane-fit angular resolution"
+        },
+        "method": "floor-plane tilt from RANSAC fit; per-region slope mapping is a survey extension"
+      },
+      "requirement": "traversal slopes ≤ 20 deg (robot spec); Coulomb traction limit atan(µ=0.8) = 38.7 deg",
+      "gravitySensitivity": "unchanged_by_gravity",
+      "gravityNote": "UNCHANGED under moon gravity: slope limit is atan(µ) — traction µ·m·g·cosθ and gravity pull m·g·sinθ both scale with g, which cancels. Loose-soil slip is excluded by the disclosed model class (rigid contact, Coulomb friction).",
+      "defectIds": []
+    },
+    {
+      "robotId": "rover",
+      "check": "braking_stopping_distance",
+      "pass": true,
+      "measured": {
+        "name": "stopping_distance",
+        "value": 0.8680555555555554,
+        "unit": "m",
+        "uncertainty": {
+          "low": 0.7812499999999999,
+          "high": 0.9982638888888886,
+          "basis": "±10-15% for µ variation across surfaces in the model class"
+        },
+        "method": "v²/(2µg) at reference speed 1.5 m/s, µ=0.8, g=1.62 m/s²"
+      },
+      "requirement": "informational — plan braking margins accordingly",
+      "gravitySensitivity": "changes_with_gravity",
+      "gravityNote": "CHANGES with gravity: 6.06x the Earth value of 0.14 m — deceleration is µ·g",
+      "defectIds": []
+    },
+    {
+      "robotId": "quadruped",
+      "check": "floor_integrity",
+      "pass": false,
+      "requirement": "no unresolved collider holes in the navigable area",
+      "gravitySensitivity": "unchanged_by_gravity",
+      "gravityNote": "unchanged under moon gravity: a missing collider is missing at any g",
+      "defectIds": [
+        "d-hole-0",
+        "d-hole-1",
+        "d-hole-2",
+        "d-hole-3",
+        "d-hole-4",
+        "d-hole-5",
+        "d-hole-6",
+        "d-hole-7",
+        "d-hole-8",
+        "d-hole-9",
+        "d-hole-10",
+        "d-hole-11",
+        "d-hole-12",
+        "d-hole-13",
+        "d-hole-14",
+        "d-hole-15",
+        "d-hole-16",
+        "d-hole-17"
+      ]
+    },
+    {
+      "robotId": "quadruped",
+      "check": "passage_clearance_width",
+      "pass": "not_evaluated",
+      "measured": {
+        "name": "doorway_width",
+        "value": 0.1999999999999993,
+        "unit": "m",
+        "uncertainty": {
+          "low": 0.09999999999999928,
+          "high": 0.29999999999999927,
+          "basis": "raycast grid resolution 0.1 m"
+        },
+        "method": "header-footprint extent on 0.1 m virtual-LiDAR grid"
+      },
+      "requirement": "suspended: metric verdict withheld until the diagnosed scale defect is resolved and the world re-certified",
+      "gravitySensitivity": "unchanged_by_gravity",
+      "gravityNote": "unchanged under moon gravity: geometry does not scale with g",
+      "defectIds": []
+    },
+    {
+      "robotId": "quadruped",
+      "check": "step_negotiation",
+      "pass": "not_evaluated",
+      "measured": {
+        "name": "step_height",
+        "value": 0.4995478391647339,
+        "unit": "m",
+        "uncertainty": {
+          "low": 0.47954783916473387,
+          "high": 0.5195478391647339,
+          "basis": "adjacent-cell surface delta quantization"
+        },
+        "method": "max surface discontinuity between adjacent traversable cells (0.1 m grid; nearby edges merged within 0.5 m)"
+      },
+      "requirement": "suspended: metric verdict withheld until the diagnosed scale defect is resolved and the world re-certified",
+      "gravitySensitivity": "unchanged_by_gravity",
+      "gravityNote": "unchanged under moon gravity: step negotiability in this model class is kinematic",
+      "defectIds": [
+        "d-sill-75",
+        "d-sill-76",
+        "d-sill-77",
+        "d-sill-78",
+        "d-sill-79",
+        "d-sill-80",
+        "d-sill-81",
+        "d-sill-82",
+        "d-sill-83",
+        "d-sill-84",
+        "d-sill-85",
+        "d-sill-86",
+        "d-sill-87",
+        "d-sill-88",
+        "d-sill-89",
+        "d-sill-90",
+        "d-sill-91",
+        "d-sill-92"
+      ]
+    },
+    {
+      "robotId": "quadruped",
+      "check": "slope_capability",
+      "pass": true,
+      "measured": {
+        "name": "max_traversal_slope",
+        "value": 2.599586957257933,
+        "unit": "deg",
+        "uncertainty": {
+          "low": 2.099586957257933,
+          "high": 3.099586957257933,
+          "basis": "RANSAC plane-fit angular resolution"
+        },
+        "method": "floor-plane tilt from RANSAC fit; per-region slope mapping is a survey extension"
+      },
+      "requirement": "traversal slopes ≤ 30 deg (robot spec); Coulomb traction limit atan(µ=0.8) = 38.7 deg",
+      "gravitySensitivity": "unchanged_by_gravity",
+      "gravityNote": "UNCHANGED under moon gravity: slope limit is atan(µ) — traction µ·m·g·cosθ and gravity pull m·g·sinθ both scale with g, which cancels. Loose-soil slip is excluded by the disclosed model class (rigid contact, Coulomb friction).",
+      "defectIds": []
+    },
+    {
+      "robotId": "quadruped",
+      "check": "braking_stopping_distance",
+      "pass": true,
+      "measured": {
+        "name": "stopping_distance",
+        "value": 0.3858024691358024,
+        "unit": "m",
+        "uncertainty": {
+          "low": 0.34722222222222215,
+          "high": 0.44367283950617276,
+          "basis": "±10-15% for µ variation across surfaces in the model class"
+        },
+        "method": "v²/(2µg) at reference speed 1 m/s, µ=0.8, g=1.62 m/s²"
+      },
+      "requirement": "informational — plan braking margins accordingly",
+      "gravitySensitivity": "changes_with_gravity",
+      "gravityNote": "CHANGES with gravity: 6.06x the Earth value of 0.06 m — deceleration is µ·g",
+      "defectIds": []
+    }
+  ],
+  "scale": {
+    "vendorFactorApplied": false,
+    "vendorFactor": 1.614799976348877,
+    "estimated": {
+      "name": "metric_scale_factor_estimate",
+      "value": 0.8545115348779189,
+      "unit": "x",
+      "uncertainty": {
+        "low": 0.7703232063185179,
+        "high": 0.9386998634373198,
+        "basis": "door-height prior 2.03±0.1 m (2 SD)"
+      },
+      "method": "tallest measured doorway height 2.38 m vs standard-passage prior; single-cue estimate — cross-check against vendor metadata",
+      "n": 44
+    },
+    "agreement": "vendor factor 1.614799976348877 vs door-height estimate 0.85 — DISAGREE; certificate flags scale as unverified"
+  },
+  "disclosures": [
+    "Wheeled rover (raycast-vehicle class): Rigid-body raycast vehicle, Coulomb friction, no soil mechanics. Verdicts valid for this model class only.",
+    "Quadruped (kinematic capability envelope): Kinematic capability envelope anchored to ANYmal published spec (footprint, max step, max slope). No gait simulation performed or implied.",
+    "Probe methodology: seeded probe rain with CCD; every fall-through cross-checked by an independent raycast at the probe's exit point before it counts as a hole. Surface confirmation counts a probe at rest OR sustained rolling contact (>= 0.5 s of continuous collider contact along its path — on slopes a ball never sleeps; its contact record is the experiment).",
+    "Trust states cover robot-REACHABLE space only; 'observed' means no physical experiment touched the cell.",
+    "Capture envelope: claims are limited to the splat capture envelope — collider columns whose visual coverage reaches this world's own surveyed-surface baseline. 91.8% of collider columns (~2571 m²) lie beyond it and are OUTSIDE THE SURVEYED AREA: no defect, divergence, or fall-through evidence is drawn there. Absence of visual data beyond the capture is a capture limit, not an invisible wall.",
+    "11 of 87 probes exited the surveyed area (rolled off an open edge or beyond the capture envelope) — recorded as exits, excluded from all defect evidence.",
+    "Detection floor: at this coverage (ray grid 0.1 m, ~1.64 m probe spacing over the 234 m² surveyed area), 'verified' rules out collider holes with footprint ≥ ~1.64 m; smaller defects are below the instrument's floor.",
+    "Divergence threshold self-calibrated to this world's simplification noise floor: 0.170 m (1.5x the p99 splat-to-collider distance on probe-verified cells, height-banded to within 0.75 m of the contacted surface). 'Divergent' means splat/collider disagreement beyond the vendor's own demonstrated simplification tolerance.",
+    "Phantom-collider evidence radius self-calibrated to the shipped point cloud: 'no visual support' means no point within 0.20 m (1.5x the cloud's 0.07 m mean spacing over the surveyed area, bounded to [0.2, 0.6] m). The experiment defeats phantom evidence at the surface it validated: samples within 0.75 m of terrain a probe rested on or rolled across are excluded — geometry rising above a validated surface still counts.",
+    "Single-level survey: one walkable surface per column; multi-level worlds are unsupported in this version.",
+    "Scope of the grade: it predicts navmesh-level traversability under the disclosed model class. It does not predict policy transfer or visual-domain fidelity.",
+    "All measurements carry uncertainty ranges; the methods line under each number states how it was obtained."
+  ],
+  "probeStats": {
+    "probesDropped": 87,
+    "probesRested": 70,
+    "probesFellThrough": 2,
+    "tunnelingArtifactsExcluded": 4,
+    "simSteps": 900,
+    "fixedTimestep": 0.016666666666666666
+  }
+}
