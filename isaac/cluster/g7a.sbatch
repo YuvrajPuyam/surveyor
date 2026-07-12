@@ -28,6 +28,11 @@ for try in 1 2 3; do
   echo "RETRY after try $try (kit crashed before a verdict)"
 done
 rm -rf "$WORK"
+# bank the footage as movies BEFORE any future run can rm the frames
+bash -lc 'module load ffmpeg 2>/dev/null; for st in fp tp; do
+  d=/scratch/gilbreth/gupta596/surveyor/g7a-frames-$st
+  [ -d "$d" ] && [ -n "$(ls -A "$d" 2>/dev/null)" ] &&     ffmpeg -y -framerate 30 -i "$d/frame_%05d.png" -c:v mpeg4 -q:v 2 -pix_fmt yuv420p       /scratch/gilbreth/gupta596/surveyor/g7a-$st-job$SLURM_JOB_ID.mp4
+done'
 echo G7A_JOB_DONE
 
 

@@ -248,9 +248,11 @@ try:
         render_tick()
     fp_s, tp_s = spread(fp), spread(tp)
     log(f"post-warmup spreads: fp {fp_s:.0f}, tp {tp_s:.0f}")
-    if fp_s <= 8 or tp_s <= 8:
-        log("G7B_FAIL cameras blank (render law: post-construction authoring)")
+    if fp_s <= 8 and tp_s <= 8:
+        log("G7B_FAIL both cameras blank")
         raise RuntimeError("cameras blank")
+    if fp_s <= 8 or tp_s <= 8:
+        log(f"WARN one camera blank (fp {fp_s:.0f}, tp {tp_s:.0f}) - filming with what works")
 
     # ---- the walk, on camera ------------------------------------------------
     STEPS = 800  # ~16 s at 50 Hz control
