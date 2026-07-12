@@ -20,7 +20,7 @@
  * trust-map paint is always witnessed.
  *
  * Keys: [1-5]/[→←]/[Space] five-beat stepper  [D] dev overlay
- *       [W] wireframe  [T] trust map  [P] patrol  [B] defect boxes  [F] flip splats  [I] camera
+ *       [WASD/arrows] fly  [V] wireframe  [T] trust map  [P] patrol  [B] defect boxes  [F] flip splats  [I] camera
  *       [R] raw twin run (Beats 1–3 — drives the raw physics into a certificate-confirmed hole)
  */
 import * as THREE from "three";
@@ -163,12 +163,12 @@ function renderHud(): void {
     `collider ${hud.triangles.toLocaleString()} tris   probes ${hud.probes}\n` +
     `grade    ${hud.grade}   open defects ${hud.defects}\n` +
     `${hud.status}\n` +
-    `[1-5] beats  [Space] action  [→/←] step  [D] dev\n` +
-    `[W] wireframe  [T] trust  [P] patrol  [B] boxes  [F] flip  [I] camera  [R] raw run`;
+    `[1-5] beats  [Space] action  [N] next  [G] dev\n` +
+    `[WASD/arrows] fly (Shift sprint)  [V] wireframe  [T] trust  [P] patrol  [B] boxes  [F] flip  [I] camera  [R] raw run`;
 }
 setInterval(renderHud, 250);
 
-// ---------------------------------------------------------- dev mode (D)
+// ---------------------------------------------------------- dev mode (G)
 // One boolean, default OFF, persisted. Reveals the raw HUD and every .sv-raw
 // annotation (ids, seeds, actionIds, raw log lines, [low..high] format).
 // It never changes layout — toggling it live on stage is safe.
