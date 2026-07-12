@@ -147,6 +147,10 @@ interface RawRoute {
   visionSeen: number;
   visionTotal: number;
   visionMedianDeltaM: number;
+  /** The START must sit inside the splat rooms — a rover materializing in
+   *  the visual void outside the world reads as a bug, not a beat. True when
+   *  the visual ground answers at the spawn point (or no ground is loaded). */
+  startOnVisual: boolean;
 }
 
 /** Parse "N probes fell through" out of probe_fallthrough evidence. */
@@ -333,6 +337,7 @@ function deriveApproach(
     const vision = ground
       ? ground.crossing(sx, sz, aim.x, aim.z, floorY, insideRegion)
       : { seen: 0, total: 0, medianAbsDeltaM: Number.NaN };
+    const startOnVisual = ground ? ground.floorAt(sx, sz, floorY) !== undefined : true;
     return {
       kind,
       defectId: defect.id,
@@ -346,6 +351,7 @@ function deriveApproach(
       visionSeen: vision.seen,
       visionTotal: vision.total,
       visionMedianDeltaM: vision.medianAbsDeltaM,
+      startOnVisual,
     };
   });
 }
@@ -377,15 +383,21 @@ function deriveCandidateRoutes(
     if (falls.length + ghosts.length >= MAX_ROUTE_PROBES * 2) break;
     ghosts.push(...deriveApproach(ghost, collider, "ghost", ground));
   }
-  // C12: within each kind, vision-confirmed crossings probe first — the run
-  // that demonstrates the poisoning ("pixels say floor, collider says void")
-  // beats one that merely falls. Stable: prior runway ordering is preserved
-  // within each vision class.
+  // Ordering, strongest story first (stable within each class):
+  //  1. start INSIDE the splat rooms (a rover spawning in the visual void
+  //     outside the world reads as a bug) — hard preference;
+  //  2. C12 vision-confirmed crossings ("pixels say floor, collider says
+  //     void") beat ones that merely fall.
+  // Off-visual starts stay as last-resort fallbacks so the beat never dies.
   const visionFirst = (rs: RawRoute[]): RawRoute[] => [
     ...rs.filter((r) => visionConfirmed({ seen: r.visionSeen, total: r.visionTotal })),
     ...rs.filter((r) => !visionConfirmed({ seen: r.visionSeen, total: r.visionTotal })),
   ];
-  return [...visionFirst(falls), ...visionFirst(ghosts)].slice(0, MAX_ROUTE_PROBES * 2);
+  const startFirst = (rs: RawRoute[]): RawRoute[] => [
+    ...visionFirst(rs.filter((r) => r.startOnVisual)),
+    ...visionFirst(rs.filter((r) => !r.startOnVisual)),
+  ];
+  return [...startFirst(falls), ...startFirst(ghosts)].slice(0, MAX_ROUTE_PROBES * 2);
 }
 
 // ------------------------------------------------------------- module body
@@ -598,7 +610,8 @@ export function createTwinRun(deps: TwinRunDeps): TwinRunHandle {
         );
         probeLog.push(
           `${route.defectId}/${route.kind} ${res.outcome}@${res.step} d=${Math.hypot(res.x - route.start.x, res.z - route.start.z).toFixed(2)}` +
-            ` vision=${route.visionSeen}/${route.visionTotal}${Number.isFinite(route.visionMedianDeltaM) ? ` Δ${route.visionMedianDeltaM.toFixed(3)}m` : ""}`,
+            ` vision=${route.visionSeen}/${route.visionTotal}${Number.isFinite(route.visionMedianDeltaM) ? ` Δ${route.visionMedianDeltaM.toFixed(3)}m` : ""}` +
+            ` start=${route.startOnVisual ? "in-rooms" : "VOID"}`,
         );
         // Three provable failure modes:
         //  fall-kind + fell            → dropped past the fall line
