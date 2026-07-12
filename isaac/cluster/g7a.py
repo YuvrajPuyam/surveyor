@@ -110,7 +110,7 @@ try:
         view = Gf.Matrix4d().SetLookAt(e, a, Gf.Vec3d(0, 0, 1 / sz))
         UsdGeom.Xformable(stage.GetPrimAtPath(path)).MakeMatrixXform().Set(view.GetInverse())
         return path
-    fp_path = body_cam("fp_cam", (0.20, 0.0, 0.30), (2.5, 0.0, 0.05))
+    fp_path = body_cam("fp_cam", (0.20, 0.0, 0.30), (3.5, 0.0, 0.35))
     # WIDE cam: STATIC, root-level, at the g3c-PROVEN photoreal-clear eye --
     # the exact pose that filmed the box-lift with visible robot + splats.
     # (Chase cams ride inside splat fog; proven-clear air beats theory.)
@@ -118,7 +118,7 @@ try:
     wc = UsdGeom.Camera.Define(stage, Sdf.Path(wide_path))
     wc.CreateClippingRangeAttr(Gf.Vec2f(0.05, 10000.0))
     weye = Gf.Vec3d(B[0] - 1.15, B[1] - 1.05, B[2] + 1.15)
-    waim = Gf.Vec3d(B[0], B[1] - 1.5, B[2] - 0.2)  # down the -Y drive corridor
+    waim = Gf.Vec3d(B[0] + 0.25, B[1] + 0.22, B[2] + 0.25)  # the EXACT g3c-proven aim (crisp there)
     wview = Gf.Matrix4d().SetLookAt(weye, waim, Gf.Vec3d(0, 0, 1))
     UsdGeom.Xformable(stage.GetPrimAtPath(wide_path)).MakeMatrixXform().Set(wview.GetInverse())
     tp_path = wide_path

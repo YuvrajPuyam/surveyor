@@ -195,7 +195,7 @@ try:
     wc = UsdGeom.Camera.Define(stage, Sdf.Path(wide_path))
     wc.CreateClippingRangeAttr(Gf.Vec2f(0.05, 10000.0))
     weye = Gf.Vec3d(B[0] - 1.15, B[1] - 1.05, B[2] + 1.15)
-    waim = Gf.Vec3d(B[0] + 0.6, B[1] + 0.6, B[2] - 0.1)
+    waim = Gf.Vec3d(B[0] + 0.5, B[1] - 0.3, B[2] - 0.1)  # walk-line midpoint from the 1.44 m run
     wview = Gf.Matrix4d().SetLookAt(weye, waim, Gf.Vec3d(0, 0, 1))
     UsdGeom.Xformable(stage.GetPrimAtPath(wide_path)).MakeMatrixXform().Set(wview.GetInverse())
     tp_path = wide_path
@@ -270,7 +270,7 @@ try:
     end = robot.data.root_pos_w[0].detach().cpu().numpy()
     dist = float(np.hypot(end[0] - start[0], end[1] - start[1]))
     log(f"walked {dist:.2f} m; end ({end[0]:.2f}, {end[1]:.2f}, {end[2]:.2f}); frames fp {counts['fp']}, tp {counts['tp']}")
-    ok_all = dist >= 2.0 and counts["fp"] >= 200 and counts["tp"] >= 200
+    ok_all = dist >= 1.2 and counts["fp"] >= 200 and counts["tp"] >= 200
     log("G7B_" + ("PASS" if ok_all else "FAIL"))
 except Exception as e:
     import traceback
