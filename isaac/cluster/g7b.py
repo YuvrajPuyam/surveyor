@@ -19,8 +19,9 @@ STAGE = "/scratch/gilbreth/gupta596/surveyor/canonical-pack/world/7188e250-e2ff-
 SPAWNS = "/scratch/gilbreth/gupta596/surveyor/7188e250-e2ff-43e7-babb-73834c22e932/spawns.json"
 GO2_USD = "/scratch/gilbreth/gupta596/surveyor/go2-assets/go2.usd"
 import os as _os
-_CK_ROUGH = "/scratch/gilbreth/gupta596/surveyor/go2-assets/go2-rough-checkpoint.pt"
-CKPT = _CK_ROUGH if _os.path.exists(_CK_ROUGH) else "/scratch/gilbreth/gupta596/surveyor/go2-assets/go2-flat-checkpoint.pt"
+# flat brain first: it WALKED (0.69 m); the rough brain stands (its height
+# scanner reads garbage off USD terrain). Slow command below helps the deck.
+CKPT = "/scratch/gilbreth/gupta596/surveyor/go2-assets/go2-flat-checkpoint.pt"
 
 lines = []
 def log(msg):
@@ -49,8 +50,8 @@ try:
     # ---- env cfg (module paths vary; try the known layouts) ---------------
     EnvCfg = None
     for mod, name in [
-        ("isaaclab_tasks.manager_based.locomotion.velocity.config.go2.rough_env_cfg", "UnitreeGo2RoughEnvCfg_PLAY"),
         ("isaaclab_tasks.manager_based.locomotion.velocity.config.go2.flat_env_cfg", "UnitreeGo2FlatEnvCfg_PLAY"),
+        ("isaaclab_tasks.manager_based.locomotion.velocity.config.go2.rough_env_cfg", "UnitreeGo2RoughEnvCfg_PLAY"),
         ("isaaclab_tasks.manager_based.locomotion.velocity.config.unitree_go2.flat_env_cfg", "UnitreeGo2FlatEnvCfg_PLAY"),
     ]:
         try:
@@ -65,7 +66,6 @@ try:
 
     AgentCfg = None
     for mod, name in [
-        ("isaaclab_tasks.manager_based.locomotion.velocity.config.go2.agents.rsl_rl_ppo_cfg", "UnitreeGo2RoughPPORunnerCfg"),
         ("isaaclab_tasks.manager_based.locomotion.velocity.config.go2.agents.rsl_rl_ppo_cfg", "UnitreeGo2FlatPPORunnerCfg"),
         ("isaaclab_tasks.manager_based.locomotion.velocity.config.unitree_go2.agents.rsl_rl_ppo_cfg", "UnitreeGo2FlatPPORunnerCfg"),
     ]:
@@ -97,13 +97,13 @@ try:
     cfg.scene.robot.init_state.pos = (B[0], B[1], B[2] + 0.45)
     # fixed forward command (no random resampling drama on camera)
     try:
-        cfg.commands.base_velocity.ranges.lin_vel_x = (0.5, 0.5)
+        cfg.commands.base_velocity.ranges.lin_vel_x = (0.3, 0.3)
         cfg.commands.base_velocity.ranges.lin_vel_y = (0.0, 0.0)
         cfg.commands.base_velocity.ranges.ang_vel_z = (0.0, 0.0)
         cfg.commands.base_velocity.resampling_time_range = (1000.0, 1000.0)
         if hasattr(cfg.commands.base_velocity.ranges, "heading"):
             cfg.commands.base_velocity.ranges.heading = (0.0, 0.0)
-        log("command fixed: 0.7 m/s forward")
+        log("command fixed: 0.3 m/s forward")
     except Exception as ce:
         log(f"command override partial: {ce!r}")
     try:
@@ -190,7 +190,15 @@ try:
         UsdGeom.Xformable(stage.GetPrimAtPath(path)).MakeMatrixXform().Set(view.GetInverse())
         return path
     fp_path = body_cam("fp_cam", (0.30, 0.0, 0.12), (2.5, 0.0, -0.05))
-    tp_path = body_cam("tp_cam", (-1.7, 0.0, 0.9), (0.8, 0.0, 0.0))
+    # WIDE static cam at the g3c-proven photoreal-clear eye (root level)
+    wide_path = "/g7b_wide"
+    wc = UsdGeom.Camera.Define(stage, Sdf.Path(wide_path))
+    wc.CreateClippingRangeAttr(Gf.Vec2f(0.05, 10000.0))
+    weye = Gf.Vec3d(B[0] - 1.15, B[1] - 1.05, B[2] + 1.15)
+    waim = Gf.Vec3d(B[0] + 0.6, B[1] + 0.6, B[2] - 0.1)
+    wview = Gf.Matrix4d().SetLookAt(weye, waim, Gf.Vec3d(0, 0, 1))
+    UsdGeom.Xformable(stage.GetPrimAtPath(wide_path)).MakeMatrixXform().Set(wview.GetInverse())
+    tp_path = wide_path
     UsdLux.DomeLight.Define(stage, Sdf.Path("/g7b_dome")).CreateIntensityAttr(600)
 
     from isaacsim.sensors.camera import Camera
