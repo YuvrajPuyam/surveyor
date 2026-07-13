@@ -157,16 +157,38 @@ the exact demo laptop + browser that re-hashes it live (rehearse this).
   claimed floor a robot can physically reach; depth-audit promotion onto the
   certificate face). INFORMATIONAL in v1 — never enters the grade; the
   default certificate stays byte-identical (verified vs the banked hero
-  cert), so hash `6b2909f1` and all receipts stand. Fleet receipts: **4/6
-  raw worlds FAIL solver health** (up to 17/24 boxes ejected by degenerate
-  contact geometry — a defect axis no prior check measured); scale consensus
-  independently corroborates ac573c1f's known critical scale error (0/3
-  witnesses agree); hero raw reachability 28.4% ("you can SEE 1,173 floor
-  cells; a robot can REACH 333"); hero depth consensus conclusive (5 crops,
-  Spearman 0.82). Q&A line: *"the harness is extensible — new instruments
-  are plugins into the same Measurement schema, certificate, and grade."*
-  Follow-up (not blocking): export the repaired collider as a certifiable
-  bundle to bank the raw→repaired reachability climb.
+  cert), so hash `6b2909f1` and all receipts stand. Fleet receipts: scale
+  consensus independently corroborates ac573c1f's known critical scale
+  error (0/3 witnesses agree); hero raw reachability 28.4% ("you can SEE
+  1,173 floor cells; a robot can REACH 333"); hero depth consensus
+  conclusive (5 crops, Spearman 0.82). Q&A line: *"the harness is
+  extensible — new instruments are plugins into the same Measurement
+  schema, certificate, and grade."*
+- **Settling-instrument correction + extended-repair lane (2026-07-13,
+  same day):** the first settling run reported "4/6 worlds FAIL solver
+  health" — that was the INSTRUMENT, not the worlds. Per-box diagnostics
+  showed the "ejected" boxes in free fall after rolling off the open
+  capture edge of the outdoor worlds (peak height never exceeded spawn —
+  nothing was launched). Fixed with probe-rain discipline: boxes that
+  leave the surveyed area are `left_world` and excluded from evidence;
+  `fell_through` (ends below the collider column it's over) is HOLE
+  cross-evidence, not a solver fault; `ejected` now requires gaining
+  height at rest — the true explosion signature. Corrected fleet truth:
+  **zero solver explosions fleet-wide**; hero 1/24 fall-through (matches
+  its known collider holes); **ac573c1f — the "cleanest" world — has 7/24
+  boxes falling through floor probe rain had passed**: holes below the
+  probe detection floor, caught by a heavier/wider contact experiment.
+  Tell this as a STRENGTH: the instrument slandered the solver, the
+  methodology caught it same-day, and the fixed instrument found a real
+  defect class the core survey missed. `scripts/extended-repair.ts` is
+  the fix lane mirroring the extended profile (agent's closed menu stays
+  eleven): mesh hygiene (weld + degenerate/duplicate triangle removal)
+  and floater removal, writing a NEW cleaned bundle + before/after
+  receipt — never mutating the source. Receipt on 90c2b55d: floaters
+  6 → 0; mesh 30 degenerate triangles removed; and cleaning fake visual
+  evidence REVEALED 3 more phantom colliders (51 → 54 open defects) —
+  honest instruments get sharper as evidence gets cleaner. Fall-throughs
+  route to the CORE repair lane (patch_hole), not this one.
 
 ### Final-review resolutions (2026-07-07 night, external check on the finished project)
 

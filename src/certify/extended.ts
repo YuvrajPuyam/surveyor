@@ -84,7 +84,18 @@ const FLOATER_MAX_EXTENT_M = 1.5;
 const FLOATER_MIN_ELEVATION_M = 0.4;
 const FLOATER_MIN_POINTS = 8;
 
-function floaterCensus(visualPoints: Float32Array, survey: SurveyResult): ExtendedChecks["floaters"] {
+export interface FloaterAnalysis {
+  nPts: number;
+  /** per-point component root (index into the union-find forest) */
+  rootOfPoint: Int32Array;
+  /** roots judged to be floaters */
+  floaterRoots: Set<number>;
+  /** per-floater stats, largest first */
+  floaters: { pts: number; region: Region }[];
+  floaterPts: number;
+}
+
+export function analyzeFloaters(visualPoints: Float32Array, survey: SurveyResult): FloaterAnalysis {
   const nPts = Math.floor(visualPoints.length / 3);
   const cell = FLOATER_CELL_M;
   // occupied-voxel connected components (26-connectivity) via union-find
@@ -131,9 +142,11 @@ function floaterCensus(visualPoints: Float32Array, survey: SurveyResult): Extend
   // per-component stats from the points themselves
   interface Comp { pts: number; min: [number, number, number]; max: [number, number, number]; cx: number; cy: number; cz: number }
   const comps = new Map<number, Comp>();
+  const rootOfPoint = new Int32Array(nPts);
   for (let p = 0; p < nPts; p++) {
     const x = visualPoints[p * 3], y = visualPoints[p * 3 + 1], z = visualPoints[p * 3 + 2];
     const root = find(voxOf.get(key(Math.floor(x / cell), Math.floor(y / cell), Math.floor(z / cell)))!);
+    rootOfPoint[p] = root;
     let c = comps.get(root);
     if (!c) {
       c = { pts: 0, min: [x, y, z], max: [x, y, z], cx: 0, cy: 0, cz: 0 };
@@ -153,8 +166,9 @@ function floaterCensus(visualPoints: Float32Array, survey: SurveyResult): Extend
   const hasHit = rayGrid.channel("hasHit");
   const gcell = rayGrid.cellSize;
   const floaters: { pts: number; region: Region }[] = [];
+  const floaterRoots = new Set<number>();
   let floaterPts = 0;
-  for (const c of comps.values()) {
+  for (const [root, c] of comps) {
     if (c.pts < FLOATER_MIN_POINTS || c.pts > FLOATER_MAX_SHARE * nPts) continue;
     const ext = Math.hypot(c.max[0] - c.min[0], c.max[1] - c.min[1], c.max[2] - c.min[2]);
     if (ext > FLOATER_MAX_EXTENT_M) continue;
@@ -170,12 +184,19 @@ function floaterCensus(visualPoints: Float32Array, survey: SurveyResult): Extend
     }
     if (!elevated) continue;
     floaterPts += c.pts;
+    floaterRoots.add(root);
     floaters.push({
       pts: c.pts,
       region: { min: [c.min[0], c.min[1], c.min[2]], max: [c.max[0], c.max[1], c.max[2]] },
     });
   }
   floaters.sort((a, b) => b.pts - a.pts);
+  return { nPts, rootOfPoint, floaterRoots, floaters, floaterPts };
+}
+
+function floaterCensus(visualPoints: Float32Array, survey: SurveyResult): ExtendedChecks["floaters"] {
+  const { nPts, floaters, floaterPts } = analyzeFloaters(visualPoints, survey);
+  const cell = FLOATER_CELL_M;
   const sharePct = nPts > 0 ? (100 * floaterPts) / nPts : 0;
   return {
     count: floaters.length,
@@ -195,6 +216,35 @@ function floaterCensus(visualPoints: Float32Array, survey: SurveyResult): Extend
       n: nPts,
     },
   };
+}
+
+/**
+ * Extended repair: drop every floater cluster's points from the visual
+ * evidence. Non-destructive by construction — returns NEW arrays; callers
+ * write a new bundle and never mutate the source. Scope disclosure: this
+ * cleans the certified point evidence (visual-points.f32); re-exporting the
+ * .spz splat itself is a vendor-side operation.
+ */
+export function removeFloaters(
+  visualPoints: Float32Array,
+  visualScales: Float32Array | undefined,
+  survey: SurveyResult,
+): { points: Float32Array; scales?: Float32Array; pointsRemoved: number; clustersRemoved: number } {
+  const a = analyzeFloaters(visualPoints, survey);
+  if (a.floaterRoots.size === 0) {
+    return { points: visualPoints, scales: visualScales, pointsRemoved: 0, clustersRemoved: 0 };
+  }
+  const keep: number[] = [];
+  for (let p = 0; p < a.nPts; p++) if (!a.floaterRoots.has(a.rootOfPoint[p])) keep.push(p);
+  const points = new Float32Array(keep.length * 3);
+  const scales = visualScales ? new Float32Array(keep.length) : undefined;
+  keep.forEach((p, k) => {
+    points[k * 3] = visualPoints[p * 3];
+    points[k * 3 + 1] = visualPoints[p * 3 + 1];
+    points[k * 3 + 2] = visualPoints[p * 3 + 2];
+    if (scales && visualScales) scales[k] = visualScales[p];
+  });
+  return { points, scales, pointsRemoved: a.nPts - keep.length, clustersRemoved: a.floaterRoots.size };
 }
 
 // --------------------------------------- anthropometric scale consensus
@@ -286,7 +336,7 @@ async function settlingTest(input: ExtendedInput): Promise<ExtendedChecks["settl
   for (let i = 0; i < rayGrid.size; i++) if (metrology.classes[i] === 1) floorCells.push(i);
   if (floorCells.length === 0) {
     return {
-      boxes: 0, stable: 0, jitter: 0, ejected: 0,
+      boxes: 0, stable: 0, jitter: 0, ejected: 0, fellThrough: 0, leftWorld: 0,
       maxDriftM: {
         name: "settling_max_drift", value: 0, unit: "m",
         uncertainty: { low: 0, high: 0, basis: "not measured — no floor cells" },
@@ -303,49 +353,86 @@ async function settlingTest(input: ExtendedInput): Promise<ExtendedChecks["settl
   const R = await initRapier();
   const phys = new PhysicsWorld(gravity.g);
   phys.addStaticTriMesh(collider);
+  // footprint-aware spawn: the box is wider than a grid cell, so clear the
+  // HIGHEST surface under its whole footprint — a box spawned intersecting a
+  // boulder gets kicked by depenetration and would slander the solver
+  const cellR = Math.max(1, Math.ceil(BOX_HALF_M / rayGrid.cellSize));
+  const hasHit = rayGrid.channel("hasHit");
+  const localTop = (i: number): number => {
+    const [c0, r0] = rayGrid.colRow(i);
+    let top = surfaceY[i];
+    for (let dc = -cellR; dc <= cellR; dc++)
+      for (let dr = -cellR; dr <= cellR; dr++) {
+        const c = c0 + dc, r = r0 + dr;
+        if (c < 0 || c >= rayGrid.cols || r < 0 || r >= rayGrid.rows) continue;
+        const ni = r * rayGrid.cols + c;
+        // only surfaces near the floor count — a doorway header or ceiling
+        // above the column must not inflate the spawn height
+        if (hasHit[ni] && surfaceY[ni] > top && surfaceY[ni] - surfaceY[i] < 1.0) top = surfaceY[ni];
+      }
+    return top;
+  };
   const bodies = sites.map((i) => {
     const [x, z] = rayGrid.center(i);
-    const y = surfaceY[i] + BOX_HALF_M + 0.2;
+    const y = localTop(i) + BOX_HALF_M + 0.05;
     const body = phys.world.createRigidBody(R.RigidBodyDesc.dynamic().setTranslation(x, y, z).setCcdEnabled(true));
     phys.world.createCollider(R.ColliderDesc.cuboid(BOX_HALF_M, BOX_HALF_M, BOX_HALF_M).setFriction(0.6).setRestitution(0.0).setDensity(300), body);
-    return { body, startY: y };
+    return { body, startY: y, floorY: surfaceY[i] };
   });
   for (let s = 0; s < SETTLE_STEPS; s++) phys.step();
   const marks = bodies.map(({ body }) => {
     const t = body.translation();
     return { x: t.x, y: t.y, z: t.z };
   });
-  let maxVel = 0;
-  for (let s = 0; s < MEASURE_STEPS; s++) {
-    phys.step();
-    for (const { body } of bodies) {
-      const v = body.linvel();
-      maxVel = Math.max(maxVel, Math.hypot(v.x, v.y, v.z));
-    }
-  }
-  let stable = 0, jitter = 0, ejected = 0, maxDrift = 0;
+  for (let s = 0; s < MEASURE_STEPS; s++) phys.step();
+  // End-state classification with the SAME discipline as probe rain: a box
+  // that rolled off the open capture edge left the surveyed area — that is
+  // the end of the world, not evidence about it. Order matters:
+  //   left_world:   final column outside the grid or has no collider at all;
+  //   fell_through: below the surface of the collider column it ended over
+  //                 (hole cross-evidence, not solver health);
+  //   ejected:      ended ABOVE its spawn — a resting object cannot gain
+  //                 height; this is the solver-explosion signature;
+  //   stable/jitter by final speed — sliding downhill and STOPPING is
+  //                 healthy physics; distance travelled is not instability.
+  let stable = 0, jitter = 0, ejected = 0, fellThrough = 0, leftWorld = 0, maxDrift = 0;
   bodies.forEach(({ body, startY }, k) => {
     const t = body.translation();
     const drift = Math.hypot(t.x - marks[k].x, t.y - marks[k].y, t.z - marks[k].z);
-    maxDrift = Math.max(maxDrift, drift);
     const v = body.linvel();
     const speed = Math.hypot(v.x, v.y, v.z);
-    if (Math.abs(t.y - startY) > EJECT_DELTA_M + 0.2 + BOX_HALF_M) ejected++;
-    else if (drift <= DRIFT_STABLE_M && speed <= VEL_STABLE_MPS) stable++;
+    const col = Math.floor((t.x - rayGrid.x0) / rayGrid.cellSize);
+    const row = Math.floor((t.z - rayGrid.z0) / rayGrid.cellSize);
+    const inGrid = col >= 0 && col < rayGrid.cols && row >= 0 && row < rayGrid.rows;
+    const endIdx = inGrid ? row * rayGrid.cols + col : -1;
+    if (!inGrid || !hasHit[endIdx]) {
+      leftWorld++;
+      return; // excluded from solver-health evidence AND from drift stats
+    }
+    maxDrift = Math.max(maxDrift, drift);
+    if (t.y < surfaceY[endIdx] - EJECT_DELTA_M) fellThrough++;
+    else if (t.y > startY + 0.5) ejected++;
+    else if (speed <= VEL_STABLE_MPS && drift <= Math.max(DRIFT_STABLE_M, 0.05)) stable++;
     else jitter++;
   });
   phys.free();
+  const judged = bodies.length - leftWorld;
+  const leftNote = leftWorld > 0 ? ` ${leftWorld} left the surveyed area (open capture edge) — excluded, as with probe exits.` : "";
   const verdict =
     ejected > 0
-      ? `SOLVER HEALTH FAIL: ${ejected} box(es) ejected — degenerate contact geometry; RL training on this collider will see phantom impulses`
-      : jitter > 0
-        ? `marginal: ${jitter} box(es) still moving after ${((SETTLE_STEPS * FIXED_DT)).toFixed(0)} s grace — contacts do not fully converge`
-        : `stable: all ${bodies.length} boxes at rest — resting contacts converge cleanly`;
+      ? `SOLVER HEALTH FAIL: ${ejected}/${judged} box(es) gained height at rest — degenerate contact geometry; RL training on this collider will see phantom impulses.${leftNote}`
+      : fellThrough > 0
+        ? `${fellThrough}/${judged} box(es) fell through the collider (hole cross-evidence — see collider_hole defects); remaining contacts ${jitter > 0 ? "do not fully converge" : "converge cleanly"}.${leftNote}`
+        : jitter > 0
+          ? `marginal: ${jitter}/${judged} box(es) still moving after ${((SETTLE_STEPS + MEASURE_STEPS) * FIXED_DT).toFixed(0)} s — contacts do not fully converge.${leftNote}`
+          : `stable: all ${judged} judged boxes at rest — resting contacts converge cleanly.${leftNote}`;
   return {
     boxes: bodies.length,
     stable,
     jitter,
     ejected,
+    fellThrough,
+    leftWorld,
     maxDriftM: {
       name: "settling_max_drift",
       value: maxDrift,

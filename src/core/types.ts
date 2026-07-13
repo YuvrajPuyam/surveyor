@@ -242,7 +242,12 @@ export const ExtendedChecksSchema = z.object({
     boxes: z.number().int(),
     stable: z.number().int(),
     jitter: z.number().int(),
+    /** gained energy at rest (launched above spawn / still fast) — the solver-health signature */
     ejected: z.number().int(),
+    /** ended below the collider column it finished over — hole cross-evidence, not a solver fault */
+    fellThrough: z.number().int(),
+    /** rolled off the open capture edge — excluded from evidence, same discipline as probe exits */
+    leftWorld: z.number().int(),
     maxDriftM: MeasurementSchema,
     verdict: z.string(),
   }),
