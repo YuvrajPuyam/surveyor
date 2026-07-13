@@ -211,6 +211,60 @@ export const SelfValidationSchema = z.object({
 });
 export type SelfValidation = z.infer<typeof SelfValidationSchema>;
 
+// ------------------------------------------------------ extended checks
+// The --extended profile: additional instruments (visual self-consistency,
+// plausibility priors, solver health). INFORMATIONAL in v1 — they never
+// enter the grade, so a world's grade is identical under both profiles and
+// the default certificate stays byte-identical (extendedChecks is absent).
+
+export const ExtendedChecksSchema = z.object({
+  profile: z.literal("extended-v1"),
+  note: z.string().describe("Scope statement: informational, not graded, in this version"),
+  /** plausibility prior: floors should be level and planar */
+  levelAudit: z.object({
+    tilt: MeasurementSchema,
+    planarityRms: MeasurementSchema,
+  }),
+  /** visual self-consistency: splat clusters disconnected from the main structure */
+  floaters: z.object({
+    count: z.number().int(),
+    pointSharePct: z.number(),
+    examples: z.array(RegionSchema).describe("Up to 10 largest floater AABBs"),
+    measurement: MeasurementSchema,
+  }),
+  /** independent metric-scale witnesses beyond the door-height estimate */
+  scaleConsensus: z.object({
+    witnesses: z.array(MeasurementSchema),
+    agreement: z.string(),
+  }),
+  /** resting-contact solver health: boxes placed on confirmed floor must sit still */
+  settling: z.object({
+    boxes: z.number().int(),
+    stable: z.number().int(),
+    jitter: z.number().int(),
+    ejected: z.number().int(),
+    maxDriftM: MeasurementSchema,
+    verdict: z.string(),
+  }),
+  /** fraction of visually-claimed floor physically reachable from the main floor component */
+  reachability: z.object({
+    visualFloorCells: z.number().int(),
+    reachableCells: z.number().int(),
+    fractionPct: MeasurementSchema,
+  }),
+  /** monocular-depth cross-check summary, merged from the bundle's depth-audit.json when present */
+  depthConsensus: z
+    .object({
+      source: z.string(),
+      conclusive: z.boolean(),
+      yawOffsetDeg: z.number(),
+      cropsCalibrated: z.number().int(),
+      consensusSpearman: z.number(),
+    })
+    .optional(),
+});
+export type ExtendedChecks = z.infer<typeof ExtendedChecksSchema>;
+
 export const CertificateSchema = z.object({
   schemaVersion: z.literal("0.1"),
   worldId: z.string(),
@@ -242,6 +296,8 @@ export const CertificateSchema = z.object({
     simSteps: z.number().int(),
     fixedTimestep: z.number(),
   }),
+  /** present only under `certify --extended`; the default profile omits it (byte-identity law) */
+  extendedChecks: ExtendedChecksSchema.optional(),
 });
 export type Certificate = z.infer<typeof CertificateSchema>;
 

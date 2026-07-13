@@ -7,7 +7,7 @@
  *   1  error (unreadable bundle, survey crash)
  *   2  usage error
  */
-import { writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { certifyWorld } from "../certify/certificate.js";
 import { GRAVITY, type Grade } from "../core/types.js";
@@ -27,6 +27,10 @@ options:
   --gravity earth|moon|mars   gravity for the survey (default earth)
   --probes N                  probe count (default 2000)
   --seed N                    survey seed (default 1234)
+  --extended                  run the extended profile (level audit, floaters,
+                              scale consensus, settling, reachability; merges
+                              <bundle>/depth-audit.json when present) —
+                              informational, never enters the grade
   --min-grade A|B|C|D|F       exit 3 if the grade lands below this (default D)
   --out <file>                write certificate JSON here (default <bundle>/certificate.json is NOT overwritten unless --write-bundle)
   --write-bundle              write certificate.json + report.html into the bundle dir
@@ -87,9 +91,34 @@ ${CERTIFY_USAGE}`);
         visualScales: world.visualScales,
         metadata: world.metadata,
       },
-      { gravity: GRAVITY[gravityName], seed, survey: { probeCount: probes } },
+      { gravity: GRAVITY[gravityName], seed, survey: { probeCount: probes }, extended: has("extended") },
     ));
     elapsedS = ((performance.now() - t0) / 1000).toFixed(1);
+    // depth-audit promotion: the monocular-depth cross-check is produced by a
+    // separate experiment; when the bundle ships its result, the extended
+    // certificate carries the summary on its face.
+    if (certificate.extendedChecks) {
+      const auditPath = join(dir, "depth-audit.json");
+      if (existsSync(auditPath)) {
+        try {
+          const audit = JSON.parse(readFileSync(auditPath, "utf-8")) as {
+            conclusive?: boolean;
+            yawOffsetDeg?: number;
+            cropsCalibrated?: number;
+            consensusSpearman?: number;
+          };
+          certificate.extendedChecks.depthConsensus = {
+            source: "depth-audit.json (monocular depth estimation vs collider depth, per-crop calibration)",
+            conclusive: audit.conclusive ?? false,
+            yawOffsetDeg: audit.yawOffsetDeg ?? 0,
+            cropsCalibrated: audit.cropsCalibrated ?? 0,
+            consensusSpearman: audit.consensusSpearman ?? 0,
+          };
+        } catch {
+          console.error(`  (depth-audit.json present but unreadable — skipped)`);
+        }
+      }
+    }
   } catch (err) {
     console.error(`certification failed: ${err instanceof Error ? err.message : String(err)}`);
     return 1;
@@ -119,6 +148,26 @@ ${CERTIFY_USAGE}`);
   for (const v of certificate.robotVerdicts) {
     const mark = v.pass === true ? "PASS" : v.pass === false ? "FAIL" : "n/a ";
     console.log(`    ${mark} ${v.robotId}/${v.check}${v.measured ? ` = ${v.measured.value.toFixed(2)} ${v.measured.unit}` : ""}`);
+  }
+  const ext = certificate.extendedChecks;
+  if (ext) {
+    console.log(`  extended profile (informational — not graded):`);
+    console.log(
+      `    level: floor tilt ${ext.levelAudit.tilt.value.toFixed(2)} deg from gravity · planarity RMS ${(ext.levelAudit.planarityRms.value * 1000).toFixed(0)} mm`,
+    );
+    console.log(`    floaters: ${ext.floaters.count} disconnected splat cluster(s), ${ext.floaters.pointSharePct.toFixed(2)}% of points`);
+    console.log(`    scale consensus: ${ext.scaleConsensus.agreement.split(". ")[0]}.`);
+    console.log(`    settling: ${ext.settling.verdict}`);
+    console.log(
+      `    reachability: ${ext.reachability.fractionPct.value.toFixed(1)}% of visually-claimed floor physically reachable ` +
+        `(${ext.reachability.reachableCells}/${ext.reachability.visualFloorCells} cells)`,
+    );
+    if (ext.depthConsensus) {
+      console.log(
+        `    depth consensus: ${ext.depthConsensus.conclusive ? "conclusive" : "inconclusive"} — ` +
+          `${ext.depthConsensus.cropsCalibrated} crops calibrated, Spearman ${ext.depthConsensus.consensusSpearman.toFixed(2)}`,
+      );
+    }
   }
   console.log(`  certificate sha256 ${sha}`);
   console.log(`  (${elapsedS} s)`);

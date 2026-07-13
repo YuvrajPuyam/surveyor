@@ -51,6 +51,7 @@ npm run self-validate            # certifier vs its own test bench: precision/re
 |---|---|
 | `npm test` | Full regression suite (keep it green — determinism is a demo claim) |
 | `npm run certify -- <bundle-dir>` | Certify a world bundle, write `certificate.json` |
+| `npm run certify -- <bundle-dir> --extended` | + six extra instruments: level audit, floater census, scale consensus, settling (solver health), reachability, depth consensus — informational, never enters the grade |
 | `npm run make:synthetic` | Regenerate the planted-defect validation worlds |
 | `npm run self-validate` | Precision/recall of the certifier against the 27-world bench |
 | `npm run marble -- <subcommand>` | Marble API CLI: generate / wait / get / download / list |

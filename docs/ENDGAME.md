@@ -148,6 +148,25 @@ the exact demo laptop + browser that re-hashes it live (rehearse this).
   your certificate is earth": both contracts exist, hashes printable.
 - Twin-run label, verbatim mechanism: *"planning surface derived from
   splat centers (visual heightfield); physics runs on the collider."*
+- **Extended check profile (2026-07-13):** `certify --extended` adds six
+  instruments in three new evidence families — plausibility priors (level
+  audit: floor tilt vs gravity + planarity RMS; anthropometric scale
+  consensus: door-width + ceiling-height witnesses), visual self-consistency
+  (floater census: disconnected splat clusters), and solver health (settling
+  test: 24 seeded boxes on confirmed floor; reachability: % of visually-
+  claimed floor a robot can physically reach; depth-audit promotion onto the
+  certificate face). INFORMATIONAL in v1 — never enters the grade; the
+  default certificate stays byte-identical (verified vs the banked hero
+  cert), so hash `6b2909f1` and all receipts stand. Fleet receipts: **4/6
+  raw worlds FAIL solver health** (up to 17/24 boxes ejected by degenerate
+  contact geometry — a defect axis no prior check measured); scale consensus
+  independently corroborates ac573c1f's known critical scale error (0/3
+  witnesses agree); hero raw reachability 28.4% ("you can SEE 1,173 floor
+  cells; a robot can REACH 333"); hero depth consensus conclusive (5 crops,
+  Spearman 0.82). Q&A line: *"the harness is extensible — new instruments
+  are plugins into the same Measurement schema, certificate, and grade."*
+  Follow-up (not blocking): export the repaired collider as a certifiable
+  bundle to bank the raw→repaired reachability climb.
 
 ### Final-review resolutions (2026-07-07 night, external check on the finished project)
 

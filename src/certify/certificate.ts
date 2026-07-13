@@ -7,6 +7,7 @@ import type { TriMesh } from "../core/geom.js";
 import type { Certificate, Gravity, Grade, RobotSpec, WorldMetadata } from "../core/types.js";
 import { GRAVITY, ROBOT_PRESETS } from "../core/types.js";
 import { synthesizeDefects } from "./defects.js";
+import { buildExtendedChecks } from "./extended.js";
 import { runMetrology, unsurveyableMetrology, type MetrologyResult } from "./metrology.js";
 import { DEFAULT_SURVEY, runSurvey, type SurveyOptions, type SurveyResult } from "./survey.js";
 import { buildTrustMap, type TrustMap } from "./trustmap.js";
@@ -28,6 +29,13 @@ export interface CertifyOptions {
   /** injected clock — replay mode freezes this */
   createdAt?: string;
   survey?: Partial<SurveyOptions>;
+  /**
+   * Run the extended check profile (level audit, floater census, scale
+   * consensus, settling, reachability). Informational in v1 — never enters
+   * the grade; the default profile omits the field entirely so canonical
+   * certificates stay byte-identical.
+   */
+  extended?: boolean;
 }
 
 export interface CertifyResult {
@@ -94,6 +102,22 @@ export async function certifyWorld(input: CertifyInput, opts: CertifyOptions = {
       ? `vendor factor ${vendorFactor} agrees with the door-height estimate ${est.value.toFixed(2)} (within 2 SD)`
       : `vendor factor ${vendorFactor} vs door-height estimate ${est.value.toFixed(2)} — DISAGREE; certificate flags scale as unverified`;
   }
+
+  // extended profile: additional instruments, informational in v1 (never
+  // graded, so the two profiles always agree on the grade). Skipped on
+  // unsurveyable worlds — no floor reference means nothing to measure against.
+  const extendedChecks =
+    opts.extended && !unsurveyable
+      ? await buildExtendedChecks({
+          collider: input.collider,
+          visualPoints: input.visualPoints,
+          survey,
+          metrology,
+          gravity,
+          seed,
+          vendorFactor,
+        })
+      : undefined;
 
   const certificate: Certificate = {
     schemaVersion: "0.1",
@@ -180,6 +204,7 @@ export async function certifyWorld(input: CertifyInput, opts: CertifyOptions = {
       simSteps: survey.probeStats.simSteps,
       fixedTimestep: survey.probeStats.fixedTimestep,
     },
+    ...(extendedChecks ? { extendedChecks } : {}),
   };
 
   return { certificate, survey, trustMap, metrology };
