@@ -53,3 +53,17 @@ Decision: ____ (fill after imagery test)
 - Keep the horizon steady; avoid people/moving cars in frame.
 - Midday diffuse light > harsh shadows (shadows bake into splats).
 - For a pano lane: a single 360 pano generates cleanly (`marble.ts pano`).
+
+## DECISION (2026-07-15, after visual inspection of the three panos)
+
+**Selected: `fouriesburg_mountain_lookout`** (-28.6130, 28.1971, CC0, 8192x4096).
+Near-field wins: boulders/ledges/brush = drone-scale obstacles, drop-offs on
+all sides, and a BRICK CAIRN on the summit = natural inspection waypoint
+("fly to the structure, survey, return"). Single-pano Marble worlds are
+near-field-rich / far-field-backdrop, so near-field structure decides.
+- runner-up: golden_gate_hills (gorge obstacle but flat foreground)
+- pass: drakensberg_solitary_mountain (smooth grass plateau)
+
+Next: upload fouriesburg_mountain_lookout.jpg to the Marble app (pano mode)
+→ world ID → `npx tsx scripts/marble.ts download <id>` → certify --extended
+→ error ledger.
