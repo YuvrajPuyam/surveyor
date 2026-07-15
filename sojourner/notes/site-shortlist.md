@@ -1,5 +1,23 @@
 # Site shortlist — first real-world generation target
 
+## Dataset lanes (no own photos — 2026-07-15 research)
+
+Marble accepts single image, multi-image (with directional positioning),
+360 pano, and video <100 MB (app lane). Ranked for our needs:
+
+| # | Source | What | License | Geotagged? | Marble input | Layer-2 GT pairing |
+|---|---|---|---|---|---|---|
+| 1 | [ODM sample data](https://github.com/OpenDroneMap/ODMdata) — e.g. [Aukerman](https://github.com/OpenDroneMap/odm_data_aukerman), [Seneca](https://github.com/OpenDroneMap/odm_data_seneca) | real drone photo sets, oblique+nadir, EXIF GPS | open (per-repo) | YES (EXIF) | multi-image (pick 4–8 obliques) | EXCELLENT: exact coords → USGS 3DEP + OSM |
+| 2 | [Wikimedia Commons 360° equirectangular panos](https://commons.wikimedia.org/wiki/Category:360%C2%B0_panoramas_with_equirectangular_projection) | real outdoor sites, single-file panos | CC-BY / CC0 per file | many (coord map) | pano (cleanest generation) | GOOD when geotagged |
+| 3 | [Poly Haven outdoor panos](https://polyhaven.com/all) | pro-quality outdoor panos | CC0 (cleanest) | mostly NO | pano | WEAK (location often unstated) |
+| 4 | [DroneMapper samples](https://dronemapper.com/sample_data/) | 45 oblique images (CO sites) | free samples | yes | multi-image | good |
+| 5 | [OpenAerialMap](https://openaerialmap.org/) | CC-BY 4.0 orthoimagery | CC-BY 4.0 | yes | POOR input (nadir → flat world) | use as GT layer instead |
+
+**Recommendation:** lane 1 (ODM Aukerman or Seneca) for the mission story +
+ground truth; lane 2 pano as the low-risk generation fallback (single-file
+input generates most reliably). OpenAerialMap serves as a ground-truth
+overlay, not as generation input.
+
 Selection criteria (in priority order):
 1. We can legally source imagery (own photos > open aerial; never Google).
 2. Free ground truth exists: USGS 3DEP lidar/DEM + dense OSM footprints.
