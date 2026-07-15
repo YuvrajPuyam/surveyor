@@ -56,3 +56,18 @@ fix:       n/a — candidates shortlisted:
            - drakensberg_solitary_mountain (-28.9423, 29.3254) 47.0 MB jpg
 carries:   prefer sources whose metadata carries coordinates; the DEM
            elevation-profile check is the terrain ground truth
+
+## E3 — Marble app worlds are invisible to the API           (2026-07-15)
+stage:     ingest
+symptom:   GET /marble/v1/worlds/<id> -> 404 "World not found" for an
+           app-generated world; `marble.ts list` shows only API-created worlds
+cause:     app account and API-key org are separate namespaces (same split
+           as app credits vs API credits)
+fix:       app export lane — download collider .glb + splat .spz from the
+           app's export panel; `scripts/ingest-app-bundle.ts <worldId>`
+           parses the spz into visual-points.f32 and writes metadata.json.
+           NOTE: app exports ship NO vendor metric_scale_factor — the scale
+           witnesses (door/ceiling priors are useless outdoors; DEM profile
+           + known-dimension objects instead) must establish scale alone.
+carries:   event-day plan must decide the lane up front; if app lane, bake
+           the export+ingest step into the schedule
