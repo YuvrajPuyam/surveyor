@@ -36,4 +36,23 @@ carries:   what the event-day rebuild must do differently
 
 ---
 
-(entries start here)
+## E1 — DroneMapper S3 bucket is requester-pays            (2026-07-15)
+stage:     imaging
+symptom:   all DroneMapper sample downloads (incl. Red Rocks Oblique) return
+           S3 AccessDenied: "Anonymous users cannot invoke requests against
+           Requester Pays buckets."
+cause:     vendor moved sample hosting to requester-pays AWS policy
+fix:       abandoned lane; switched to Poly Haven CC0 panos (below)
+carries:   verify download access BEFORE committing to a dataset lane
+
+## E2 — (resolution) Poly Haven panos carry GPS coordinates  (2026-07-15)
+stage:     imaging
+symptom:   (good surprise) Poly Haven's API exposes exact capture coords for
+           outdoor HDRIs — Layer-2 ground truth is back on the table via
+           Copernicus GLO-30 DEM (global 30 m) + OSM, despite no US 3DEP.
+fix:       n/a — candidates shortlisted:
+           - golden_gate_hills          (-28.5175, 28.6390)  42.4 MB  jpg
+           - fouriesburg_mountain_lookout (-28.6130, 28.1971) 35.8 MB  jpg
+           - drakensberg_solitary_mountain (-28.9423, 29.3254) 47.0 MB jpg
+carries:   prefer sources whose metadata carries coordinates; the DEM
+           elevation-profile check is the terrain ground truth
