@@ -18,6 +18,21 @@ ground truth; lane 2 pano as the low-risk generation fallback (single-file
 input generates most reliably). OpenAerialMap serves as a ground-truth
 overlay, not as generation input.
 
+## HILLY TERRAIN constraint (2026-07-15) — ranked picks
+
+User wants hilly terrain (right call: makes the DEM elevation-profile check
+and the climb-energy cost term load-bearing).
+
+| Pick | Dataset | Terrain | Why |
+|---|---|---|---|
+| **1** | **DroneMapper "Red Rocks Oblique"** (Red Rocks CO, 45 images, OBLIQUE, EXIF GPS) | steep ridge | the only hilly set that is also oblique — Marble's preferred viewpoint; CO = excellent 3DEP lidar |
+| 2 | DroneMapper "Adobe Buttes" (Delta CO, 531 nadir) | hilly buttes | big set, but nadir-only input generates flatter worlds |
+| 3 | DroneMapper "Poker Flats" (Alaska, 602 nadir) | mountainous | dramatic, weaker OSM ground truth |
+| 4 | Wikimedia geotagged mountain-overlook pano | hilly | single-file fallback lane |
+
+ODM's hilly candidates (Helenenschacht forest roadway, Ziegeleipark quarry)
+are weaker: forest canopy confuses splats; the quarry set is 7,169 images.
+
 Selection criteria (in priority order):
 1. We can legally source imagery (own photos > open aerial; never Google).
 2. Free ground truth exists: USGS 3DEP lidar/DEM + dense OSM footprints.
