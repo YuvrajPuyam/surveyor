@@ -71,3 +71,33 @@ fix:       app export lane — download collider .glb + splat .spz from the
            + known-dimension objects instead) must establish scale alone.
 carries:   event-day plan must decide the lane up front; if app lane, bake
            the export+ingest step into the schedule
+
+## E4 — Far-field visual with no collider (the pano-backdrop gap)  (2026-07-15)
+stage:     cleanup / geometry
+symptom:   Fouriesburg world (app export, 7f8eb141). Raw bounds:
+             collider Y span 36 m  (-19.2 .. +16.9)  99,689 tris
+             splat    Y span 122 m (-21.6 .. +100.7) 1,839,313 pts
+           ~84 m of VISUAL geometry sits above the physical mesh; splat also
+           bleeds ~20 m past the collider on X and Z.
+cause:     single-pano generation splats the distant mountains + sky as
+           far-field geometry, but the collider only meshes the near-field
+           walkable ground shell. Photovisual world = 122 m bubble; physical
+           world = 36 m ground slab.
+fix:       for drone motion planning this is EXPECTED and must be HANDLED,
+           not "repaired": the far-field splat is unreachable backdrop, not
+           obstacle. Plan = clip the occupancy grid to the collider's Y band
+           + a headroom margin; everything above = sky/unknown, never
+           occupied. The divergence itself is a finding to SHOW (physical vs
+           photovisual), not an error to erase.
+carries:   aerial worlds need a "backdrop band" concept the interior worlds
+           never did; the trust map's UNKNOWN class absorbs the far field.
+
+## E5 — 274 x 324 m footprint blows the survey grid            (2026-07-15)
+stage:     cleanup / performance
+symptom:   ray grid at 0.1 m = 8.9M cells (cap 1.5M) -> auto-coarsens to
+           ~0.24 m; first full-probe certify ran >10 min with no output
+           (buffered/slow), re-run at 600 probes.
+cause:     outdoor scenes are 100x the area of the interior test worlds;
+           detection floor scales with the coarser cell.
+carries:   event-day: pick probe count + cell size for the site's real
+           extent; disclose the coarser detection floor (already automatic).
