@@ -101,3 +101,17 @@ cause:     outdoor scenes are 100x the area of the interior test worlds;
            detection floor scales with the coarser cell.
 carries:   event-day: pick probe count + cell size for the site's real
            extent; disclose the coarser detection floor (already automatic).
+
+## E6 — Probe density flips a pass/fail verdict outdoors       (2026-07-15)
+stage:     cleanup / certification
+symptom:   same Fouriesburg world, two probe counts:
+             2000 probes -> rover & quadruped floor_integrity FAIL (hole hit)
+              600 probes -> both PASS (the 1 critical hole never sampled)
+cause:     274x324 m footprint; at 600 probes the ~1 m hole is below the
+           effective sampling density, so probe rain misses it.
+fix:       scale probe count to world AREA, not a fixed number; the
+           certificate's disclosed detection floor already warns of this,
+           but here it changed a verdict, not just a confidence.
+carries:   event-day: default probe count is tuned for interior worlds;
+           outdoor sites need 2000+ (24 min runtime) or a coarser honest
+           claim. Full 2000-probe run is the trustworthy one.
