@@ -84,10 +84,25 @@ describe("USD pack assembler", () => {
   it("declares units and orientation explicitly and carries certificate provenance", () => {
     expect(usda).toContain('upAxis = "Z"');
     expect(usda).toContain("metersPerUnit = 1");
-    expect(usda).toContain("xformOp:rotateXYZ = (90, 0, 0)");
+    // -90 is the film-validated source rotation (the shipped hero pack);
+    // +90 was the original guess the cluster had to hand-patch (G8 history)
+    expect(usda).toContain("xformOp:rotateXYZ = (-90.00000, 0, 0)");
     expect(usda).toContain('surveyorGrade = "A"');
     expect(usda).toContain("physics:gravityMagnitude = 1.62000");
     expect(usda).toContain('surveyorPatchedDefects = ["d-hole-7"]');
+  });
+
+  it("emits the measured visuals alignment nudge with provenance, and omits it when absent", () => {
+    expect(usda).not.toContain("surveyorVisualsAlignBasis");
+    const nudged = buildUsdaStage({
+      collider,
+      certificate: cert,
+      spawns,
+      quarantine,
+      visualsAlignOffset: { x: 0, y: 0.5757, z: 0, basis: "G8 floor-face offset, measured on the composed stage" },
+    });
+    expect(nudged).toContain("double3 xformOp:translate = (0.00000, 0.57570, 0.00000)");
+    expect(nudged).toContain('surveyorVisualsAlignBasis = "G8 floor-face offset, measured on the composed stage"');
   });
 
   it("does not add a root scale when the vendor factor is already applied", () => {

@@ -28,6 +28,21 @@ export interface UsdPackInput {
   certificate: Certificate;
   spawns: SpawnPoint[];
   quarantine: QuarantineZone[];
+  /**
+   * Measured alignment nudge for /World/Visuals (source-frame meters).
+   * The NuRec asset can land offset from the collider after composition
+   * (the hero shipped with a hand-patched (0, 0.5757, 0) that the builder
+   * kept regressing — G8 exists to measure this). Provide the measured
+   * value; it is stamped into customData with its basis so the stage
+   * carries the provenance instead of an anonymous hand-edit.
+   */
+  visualsAlignOffset?: { x: number; y: number; z: number; basis: string };
+  /**
+   * Source-frame rotation about X in degrees. Default -90: the value the
+   * shipped, film-validated hero pack uses (the original +90 rendered the
+   * composed world inverted against the NuRec asset on the cluster).
+   */
+  sourceRotationXDeg?: number;
 }
 
 const f = (v: number): string => {
@@ -40,6 +55,8 @@ const escStr = (s: string): string => s.replace(/\\/g, "\\\\").replace(/"/g, '\\
 
 export function buildUsdaStage(input: UsdPackInput): string {
   const { collider, certificate: cert, spawns, quarantine } = input;
+  const rotX = input.sourceRotationXDeg ?? -90;
+  const vOff = input.visualsAlignOffset;
   const sha = certificateSha256(cert);
   const fr = frictionRange(cert);
   const frictionStatic = (fr.static[0] + fr.static[1]) / 2;
@@ -114,7 +131,7 @@ export function buildUsdaStage(input: UsdPackInput): string {
     upAxis = "Z"
     doc = """SURVEYOR Certified World Pack — generated stage, do not hand-edit.
 world ${cert.worldId} · certificate grade ${cert.grade} (seed ${cert.seed}) · content sha256 ${sha}
-Source data is Y-up; the /World root applies the explicit +90 deg X rotation.
+Source data is Y-up; the /World root applies an explicit ${f(rotX)} deg X rotation (film-validated).
 Every physics value traces to a certificate field. The certificate is the contract."""
     customLayerData = {
         string surveyorWorldId = "${escStr(cert.worldId)}"
@@ -127,7 +144,7 @@ Every physics value traces to a certificate field. The certificate is the contra
 
 def Xform "World"
 {
-    float3 xformOp:rotateXYZ = (90, 0, 0)
+    float3 xformOp:rotateXYZ = (${f(rotX)}, 0, 0)
 ${unappliedFactor !== undefined ? `    float3 xformOp:scale = (${f(unappliedFactor)}, ${f(unappliedFactor)}, ${f(unappliedFactor)})\n    uniform token[] xformOpOrder = ["xformOp:rotateXYZ", "xformOp:scale"]` : `    uniform token[] xformOpOrder = ["xformOp:rotateXYZ"]`}
 
     def PhysicsScene "PhysicsScene"
@@ -160,10 +177,13 @@ ${unappliedFactor !== undefined ? `    float3 xformOp:scale = (${f(unappliedFact
     def Xform "Visuals" (
         prepend payload = @./nurec/${cert.worldId}.usdz@
         customData = {
-            string surveyorNote = "NuRec splat asset — generated on the cluster (gate G2); the stage opens without it (payload, load on demand)"
+            string surveyorNote = "NuRec splat asset — generated on the cluster (gate G2); the stage opens without it (payload, load on demand)"${vOff ? `
+            string surveyorVisualsAlignBasis = "${escStr(vOff.basis)}"` : ""}
         }
     )
-    {
+    {${vOff ? `
+        double3 xformOp:translate = (${f(vOff.x)}, ${f(vOff.y)}, ${f(vOff.z)})
+        uniform token[] xformOpOrder = ["xformOp:translate"]` : ""}
     }
 
     def Scope "PhysicsMaterials"

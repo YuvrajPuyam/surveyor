@@ -51,8 +51,8 @@ export function validateUsdaStage(usda: string, expect: UsdExpectations): UsdVal
   );
   rule(
     "zup-rotation",
-    /xformOp:rotateXYZ = \(90, 0, 0\)/.test(usda),
-    "Y-up source geometry sits under an explicit +90° X rotation",
+    /xformOp:rotateXYZ = \(-?90(\.0+)?, 0, 0\)/.test(usda),
+    "Y-up source geometry sits under an explicit ±90° X rotation (−90 is the film-validated sign; +90 was the pre-G8 guess)",
   );
 
   const gMag = usda.match(/physics:gravityMagnitude = ([\d.]+)/);
