@@ -802,9 +802,19 @@ function buildStaticDefectBoxes(cert: Certificate): THREE.Group {
   const group = new THREE.Group();
   group.name = "defects-static";
   const RANK: Record<string, number> = { critical: 0, major: 1, minor: 2 };
+  // Severity first, then NEARBY first: on outdoor worlds with 15k defects the
+  // old first-200-in-file-order pick could land entirely at the far rim —
+  // B then "did nothing" for a viewer standing at the spawn.
+  const distSq = (d: { region: { min: number[]; max: number[] } }): number => {
+    const cx = (d.region.min[0] + d.region.max[0]) / 2;
+    const cz = (d.region.min[2] + d.region.max[2]) / 2;
+    return cx * cx + cz * cz;
+  };
   const capped = [...(cert.defects ?? [])]
-    .sort((a, b) => (RANK[a.severity] ?? 3) - (RANK[b.severity] ?? 3))
-    .slice(0, 200);
+    .sort((a, b) => (RANK[a.severity] ?? 3) - (RANK[b.severity] ?? 3) || distSq(a) - distSq(b))
+    .slice(0, 250);
+  staticDefectTotal = cert.defects?.length ?? 0;
+  staticDefectShown = capped.length;
   for (const d of capped) {
     addRegionBox(
       group,
@@ -820,6 +830,8 @@ function buildStaticDefectBoxes(cert: Certificate): THREE.Group {
 let staticDefectGroup: THREE.Group | undefined;
 let liveDefectGroup: THREE.Group | undefined;
 let defectBoxesVisible = false; // pretty world by default — B opts into the overlay
+let staticDefectTotal = 0;
+let staticDefectShown = 0;
 
 /**
  * Live overlay from the certify worker (engine coords → scene root).
@@ -868,6 +880,10 @@ function setDefectBoxes(on: boolean): void {
 
 function toggleDefectBoxes(): void {
   setDefectBoxes(!defectBoxesVisible);
+  // the toggle must ACKNOWLEDGE the keypress even when every box is off-screen
+  hud.status = defectBoxesVisible
+    ? `defect boxes ON${staticDefectGroup ? ` — nearest ${staticDefectShown} of ${staticDefectTotal.toLocaleString()} shown` : ""}`
+    : "defect boxes off";
 }
 
 let defectFlashTimer: number | undefined;
