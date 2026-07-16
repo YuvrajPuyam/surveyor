@@ -213,3 +213,19 @@ carries:   the strongest defect class outdoors = divergent-WITH-evidence
            (47 m gap, 294 cells) — a planner trusting physics flies through
            a visible mountainside; classify far/mid-field walls before
            planning.
+
+## E12 — (milestone) The evidence-supported repairs, executed        (2026-07-16)
+stage:     repair / receipt (fix-receipt.json in <bundle>-fixed/)
+symptom:   n/a — the fix run: carve rampart (95 tris, ground preserved),
+           patch d-hole-0 at the LOCAL floor (+4.67, median of 976 cells —
+           the terrace; the global plane would have buried it at -10),
+           delete 618 floaters (5,272 pts). Full 2000-probe re-survey:
+           holes 1->0, floaters 618->0, floor_integrity FAIL->PASS both
+           robots, open defects 14,660->14,586.
+truth:     grade stays F BY DESIGN: the ~14.5k phantom-ring defects remain
+           open because this run repaired only evidence-supported defects
+           (no quarantining). The grade path is ring triage: batch
+           quarantine (needs the E8 engine fix) or continuity/DEM promotion.
+carries:   "fix what evidence convicts, quarantine what it can't" now has
+           a numeric receipt; local-floor patching proved itself on first
+           contact (E9's caveat, closed).
