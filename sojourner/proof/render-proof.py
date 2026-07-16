@@ -33,7 +33,20 @@ acc = gltf["accessors"][prim["attributes"]["POSITION"]]
 bv = gltf["bufferViews"][acc["bufferView"]]
 start = bv.get("byteOffset", 0) + acc.get("byteOffset", 0)
 cn = acc["count"]
-cverts = struct.unpack_from(f"<{cn*3}f", binbuf, start)
+cverts_raw = struct.unpack_from(f"<{cn*3}f", binbuf, start)
+# E10: glTF accessors are NOT world-space — apply the scene-graph node matrix.
+# The Marble app export carries scale 0.6797 with Y/Z flip and +3.056 m Y;
+# compose the actual node matrices rather than hardcoding when reusing this.
+_m = gltf.get("nodes", [{}])[0].get("matrix")
+if _m:
+    cverts = []
+    for _i in range(cn):
+        _x, _y, _z = cverts_raw[_i*3], cverts_raw[_i*3+1], cverts_raw[_i*3+2]
+        cverts += [_m[0]*_x+_m[4]*_y+_m[8]*_z+_m[12],
+                   _m[1]*_x+_m[5]*_y+_m[9]*_z+_m[13],
+                   _m[2]*_x+_m[6]*_y+_m[10]*_z+_m[14]]
+else:
+    cverts = list(cverts_raw)
 
 # ---- certificate defects
 cert = json.load(open(BUNDLE + r"\certificate.json", encoding="utf-8"))
