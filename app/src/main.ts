@@ -310,6 +310,31 @@ let finalized = false;
 let viewerScale = 1;
 let scaleActionId: string | undefined;
 let colliderWireframe: THREE.Object3D | undefined;
+/** app-export bundles ship y-up spz — loadSplats must skip its counter-flip */
+let splatIsAppExport = false;
+
+/**
+ * Collider surface height under (x, z) — raycast against the wireframe mesh
+ * (visibility does not affect raycasts). Used to anchor defect boxes whose
+ * certificate Y-band came from the GLOBAL floor plane: on multi-level worlds
+ * that plane can sit 10 m under the local terrace, leaving boxes floating in
+ * the underground void (the certifier's disclosed single-level limitation,
+ * made visible). Footprints are measured; only the anchoring height moves.
+ */
+function surfaceYAt(x: number, z: number): number | undefined {
+  if (!colliderWireframe) return undefined;
+  const rc = new THREE.Raycaster(new THREE.Vector3(x, 500, z), new THREE.Vector3(0, -1, 0), 0, 1000);
+  const hits = rc.intersectObject(colliderWireframe, false);
+  return hits.length > 0 ? hits[0].point.y : undefined;
+}
+
+/** Lift a region that sits entirely BELOW the local collider surface up to it. */
+function anchorRegion(min: number[], max: number[]): { min: number[]; max: number[] } {
+  const gy = surfaceYAt((min[0] + max[0]) / 2, (min[2] + max[2]) / 2);
+  if (gy === undefined || max[1] >= gy - 0.3) return { min, max }; // already at/above ground
+  const h = Math.max(1, max[1] - min[1]);
+  return { min: [min[0], gy, min[2]], max: [max[0], gy + h, max[2]] };
+}
 let splatObject: THREE.Object3D | undefined;
 // --- beat-flow state
 let bundleDir: string | undefined;
@@ -815,20 +840,25 @@ function buildStaticDefectBoxes(cert: Certificate): THREE.Group {
     .slice(0, 250);
   staticDefectTotal = cert.defects?.length ?? 0;
   staticDefectShown = capped.length;
-  defectTour = tourStopsFrom(
-    capped.map((d) => ({ min: d.region.min, max: d.region.max, label: `${d.type.replace(/_/g, " ")} (${d.severity})` })),
-    true,
-  );
-  defectTourIdx = -1;
-  for (const d of capped) {
+  const anchored = capped.map((d) => ({ defect: d, region: anchorRegion(d.region.min, d.region.max) }));
+  for (const { defect: d, region } of anchored) {
     addRegionBox(
       group,
-      d.region.min,
-      d.region.max,
+      region.min,
+      region.max,
       SEVERITY_COLOR[d.severity] ?? 0xff3b30,
       d.severity === "critical" ? 0.28 : 0.16,
     );
   }
+  defectTour = tourStopsFrom(
+    anchored.map(({ defect: d, region }) => ({
+      min: region.min,
+      max: region.max,
+      label: `${d.type.replace(/_/g, " ")} (${d.severity})`,
+    })),
+    true,
+  );
+  defectTourIdx = -1;
   return group;
 }
 
@@ -918,18 +948,19 @@ function updateLiveDefects(defects: DefectSummary[]): void {
         ? (SEVERITY_COLOR[d.severity] ?? 0xff3b30)
         : (OUTCOME_COLOR[outcome] ?? 0x8a93a8);
     const opacity = outcome === "OPEN" ? (d.severity === "critical" ? 0.28 : 0.16) : 0.07;
-    addRegionBox(group, d.region.min, d.region.max, color, opacity);
+    const region = anchorRegion(d.region.min, d.region.max);
+    addRegionBox(group, region.min, region.max, color, opacity);
   }
   group.visible = defectBoxesVisible;
   scene.add(group);
   liveDefectGroup = group;
   // the [J] tour follows the live list once a survey lands
   defectTour = tourStopsFrom(
-    shown.flatMap((d) =>
-      d.region && d.outcome !== "fixed"
-        ? [{ min: d.region.min, max: d.region.max, label: `${d.type.replace(/_/g, " ")} (${d.severity})` }]
-        : [],
-    ),
+    shown.flatMap((d) => {
+      if (!d.region || d.outcome === "fixed") return [];
+      const region = anchorRegion(d.region.min, d.region.max);
+      return [{ min: region.min, max: region.max, label: `${d.type.replace(/_/g, " ")} (${d.severity})` }];
+    }),
     false,
   );
   defectTourIdx = -1;
@@ -1517,10 +1548,13 @@ async function loadSplats(dir: string): Promise<THREE.Object3D | undefined> {
     const splat = new spark.SplatMesh({ url });
     await splat.initialized;
     // SPZ declares y-down; Spark converts to y-up on load — but Marble's
-    // collider GLB (and our probe/trust frames) already match the RAW spz
-    // coordinates, so Spark's conversion flips the visuals relative to the
-    // physics. Rotate back so both files share one frame. Key F re-flips.
-    splat.rotateX(Math.PI);
+    // API-lane collider GLB (and our probe/trust frames) already match the
+    // RAW spz coordinates, so Spark's conversion flips the visuals relative
+    // to the physics. Rotate back so both files share one frame. APP-export
+    // spz files ship y-up already (Spark's conversion is correct there), so
+    // the counter-flip must be skipped or the user re-flips on every load.
+    // Key F remains the manual override either way.
+    if (!splatIsAppExport) splat.rotateX(Math.PI);
     hud.visualMode = `splats (${url.split("/").pop()})`;
     return splat;
   } catch (err) {
@@ -1535,6 +1569,7 @@ async function main(): Promise<void> {
   hud.worldId = dir.split("/").pop() ?? dir;
 
   const [metadata, certificate] = await Promise.all([fetchMetadata(dir), fetchCertificate(dir)]);
+  splatIsAppExport = (metadata as { source?: string } | undefined)?.source === "marble-app-export";
   if (metadata?.worldId) hud.worldId = metadata.worldId.slice(0, 8);
   introWorld.textContent = hud.worldId;
 
