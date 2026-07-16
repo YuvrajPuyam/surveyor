@@ -840,7 +840,7 @@ function buildStaticDefectBoxes(cert: Certificate): THREE.Group {
     const cz = (d.region.min[2] + d.region.max[2]) / 2;
     return cx * cx + cz * cz;
   };
-  const interior = (cert.defects ?? []).filter((d) => !inRimBand(d.region));
+  const interior = (cert.defects ?? []).filter((d) => !hiddenByPolicy(d));
   const capped = [...interior]
     .sort((a, b) => (RANK[a.severity] ?? 3) - (RANK[b.severity] ?? 3) || distSq(a) - distSq(b))
     .slice(0, 250);
@@ -951,23 +951,61 @@ function highlightRegion(min: number[], max: number[]): void {
 /** full defect list from the saved certificate — Shift+J looks up ANY id here */
 let allDefectsById = new Map<string, { region: { min: number[]; max: number[] }; label: string }>();
 
-// ------------------------------------------- capture-edge display policy
-// Defects whose region centers fall within the outer EDGE_MARGIN_FRAC band
-// of the collider footprint are hidden from the list, boxes, counts, and
-// tour: near the capture boundary "no visual support" is usually the capture
-// running out, not an obstacle. DISPLAY policy only — certificates untouched.
-const EDGE_MARGIN_FRAC = 0.1;
-let worldFootprint: { x0: number; x1: number; z0: number; z1: number } | undefined;
-let rimHiddenCount = 0;
+// --------------------------------------- evidence-tiered display policy
+// A phantom collider is DISPLAY-worthy only when the camera CONTRADICTS it:
+// dense visual ground sitting well below the collider surface (a real
+// invisible wall over visibly open terrain). Phantoms with no visual
+// evidence either way — occlusion shadows, capture-decay walls at the rim,
+// exactly the "edges become walls automatically" class — are unwitnessed,
+// not errors, and are hidden from the counts, list, boxes, and tour.
+// DISPLAY policy only — certificate bytes untouched. Ghosts, holes, and
+// sills always show (their evidence is visual by construction).
+const CONTRADICTION_GAP_M = 1.5;
+/** collider TOP surface height per 1 m XZ cell (rasterized once at load) */
+let colliderTopGrid: Map<number, number> | undefined;
+const topKey = (x: number, z: number): number => Math.floor(x) * 100003 + Math.floor(z);
+function colliderTopAt(x: number, z: number): number | undefined {
+  return colliderTopGrid?.get(topKey(x, z));
+}
+let policyHiddenCount = 0;
+const phantomVerdictCache = new Map<string, boolean>();
 
-function inRimBand(region: { min: number[]; max: number[] }): boolean {
-  if (!worldFootprint) return false;
-  const f = worldFootprint;
-  const mx = EDGE_MARGIN_FRAC * (f.x1 - f.x0);
-  const mz = EDGE_MARGIN_FRAC * (f.z1 - f.z0);
-  const cx = (region.min[0] + region.max[0]) / 2;
-  const cz = (region.min[2] + region.max[2]) / 2;
-  return cx < f.x0 + mx || cx > f.x1 - mx || cz < f.z0 + mz || cz > f.z1 - mz;
+function isContradictedPhantom(id: string, region: { min: number[]; max: number[] }): boolean {
+  const cached = phantomVerdictCache.get(id);
+  if (cached !== undefined) return cached;
+  // fail OPEN: without the evidence instruments, hide nothing
+  if (!visualGround || !colliderTopGrid) return true;
+  const [x0, , z0] = region.min, [x1, , z1] = region.max;
+  const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
+  const samples: [number, number][] = [
+    [cx, cz],
+    [(x0 + cx) / 2, (z0 + cz) / 2],
+    [(x1 + cx) / 2, (z0 + cz) / 2],
+    [(x0 + cx) / 2, (z1 + cz) / 2],
+    [(x1 + cx) / 2, (z1 + cz) / 2],
+  ];
+  let verdict = false;
+  for (const [x, z] of samples) {
+    const top = colliderTopAt(x, z);
+    if (top === undefined) continue;
+    // visual matter AT the phantom surface → not invisible, just sparse
+    if (visualGround.floorAt(x, z, top) !== undefined) continue;
+    // visible ground well BELOW the phantom surface → contradicted: keep
+    for (const drop of [1.5, 2.5, 3.5, 5]) {
+      const v = visualGround.floorAt(x, z, top - drop);
+      if (v !== undefined && top - v >= CONTRADICTION_GAP_M) {
+        verdict = true;
+        break;
+      }
+    }
+    if (verdict) break;
+  }
+  phantomVerdictCache.set(id, verdict);
+  return verdict;
+}
+
+function hiddenByPolicy(d: { id: string; type: string; region: { min: number[]; max: number[] } }): boolean {
+  return d.type === "phantom_collider" && !isContradictedPhantom(d.id, d.region);
 }
 
 function jumpToDefectId(rawId: string): void {
@@ -1020,7 +1058,7 @@ function updateLiveDefects(defects: DefectSummary[]): void {
   }
   for (const d of shown) {
     if (!d.region) continue;
-    if (inRimBand(d.region)) continue; // capture-edge display policy
+    if (hiddenByPolicy({ id: d.id, type: d.type, region: d.region })) continue; // unwitnessed phantoms stay hidden
     const outcome = d.outcome && d.outcome !== "OPEN" ? String(d.outcome) : "OPEN";
     if (outcome === "fixed") continue;
     const color =
@@ -1705,17 +1743,24 @@ async function main(): Promise<void> {
     worldGroup.add(wireframe);
     colliderWireframe = wireframe;
 
-    // footprint for the capture-edge display policy (10% rim band)
+    // collider TOP height per 1 m cell — the evidence policy compares this
+    // against the visual heightfield without per-defect raycasts
     {
-      let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
-      for (let i = 0; i < soup.positions.length; i += 3) {
-        const x = soup.positions[i], z = soup.positions[i + 2];
-        if (x < x0) x0 = x;
-        if (x > x1) x1 = x;
-        if (z < z0) z0 = z;
-        if (z > z1) z1 = z;
+      const grid = new Map<number, number>();
+      const bump = (x: number, y: number, z: number): void => {
+        const k = topKey(x, z);
+        const cur = grid.get(k);
+        if (cur === undefined || y > cur) grid.set(k, y);
+      };
+      const p = soup.positions, idx = soup.indices;
+      for (let t = 0; t < idx.length; t += 3) {
+        const a = idx[t] * 3, b = idx[t + 1] * 3, c = idx[t + 2] * 3;
+        bump(p[a], p[a + 1], p[a + 2]);
+        bump(p[b], p[b + 1], p[b + 2]);
+        bump(p[c], p[c + 1], p[c + 2]);
+        bump((p[a] + p[b] + p[c]) / 3, (p[a + 1] + p[b + 1] + p[c + 1]) / 3, (p[a + 2] + p[b + 2] + p[c + 2]) / 3);
       }
-      worldFootprint = { x0, x1, z0, z1 };
+      colliderTopGrid = grid;
     }
 
     // Start the camera INSIDE the world at eye height — splat worlds are
@@ -1849,14 +1894,16 @@ async function main(): Promise<void> {
     // twin run (C6): until the live survey lands, the raw-run route derives
     // from the bundle's canonical certificate — same defects, same coords.
     twinRun.setCertificate(certificate);
-    // capture-edge display policy: rim defects leave the counts, list, and
+    // evidence policy: unwitnessed phantoms leave the counts, list, and
     // boxes (certificate bytes untouched — this is presentation)
-    const interior = (certificate.defects ?? []).filter((d) => !inRimBand(d.region as { min: number[]; max: number[] }));
-    rimHiddenCount = (certificate.defects?.length ?? 0) - interior.length;
+    const interior = (certificate.defects ?? []).filter(
+      (d) => !hiddenByPolicy(d as { id: string; type: string; region: { min: number[]; max: number[] } }),
+    );
+    policyHiddenCount = (certificate.defects?.length ?? 0) - interior.length;
     hud.grade = certificate.grade ?? "-";
     hud.defects = interior.length;
-    if (rimHiddenCount > 0) {
-      hud.status = `capture-edge policy: ${rimHiddenCount.toLocaleString()} rim defects hidden (outer ${Math.round(EDGE_MARGIN_FRAC * 100)}% band) — certificate unchanged`;
+    if (policyHiddenCount > 0) {
+      hud.status = `evidence policy: ${policyHiddenCount.toLocaleString()} unwitnessed phantom(s) hidden (no visual contradiction) — certificate unchanged`;
     }
     try {
       certificatePanel.update(
