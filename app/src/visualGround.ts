@@ -28,9 +28,12 @@ export interface VisualGround {
   /**
    * Median visual-floor height near (x, z), from splat centers within
    * `band` of `refY` in this cell and its 8 neighbors. Undefined when the
-   * pixels show nothing floor-like there.
+   * pixels show nothing floor-like there. `minPts` raises the evidence bar:
+   * the default (2) means "anything floor-like"; evidence-critical callers
+   * (the phantom-contradiction test) demand DENSE coverage so sparsely-seen
+   * far-field ground can't convict a terrain skirt as an invisible wall.
    */
-  floorAt(x: number, z: number, refY: number): number | undefined;
+  floorAt(x: number, z: number, refY: number, minPts?: number): number | undefined;
   /**
    * Sample the segment (x0,z0)→(x1,z1) and report how much of it the visual
    * surface covers. `inside` restricts samples (e.g. to the defect region)
@@ -68,7 +71,7 @@ export function buildVisualGround(points: Float32Array, cellM = CELL_M): VisualG
     ys.push(points[i + 1]!);
   }
 
-  function floorAt(x: number, z: number, refY: number): number | undefined {
+  function floorAt(x: number, z: number, refY: number, minPts: number = MIN_CELL_POINTS): number | undefined {
     const cx = Math.floor(x / cellM);
     const cz = Math.floor(z / cellM);
     const near: number[] = [];
@@ -79,7 +82,7 @@ export function buildVisualGround(points: Float32Array, cellM = CELL_M): VisualG
         for (const y of ys) if (Math.abs(y - refY) <= BAND_M) near.push(y);
       }
     }
-    if (near.length < MIN_CELL_POINTS) return undefined;
+    if (near.length < minPts) return undefined;
     near.sort((a, b) => a - b);
     return near[Math.floor(near.length / 2)];
   }

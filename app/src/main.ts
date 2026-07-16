@@ -985,14 +985,21 @@ function isContradictedPhantom(id: string, region: { min: number[]; max: number[
     [(x1 + cx) / 2, (z1 + cz) / 2],
   ];
   let verdict = false;
+  // The CONTRADICTING ground must be densely seen (≈ near-field capture
+  // quality). Sparse far-field splats of the valley below a terrain skirt
+  // are technically "visible ground under a wall" — the exact artifact that
+  // convicts every drop-off at the visible rim. 25 pts per neighborhood is
+  // the dense-coverage bar; support AT the surface stays lenient (any
+  // visual matter at the claimed height exculpates the phantom).
+  const DENSE_PTS = 25;
   for (const [x, z] of samples) {
     const top = colliderTopAt(x, z);
     if (top === undefined) continue;
     // visual matter AT the phantom surface → not invisible, just sparse
     if (visualGround.floorAt(x, z, top) !== undefined) continue;
-    // visible ground well BELOW the phantom surface → contradicted: keep
+    // DENSELY visible ground well BELOW the phantom surface → contradicted
     for (const drop of [1.5, 2.5, 3.5, 5]) {
-      const v = visualGround.floorAt(x, z, top - drop);
+      const v = visualGround.floorAt(x, z, top - drop, DENSE_PTS);
       if (v !== undefined && top - v >= CONTRADICTION_GAP_M) {
         verdict = true;
         break;
