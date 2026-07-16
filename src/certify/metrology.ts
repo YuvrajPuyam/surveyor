@@ -340,16 +340,29 @@ export function runMetrology(rayGrid: Grid2D, seed: number, metadata?: WorldMeta
     // passage width is the larger horizontal span of the header footprint
     // (the smaller span is the wall thickness the doorway pierces)
     const width = Math.max(spanX, spanZ);
-    // minimal header height over the region
+    // minimal header height over the region. Iterate ONLY the region's cell
+    // window (row-major, ascending — same visit order as the old full-grid
+    // scan restricted to the region, so ties resolve identically): outdoor
+    // worlds have thousands of regions over 1.5M cells, and a full-grid scan
+    // per region turns the certify tail quadratic (the browser wedge).
     let minHead = Infinity;
     let floorAt = floorY;
-    for (let i = 0; i < rayGrid.size; i++) {
-      if (!doorPred(i)) continue;
-      const [x, z] = rayGrid.center(i);
-      if (x < r.min.x || x > r.max.x || z < r.min.z || z > r.max.z) continue;
-      if (headroom[i] < minHead) {
-        minHead = headroom[i];
-        floorAt = surfaceY[i];
+    {
+      const cLo = Math.max(0, Math.floor((r.min.x - rayGrid.x0) / cell) - 1);
+      const cHi = Math.min(rayGrid.cols - 1, Math.ceil((r.max.x - rayGrid.x0) / cell) + 1);
+      const rLo = Math.max(0, Math.floor((r.min.z - rayGrid.z0) / cell) - 1);
+      const rHi = Math.min(rayGrid.rows - 1, Math.ceil((r.max.z - rayGrid.z0) / cell) + 1);
+      for (let rr = rLo; rr <= rHi; rr++) {
+        for (let cc = cLo; cc <= cHi; cc++) {
+          const i = rr * rayGrid.cols + cc;
+          if (!doorPred(i)) continue;
+          const [x, z] = rayGrid.center(i);
+          if (x < r.min.x || x > r.max.x || z < r.min.z || z > r.max.z) continue;
+          if (headroom[i] < minHead) {
+            minHead = headroom[i];
+            floorAt = surfaceY[i];
+          }
+        }
       }
     }
     doorways.push({
@@ -414,11 +427,21 @@ export function runMetrology(rayGrid: Grid2D, seed: number, metadata?: WorldMeta
   }
   const steps: StepInfo[] = [];
   for (const r of merged) {
+    // same localization as the doorway scan: rocky terrain mints THOUSANDS
+    // of merged step regions, and a full-grid pass per region is the
+    // certify tail's quadratic hotspot (billions of cell visits outdoors)
     let maxH = 0;
-    for (let i = 0; i < rayGrid.size; i++) {
-      const [x, z] = rayGrid.center(i);
-      if (x < r.min.x || x > r.max.x || z < r.min.z || z > r.max.z) continue;
-      maxH = Math.max(maxH, stepEdge[i]);
+    const cLo = Math.max(0, Math.floor((r.min.x - rayGrid.x0) / cell) - 1);
+    const cHi = Math.min(rayGrid.cols - 1, Math.ceil((r.max.x - rayGrid.x0) / cell) + 1);
+    const rLo = Math.max(0, Math.floor((r.min.z - rayGrid.z0) / cell) - 1);
+    const rHi = Math.min(rayGrid.rows - 1, Math.ceil((r.max.z - rayGrid.z0) / cell) + 1);
+    for (let rr = rLo; rr <= rHi; rr++) {
+      for (let cc = cLo; cc <= cHi; cc++) {
+        const i = rr * rayGrid.cols + cc;
+        const [x, z] = rayGrid.center(i);
+        if (x < r.min.x || x > r.max.x || z < r.min.z || z > r.max.z) continue;
+        maxH = Math.max(maxH, stepEdge[i]);
+      }
     }
     if (maxH < 0.04) continue;
     steps.push({
