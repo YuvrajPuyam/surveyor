@@ -163,3 +163,27 @@ fix:       BUILDABLE: rasterize the 1.2M summit points into a heightfield
 carries:   event-day MUST: multi-level / terrace-aware floor detection, and
            a "visual-mass vs collider-mass per region" check — the summit
            imbalance (1.2M : 267) is a one-line detector nobody had.
+
+## E10 — RETRACTION of E9 + the frame bug that caused it        (2026-07-15)
+stage:     evidence / tooling  (user-caught: "are you sure they aren't flipped?")
+symptom:   E9 ("unbuilt summit", 1.2M pts vs 267 verts) and the "phantom
+           shell floating above the summit" were artifacts of the ad-hoc
+           proof RENDERER, not the world. The app-export GLB carries a root
+           node matrix (uniform scale 0.6797, Y and Z FLIPPED, +3.056 m Y);
+           the quick python parser read raw accessors and ignored it.
+truth:     - repo loadColliderGlb applies node transforms correctly ->
+             ALL certificate numbers were computed in the true frame and
+             STAND (15,125 phantoms, 26% divergent, 59 ghosts, 1 hole, dome).
+           - corrected summit crop: 653 collider verts at y -2..+1 under the
+             splat ground at y~0 — the summit IS meshed (sparse, ~1.2 m).
+           - global alignment: median visualTop-colliderTop = +0.44 m,
+             58% of shared 1 m cells within +/-1 m. Physics follows terrain.
+fix:       all proof images re-rendered in the corrected frame; 3D artifact
+           republished; renderer scripts must ALWAYS apply glTF node
+           transforms (matrix in scene graph, not in the accessors).
+carries:   1) any ad-hoc reader of vendor files must respect the scene
+           graph — add a frame-agreement smoke test (alignment score)
+           BEFORE trusting any cross-representation claim; 2) the certifier
+           itself never made this mistake — the lesson is about side
+           tooling; 3) adversarial review of your own evidence works:
+           the user's one-line skepticism caught what three renders missed.
