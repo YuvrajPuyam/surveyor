@@ -164,7 +164,7 @@ function renderHud(): void {
     `grade    ${hud.grade}   open defects ${hud.defects}\n` +
     `${hud.status}\n` +
     `[1-5] beats  [Space] action  [N] next  [G] dev\n` +
-    `[WASD/arrows] fly (Shift sprint)  [V] wireframe  [T] trust  [P] patrol  [B] boxes  [F] flip  [I] camera  [R] raw run`;
+    `[WASD/arrows] fly (Shift sprint)  [V] wireframe  [T] trust  [P] patrol  [B] boxes  [J] jump to defect  [F] flip  [I] camera  [R] raw run`;
 }
 setInterval(renderHud, 250);
 
@@ -815,6 +815,11 @@ function buildStaticDefectBoxes(cert: Certificate): THREE.Group {
     .slice(0, 250);
   staticDefectTotal = cert.defects?.length ?? 0;
   staticDefectShown = capped.length;
+  defectTour = tourStopsFrom(
+    capped.map((d) => ({ min: d.region.min, max: d.region.max, label: `${d.type.replace(/_/g, " ")} (${d.severity})` })),
+    true,
+  );
+  defectTourIdx = -1;
   for (const d of capped) {
     addRegionBox(
       group,
@@ -832,6 +837,54 @@ let liveDefectGroup: THREE.Group | undefined;
 let defectBoxesVisible = false; // pretty world by default — B opts into the overlay
 let staticDefectTotal = 0;
 let staticDefectShown = 0;
+
+// -------------------------------------------------- defect tour ([J] jump)
+// Teleport the camera defect-to-defect. Populated from whichever defect set
+// is current (static certificate at load, live list after a survey).
+interface TourStop {
+  center: THREE.Vector3;
+  /** true = worldGroup-local (static cert boxes); false = scene coords (live boxes) */
+  local: boolean;
+  size: number;
+  label: string;
+}
+let defectTour: TourStop[] = [];
+let defectTourIdx = -1;
+
+function tourStopsFrom(regions: { min: number[]; max: number[]; label: string }[], local: boolean): TourStop[] {
+  return regions.map((r) => {
+    const center = new THREE.Vector3(
+      (r.min[0] + r.max[0]) / 2,
+      (r.min[1] + r.max[1]) / 2,
+      (r.min[2] + r.max[2]) / 2,
+    );
+    const size = Math.max(
+      1,
+      Math.hypot(r.max[0] - r.min[0], r.max[1] - r.min[1], r.max[2] - r.min[2]),
+    );
+    return { center, local, size, label: r.label };
+  });
+}
+
+function jumpToNextDefect(): void {
+  if (defectTour.length === 0) {
+    hud.status = "no defects loaded to jump to";
+    return;
+  }
+  setDefectBoxes(true); // seeing the box is the point of the trip
+  defectTourIdx = (defectTourIdx + 1) % defectTour.length;
+  const stop = defectTour[defectTourIdx];
+  const world = stop.local ? worldGroup.localToWorld(stop.center.clone()) : stop.center.clone();
+  // stand back proportional to the region, slightly above, keep current bearing
+  const back = Math.max(4, stop.size * 1.2);
+  const bearing = new THREE.Vector3().subVectors(camera.position, controls.target);
+  bearing.y = 0;
+  if (bearing.lengthSq() < 1e-6) bearing.set(1, 0, 0);
+  bearing.normalize().multiplyScalar(back);
+  camera.position.copy(world).add(bearing).add(new THREE.Vector3(0, Math.max(2.5, stop.size * 0.5), 0));
+  controls.target.copy(world);
+  hud.status = `defect ${defectTourIdx + 1}/${defectTour.length}: ${stop.label} — [J] next`;
+}
 
 /**
  * Live overlay from the certify worker (engine coords → scene root).
@@ -870,6 +923,16 @@ function updateLiveDefects(defects: DefectSummary[]): void {
   group.visible = defectBoxesVisible;
   scene.add(group);
   liveDefectGroup = group;
+  // the [J] tour follows the live list once a survey lands
+  defectTour = tourStopsFrom(
+    shown.flatMap((d) =>
+      d.region && d.outcome !== "fixed"
+        ? [{ min: d.region.min, max: d.region.max, label: `${d.type.replace(/_/g, " ")} (${d.severity})` }]
+        : [],
+    ),
+    false,
+  );
+  defectTourIdx = -1;
 }
 
 function setDefectBoxes(on: boolean): void {
@@ -1429,6 +1492,10 @@ addEventListener("keydown", (e) => {
   } else if (k === "r") {
     // twin run (C6): raw-world failure run — Beats 1–3 only
     twinRun.trigger();
+  } else if (k === "j") {
+    // defect tour: teleport to the next defect box ([N] advances demo BEATS,
+    // which is not this — J is the sightseeing key)
+    jumpToNextDefect();
   }
 });
 
