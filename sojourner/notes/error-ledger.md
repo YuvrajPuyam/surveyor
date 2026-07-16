@@ -132,3 +132,34 @@ carries:   "distance from capture viewpoint" is a first-class trust prior
            for aerial worlds; also the interior-prior artifacts (metrology
            measuring boulder gaps as "doorways", scale 1.21x from a rock
            arch) show interior priors need an outdoor profile.
+
+## E8 — Repair engine OOMs at 14,660-defect scale               (2026-07-15)
+stage:     cleanup / repair
+symptom:   sojourner-repair.ts: hole patched OK (slab y=-10.04), then Node
+           heap exhaustion (exit 134) in the mass-quarantine loop; no export.
+cause:     the operation stack + per-action bookkeeping were designed for
+           interior worlds (tens of defects), not 15k outcomes in one pass.
+fix:       OPEN — batch quarantine (one action, N defects) or raise
+           --max-old-space-size; event rebuild should design for outdoor
+           defect counts from day one.
+carries:   defect COUNT is itself a scale axis; group-level operations
+           (quarantine-by-region/type) beat per-defect ops outdoors.
+
+## E9 — THE UNBUILT SUMMIT: launch terrain has no physics       (2026-07-15)
+stage:     cleanup / geometry (see proof/proof-unbuilt-summit.png)
+symptom:   30x30 m crop around the pano viewpoint: 1,218,318 splat points
+           (66% of the whole visual world) vs 267 collider vertices — and
+           those sit on the back-slope. The summit knoll incl. the cairn is
+           visually solid ground with ZERO collider under it. The certifier
+           flagged only its edges (59 ghost patches): the single-level,
+           valley-anchored survey (floorY -10.14) cannot see an elevated
+           terrace as "missing floor". Also explains the hole patch landing
+           at y=-10.04 (global floor plane = valley height).
+cause:     Marble meshed the valley shell but skipped the near-field knoll;
+           certifier metrology is single-level by design (disclosed).
+fix:       BUILDABLE: rasterize the 1.2M summit points into a heightfield
+           collider (upper-quantile per cell, triangulate, merge) — the
+           build_collider_from_splats tool; evidence overwhelming.
+carries:   event-day MUST: multi-level / terrace-aware floor detection, and
+           a "visual-mass vs collider-mass per region" check — the summit
+           imbalance (1.2M : 267) is a one-line detector nobody had.
