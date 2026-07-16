@@ -840,10 +840,11 @@ function buildStaticDefectBoxes(cert: Certificate): THREE.Group {
     const cz = (d.region.min[2] + d.region.max[2]) / 2;
     return cx * cx + cz * cz;
   };
-  const capped = [...(cert.defects ?? [])]
+  const interior = (cert.defects ?? []).filter((d) => !inRimBand(d.region));
+  const capped = [...interior]
     .sort((a, b) => (RANK[a.severity] ?? 3) - (RANK[b.severity] ?? 3) || distSq(a) - distSq(b))
     .slice(0, 250);
-  staticDefectTotal = cert.defects?.length ?? 0;
+  staticDefectTotal = interior.length;
   staticDefectShown = capped.length;
   const anchored = capped.map((d) => ({ defect: d, region: anchorRegion(d.region.min, d.region.max) }));
   for (const { defect: d, region } of anchored) {
@@ -922,7 +923,64 @@ function jumpToNextDefect(): void {
   }
   defectTourIdx = (defectTourIdx + 1) % defectTour.length;
   const stop = defectTour[defectTourIdx];
+  const half = stop.size / 2;
+  highlightRegion(
+    [stop.center.x - half, stop.center.y - half, stop.center.z - half],
+    [stop.center.x + half, stop.center.y + half, stop.center.z + half],
+  );
   flyToStop(stop, `defect ${defectTourIdx + 1}/${defectTour.length}: ${stop.label} — [J] next`);
+}
+
+// ---- target highlight: whatever you jumped to gets an unmissable box ----
+let highlightGroup: THREE.Group | undefined;
+function highlightRegion(min: number[], max: number[]): void {
+  highlightGroup?.removeFromParent();
+  const g = new THREE.Group();
+  g.name = "defect-highlight";
+  addRegionBox(g, min, max, 0xffffff, 0.35);
+  worldGroup.add(g);
+  highlightGroup = g;
+  window.setTimeout(() => {
+    if (highlightGroup === g) {
+      g.removeFromParent();
+      highlightGroup = undefined;
+    }
+  }, 12000);
+}
+
+/** full defect list from the saved certificate — Shift+J looks up ANY id here */
+let allDefectsById = new Map<string, { region: { min: number[]; max: number[] }; label: string }>();
+
+// ------------------------------------------- capture-edge display policy
+// Defects whose region centers fall within the outer EDGE_MARGIN_FRAC band
+// of the collider footprint are hidden from the list, boxes, counts, and
+// tour: near the capture boundary "no visual support" is usually the capture
+// running out, not an obstacle. DISPLAY policy only — certificates untouched.
+const EDGE_MARGIN_FRAC = 0.1;
+let worldFootprint: { x0: number; x1: number; z0: number; z1: number } | undefined;
+let rimHiddenCount = 0;
+
+function inRimBand(region: { min: number[]; max: number[] }): boolean {
+  if (!worldFootprint) return false;
+  const f = worldFootprint;
+  const mx = EDGE_MARGIN_FRAC * (f.x1 - f.x0);
+  const mz = EDGE_MARGIN_FRAC * (f.z1 - f.z0);
+  const cx = (region.min[0] + region.max[0]) / 2;
+  const cz = (region.min[2] + region.max[2]) / 2;
+  return cx < f.x0 + mx || cx > f.x1 - mx || cz < f.z0 + mz || cz > f.z1 - mz;
+}
+
+function jumpToDefectId(rawId: string): void {
+  const id = rawId.trim();
+  const d = allDefectsById.get(id);
+  if (!d) {
+    hud.status = `no defect "${id}" in the loaded certificate`;
+    return;
+  }
+  const a = anchorRegion(d.region.min, d.region.max);
+  const stop = tourStopsFrom([{ min: a.min, max: a.max, label: d.label }], true)[0];
+  highlightRegion(a.min, a.max);
+  flyToStop(stop, `${id}: ${d.label} — highlighted (white box, 12 s)`);
 }
 
 // click-to-fly from the certificate panel's defect list (CustomEvent keeps
@@ -933,7 +991,8 @@ window.addEventListener("sv-jump-defect", (e) => {
   if (!detail?.region) return;
   const a = anchorRegion(detail.region.min, detail.region.max);
   const stop = tourStopsFrom([{ min: a.min, max: a.max, label: detail.label ?? detail.id }], true)[0];
-  flyToStop(stop, `${stop.label} — jumped from the certificate list`);
+  highlightRegion(a.min, a.max);
+  flyToStop(stop, `${stop.label} — highlighted (white box, 12 s)`);
 });
 
 /**
@@ -961,6 +1020,7 @@ function updateLiveDefects(defects: DefectSummary[]): void {
   }
   for (const d of shown) {
     if (!d.region) continue;
+    if (inRimBand(d.region)) continue; // capture-edge display policy
     const outcome = d.outcome && d.outcome !== "OPEN" ? String(d.outcome) : "OPEN";
     if (outcome === "fixed") continue;
     const color =
@@ -1544,9 +1604,15 @@ addEventListener("keydown", (e) => {
     // twin run (C6): raw-world failure run — Beats 1–3 only
     twinRun.trigger();
   } else if (k === "j") {
-    // defect tour: teleport to the next defect box ([N] advances demo BEATS,
-    // which is not this — J is the sightseeing key)
-    jumpToNextDefect();
+    if (e.shiftKey) {
+      // Shift+J: fly to a specific defect by id (any of them, incl. unlisted)
+      const id = window.prompt("defect id (e.g. d-phantom-7709):");
+      if (id) jumpToDefectId(id);
+    } else {
+      // defect tour: teleport to the next defect box ([N] advances demo
+      // BEATS, which is not this — J is the sightseeing key)
+      jumpToNextDefect();
+    }
   }
 });
 
@@ -1594,15 +1660,18 @@ async function main(): Promise<void> {
   if (certificate) {
     // the saved certificate populates the panel immediately: the defect list
     // is a clickable map of the world before any live survey runs
-    try {
-      certificatePanel.update(
-        summarizeCertificate(certificate as unknown as Parameters<typeof summarizeCertificate>[0]) as unknown as CertificateSummary,
-      );
-    } catch {
-      /* malformed/legacy certificate — the panel fills after a live survey */
-    }
+    // Shift+J lookup covers EVERY defect in the certificate, not just the
+    // 250 boxed / 400 listed — the mega-merged and rim-filtered ones included
+    allDefectsById = new Map(
+      (certificate.defects ?? []).map((d) => [
+        d.id,
+        { region: { min: d.region.min as number[], max: d.region.max as number[] }, label: `${d.type.replace(/_/g, " ")} (${d.severity})` },
+      ]),
+    );
   }
   introWorld.textContent = hud.worldId;
+  // (the certificate panel is fed AFTER the collider loads — the capture-edge
+  // policy needs the world footprint before it can filter the rim)
 
   // --- collider ---
   try {
@@ -1635,6 +1704,19 @@ async function main(): Promise<void> {
     wireframe.visible = introRevealed;
     worldGroup.add(wireframe);
     colliderWireframe = wireframe;
+
+    // footprint for the capture-edge display policy (10% rim band)
+    {
+      let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+      for (let i = 0; i < soup.positions.length; i += 3) {
+        const x = soup.positions[i], z = soup.positions[i + 2];
+        if (x < x0) x0 = x;
+        if (x > x1) x1 = x;
+        if (z < z0) z0 = z;
+        if (z > z1) z1 = z;
+      }
+      worldFootprint = { x0, x1, z0, z1 };
+    }
 
     // Start the camera INSIDE the world at eye height — splat worlds are
     // captured from within; from outside you see the dark backs of the
@@ -1767,8 +1849,22 @@ async function main(): Promise<void> {
     // twin run (C6): until the live survey lands, the raw-run route derives
     // from the bundle's canonical certificate — same defects, same coords.
     twinRun.setCertificate(certificate);
+    // capture-edge display policy: rim defects leave the counts, list, and
+    // boxes (certificate bytes untouched — this is presentation)
+    const interior = (certificate.defects ?? []).filter((d) => !inRimBand(d.region as { min: number[]; max: number[] }));
+    rimHiddenCount = (certificate.defects?.length ?? 0) - interior.length;
     hud.grade = certificate.grade ?? "-";
-    hud.defects = certificate.defects?.length ?? 0;
+    hud.defects = interior.length;
+    if (rimHiddenCount > 0) {
+      hud.status = `capture-edge policy: ${rimHiddenCount.toLocaleString()} rim defects hidden (outer ${Math.round(EDGE_MARGIN_FRAC * 100)}% band) — certificate unchanged`;
+    }
+    try {
+      certificatePanel.update(
+        summarizeCertificate({ ...certificate, defects: interior } as unknown as Parameters<typeof summarizeCertificate>[0]) as unknown as CertificateSummary,
+      );
+    } catch {
+      /* malformed/legacy certificate — the panel fills after a live survey */
+    }
     staticDefectGroup = buildStaticDefectBoxes(certificate);
     staticDefectGroup.visible = defectBoxesVisible;
     worldGroup.add(staticDefectGroup);
@@ -1780,9 +1876,6 @@ async function main(): Promise<void> {
       grid.position.y = floor.value;
       worldGroup.add(grid);
     }
-    // Keep the shipped certificate's data (grid, floor, static boxes) but do
-    // NOT feed the panel — the grade reveal is Beat 3's moment, and only the
-    // live survey's certificate (Beat 2) is ever displayed.
   } else {
     hud.grade = "no certificate.json";
     trustLayer.setFloorY(metadata?.groundPlaneY ?? 0);
