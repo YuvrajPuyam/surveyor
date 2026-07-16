@@ -319,8 +319,61 @@ let introRevealed = false;
 let beforeGrade: string | undefined; // first live grade — the Beat-5 "before"
 let beforeDefectCount: number | undefined; // first survey's count — explains Beat-5's larger total
 
+// ------------------------------------------------- survey progress bar
+// Outdoor worlds survey for MINUTES; without feedback that reads as a hang.
+// Stage-weighted bar + ETA from the throttled worker progress stream.
+// Weights are rough wall-clock shares measured on the Fouriesburg world;
+// they only shape the bar, never the survey.
+const PROGRESS_STAGES: { key: string; label: string; weight: number }[] = [
+  { key: "virtual-lidar", label: "virtual LiDAR", weight: 0.45 },
+  { key: "probe-rain", label: "probe rain", weight: 0.15 },
+  { key: "divergence-splats", label: "divergence (splats)", weight: 0.3 },
+  { key: "divergence-collider", label: "divergence (collider)", weight: 0.1 },
+];
+const progressBox = document.createElement("div");
+progressBox.id = "sv-progress";
+progressBox.style.cssText =
+  "position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:30;display:none;" +
+  "min-width:340px;max-width:60vw;padding:10px 14px;background:rgba(13,16,22,.92);" +
+  "border:1px solid #2a3040;border-radius:6px;color:#c9ceda;" +
+  "font:12px/1.5 ui-monospace,Consolas,monospace;pointer-events:none";
+progressBox.innerHTML =
+  '<div id="sv-progress-label" style="display:flex;justify-content:space-between;gap:12px">' +
+  "<span>survey</span><span></span></div>" +
+  '<div style="margin-top:6px;height:6px;background:#232936;border-radius:3px;overflow:hidden">' +
+  '<div id="sv-progress-fill" style="height:100%;width:0%;background:#6ea8ff;transition:width .25s"></div></div>';
+document.body.appendChild(progressBox);
+let surveyT0 = 0;
+function updateProgressBar(stage: string, done: number, total: number): void {
+  const idx = PROGRESS_STAGES.findIndex((s) => s.key === stage);
+  if (idx < 0) return;
+  if (!surveyT0) surveyT0 = performance.now();
+  const frac = total > 0 ? Math.min(1, done / total) : 0;
+  let overall = 0;
+  for (let i = 0; i < idx; i++) overall += PROGRESS_STAGES[i].weight;
+  overall += PROGRESS_STAGES[idx].weight * frac;
+  const elapsedS = (performance.now() - surveyT0) / 1000;
+  // ETA from overall fraction once we have signal; honest dash before that
+  const eta = overall > 0.03 ? Math.max(0, (elapsedS / overall) * (1 - overall)) : NaN;
+  const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
+  const label = progressBox.querySelector("#sv-progress-label")!;
+  (label.children[0] as HTMLElement).textContent =
+    `surveying — ${PROGRESS_STAGES[idx].label} (${idx + 1}/${PROGRESS_STAGES.length})`;
+  (label.children[1] as HTMLElement).textContent =
+    `${(100 * overall).toFixed(0)}% · ${mmss(elapsedS)} elapsed${Number.isFinite(eta) ? ` · ~${mmss(eta)} left` : ""}`;
+  (progressBox.querySelector("#sv-progress-fill") as HTMLElement).style.width = `${(100 * overall).toFixed(1)}%`;
+  progressBox.style.display = "block";
+}
+function hideProgressBar(): void {
+  progressBox.style.display = "none";
+  surveyT0 = 0;
+}
+
+client.onProgress = updateProgressBar;
+
 client.onPhase = (phase, detail) => {
   hud.status = phase === "ready" ? "ready" : `${phase.replace(/-/g, " ")}${detail ? ` — ${detail}` : ""}`;
+  if (phase === "ready") hideProgressBar();
   // narrator: humanized phase lines while the survey (Beat 2) or a Beat-4
   // recertify is running; other beats own their narration.
   if (stepper.current === 2 && !certDone) {

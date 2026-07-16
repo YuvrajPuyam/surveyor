@@ -40,6 +40,13 @@ export interface SurveyOptions {
    * world-wide — they are cheap and catch global regressions.
    */
   focusRegion?: { min: { x: number; z: number }; max: { x: number; z: number } };
+  /**
+   * Progress reporting for long surveys (outdoor worlds run for minutes).
+   * Purely observational — never affects the computation or determinism.
+   * Stages fire in order: virtual-lidar → probe-rain → divergence-splats →
+   * divergence-collider, each with (done, total) in its own units.
+   */
+  onProgress?: (stage: string, done: number, total: number) => void;
 }
 
 const MAX_GRID_CELLS_DEFAULT = 1_500_000;
@@ -169,7 +176,9 @@ export async function runSurvey(
   const headroom = rayGrid.channel("headroom");
   const domain = rayGrid.channel("domain");
   const standable = rayGrid.channel("standable");
+  const progress = opts.onProgress ?? (() => {});
   for (let i = 0; i < rayGrid.size; i++) {
+    if ((i & 8191) === 0) progress("virtual-lidar", i, rayGrid.size);
     const [x, z] = rayGrid.center(i);
     const profile = pw.castDownProfile(x, topY, z, worldHeight + 1.0);
     if (visualRayCells[i] > 0 || profile.length > 0) domain[i] = 1;
@@ -409,8 +418,10 @@ export async function runSurvey(
   const pathSeed = rayGrid.channel("pathSeed");
   const contactStreak = new Int16Array(probes.length);
   const t0 = performance.now();
+  progress("virtual-lidar", rayGrid.size, rayGrid.size);
   let steps = 0;
   for (; steps < opts.maxSettleSteps; steps++) {
+    if (steps % 30 === 0) progress("probe-rain", steps, opts.maxSettleSteps);
     pw.step();
     if (steps % CONTACT_SAMPLE_EVERY_STEPS === CONTACT_SAMPLE_EVERY_STEPS - 1) {
       for (let pi = 0; pi < probes.length; pi++) {
@@ -575,7 +586,10 @@ export async function runSurvey(
     verified: boolean;
   }
   const samples: DivergenceSample[] = [];
+  progress("probe-rain", opts.maxSettleSteps, opts.maxSettleSteps);
+  const nVisualPts = visualPoints.length / 3;
   for (let i = 0; i < visualPoints.length; i += 3) {
+    if (i % 196608 === 0) progress("divergence-splats", i / 3, nVisualPts);
     const x = visualPoints[i], y = visualPoints[i + 1], z = visualPoints[i + 2];
     // background scenery — splats beyond the collider's bounding volume (sky,
     // horizon, out-of-window vistas) — is not a claim about walkable space
@@ -628,7 +642,10 @@ export async function runSurvey(
   const meanPointSpacingM =
     pointsInEnvelope > 0 && surveyedAreaM2 > 0 ? Math.sqrt(surveyedAreaM2 / pointsInEnvelope) : 0.2;
   const nearRadius = Math.min(0.6, Math.max(0.2, 1.5 * meanPointSpacingM));
+  progress("divergence-splats", nVisualPts, nVisualPts);
+  const nColliderSamples = colliderSamples.length / 3;
   for (let i = 0; i < colliderSamples.length; i += 3) {
+    if (i % 98304 === 0) progress("divergence-collider", i / 3, nColliderSamples);
     const x = colliderSamples[i], y = colliderSamples[i + 1], z = colliderSamples[i + 2];
     if (!inClaimZone(x, z)) continue; // collider beyond reachable space cannot ambush a robot
     // collider beyond the capture envelope: the visual record never reached
@@ -650,6 +667,7 @@ export async function runSurvey(
     }
   }
 
+  progress("divergence-collider", nColliderSamples, nColliderSamples);
   pw.free();
 
   return {

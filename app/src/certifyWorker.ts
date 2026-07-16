@@ -184,9 +184,21 @@ async function handleInit(msg: InitRequest): Promise<void> {
     metadata ??= { worldId: msg.worldId, source: "marble" };
 
     post({ type: "phase", phase: "physics-init", detail: `${(soup.indices.length / 3).toLocaleString()} tris, ${(visualPoints.length / 3).toLocaleString()} splat centers` });
+    // survey progress: throttle to ~5 events/s so a 1.5M-column LiDAR pass
+    // doesn't flood the main thread; stage boundaries (done === total) and
+    // stage changes always go through so the bar never sticks at 99%
+    let lastPost = 0;
+    let lastStage = "";
+    const onSurveyProgress = (stage: string, done: number, total: number): void => {
+      const now = performance.now();
+      if (stage === lastStage && done < total && now - lastPost < 200) return;
+      lastStage = stage;
+      lastPost = now;
+      post({ type: "progress", stage, done, total });
+    };
     engine = new RepairEngine(
       { worldId: msg.worldId, collider: soup, visualPoints, visualScales, metadata },
-      { seed: msg.seed, probeCount: msg.probeCount, gravity: msg.gravity },
+      { seed: msg.seed, probeCount: msg.probeCount, gravity: msg.gravity, onSurveyProgress },
     );
 
     post({ type: "phase", phase: "certifying", detail: `probe rain (${msg.probeCount ?? 2000} probes) + virtual LiDAR + divergence` });

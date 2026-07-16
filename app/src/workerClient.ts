@@ -84,6 +84,15 @@ export interface PhaseEvent {
   detail?: string;
 }
 
+/** Fine-grained survey progress (throttled in the worker) — drives the progress bar. */
+export interface ProgressEvent {
+  type: "progress";
+  /** "virtual-lidar" | "probe-rain" | "divergence-splats" | "divergence-collider" */
+  stage: string;
+  done: number;
+  total: number;
+}
+
 export interface TrustMapEvent {
   type: "trustmap";
   trustMap: TrustMapPayload;
@@ -106,7 +115,7 @@ export type RpcResultEvent =
   | { type: "result"; id: number; ok: true; result: unknown }
   | { type: "result"; id: number; ok: false; error: string };
 
-export type CertifyWorkerEvent = PhaseEvent | TrustMapEvent | DefectsEvent | HashEvent | RpcResultEvent;
+export type CertifyWorkerEvent = PhaseEvent | ProgressEvent | TrustMapEvent | DefectsEvent | HashEvent | RpcResultEvent;
 
 // ---------------------------------------------- compact result shapes
 // These mirror src/agent/tools.ts summarize* outputs (numbers-not-pixels).
@@ -200,6 +209,8 @@ export class CertifyWorkerClient {
 
   /** Survey progress ("fetching-collider" ... "certifying" ... "ready"). */
   onPhase?: (phase: CertifyPhase, detail?: string) => void;
+  /** Fine-grained survey progress — stage + (done/total), throttled worker-side. */
+  onProgress?: (stage: string, done: number, total: number) => void;
   /** Fires after init and after EVERY recertify — repaint the trust map. */
   onTrustMap?: (trustMap: TrustMapPayload) => void;
   /** Fires after init and after EVERY recertify — refresh the defect list. */
@@ -212,6 +223,7 @@ export class CertifyWorkerClient {
     this.worker.onmessage = (ev: MessageEvent<CertifyWorkerEvent>) => {
       const msg = ev.data;
       if (msg.type === "phase") this.onPhase?.(msg.phase, msg.detail);
+      else if (msg.type === "progress") this.onProgress?.(msg.stage, msg.done, msg.total);
       else if (msg.type === "trustmap") this.onTrustMap?.(msg.trustMap);
       else if (msg.type === "defects") this.onDefects?.(msg);
       else if (msg.type === "hash") this.onHash?.(msg.hash);

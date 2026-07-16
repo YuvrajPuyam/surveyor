@@ -84,7 +84,14 @@ export class RepairEngine {
 
   constructor(
     world: RepairWorldState,
-    private opts: { seed?: number; gravity?: Gravity; robots?: RobotSpec[]; probeCount?: number } = {},
+    private opts: {
+      seed?: number;
+      gravity?: Gravity;
+      robots?: RobotSpec[];
+      probeCount?: number;
+      /** survey progress passthrough (observational only — see SurveyOptions.onProgress) */
+      onSurveyProgress?: (stage: string, done: number, total: number) => void;
+    } = {},
   ) {
     this.state = {
       worldId: world.worldId,
@@ -522,7 +529,11 @@ export class RepairEngine {
         seed: this.opts.seed ?? 1234,
         gravity: this.opts.gravity ?? GRAVITY.earth,
         robots: this.robots(),
-        survey: { probeCount: probeCount ?? this.opts.probeCount ?? 2000, ...(focusRegion ? { focusRegion } : {}) },
+        survey: {
+          probeCount: probeCount ?? this.opts.probeCount ?? 2000,
+          ...(focusRegion ? { focusRegion } : {}),
+          ...(this.opts.onSurveyProgress ? { onProgress: this.opts.onSurveyProgress } : {}),
+        },
       },
     );
   }
