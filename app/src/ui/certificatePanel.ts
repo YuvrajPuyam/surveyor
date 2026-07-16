@@ -158,7 +158,17 @@ function renderVerdictsBody(cert: CertificateSummary, body: HTMLElement): void {
 
 function renderDefectsBody(cert: CertificateSummary, body: HTMLElement): void {
   const ordinals = new Map<string, number>(); // per-type counters, display order
-  for (const d of cert.defects) {
+  // outdoor certificates can carry 15k+ defects — rendering them all as DOM
+  // rows freezes the tab. Cap the list; severity sort puts the worst first.
+  const MAX_ROWS = 400;
+  const SEV: Record<string, number> = { critical: 0, major: 1, minor: 2 };
+  const listed = [...cert.defects].sort((a, b) => (SEV[a.severity] ?? 3) - (SEV[b.severity] ?? 3)).slice(0, MAX_ROWS);
+  if (cert.defects.length > MAX_ROWS) {
+    body.appendChild(
+      el("div", "sv-defect-desc", `showing the ${MAX_ROWS} most severe of ${cert.defects.length.toLocaleString()} defects — the full list lives in certificate.json`),
+    );
+  }
+  for (const d of listed) {
     const ord = (ordinals.get(d.type) ?? 0) + 1;
     ordinals.set(d.type, ord);
 
@@ -194,6 +204,20 @@ function renderDefectsBody(cert: CertificateSummary, body: HTMLElement): void {
         ev.appendChild(tag);
       }
       row.appendChild(ev);
+    }
+    // click-to-fly: the list is a MAP of the world — clicking a row asks the
+    // viewer to transport the camera to the defect (decoupled via CustomEvent;
+    // the panel stays plain DOM with no three.js knowledge)
+    if (d.region) {
+      row.style.cursor = "pointer";
+      row.title = "click to fly to this defect in the world";
+      row.addEventListener("click", () => {
+        window.dispatchEvent(
+          new CustomEvent("sv-jump-defect", {
+            detail: { id: d.id, region: d.region, label: defectDisplayName(d, ord) },
+          }),
+        );
+      });
     }
     body.appendChild(row);
   }

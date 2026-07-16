@@ -36,6 +36,7 @@ import {
 } from "./bundle";
 import type { InitMsg, WorkerToMain } from "./protocol";
 import { CertifyWorkerClient, type SpawnPoint } from "./workerClient";
+import { summarizeCertificate } from "../../src/agent/tools.js";
 import { mountCertificatePanel } from "./ui/certificatePanel";
 import { mountRepairPanel } from "./ui/repairPanel";
 import { mountMissionLog } from "./ui/missionLog";
@@ -180,6 +181,10 @@ function setDevMode(on: boolean): void {
   devMode = on;
   document.body.classList.toggle("sv-dev", on);
   hudEl.style.display = on ? "block" : "none";
+  // inspection mode: the sidebar (certificate panel + clickable defect list)
+  // is demo-choreographed to enter at Beat 3 — dev mode reveals it directly
+  // so a world can be inspected without walking the beats
+  sidebar.style.display = on ? "flex" : stepper.current >= 3 ? "flex" : "none";
   try {
     localStorage.setItem(DEV_KEY, on ? "1" : "0");
   } catch {
@@ -691,7 +696,7 @@ const stepper = mountStepper(document.body, {
 function applyBeat(beat: Beat, from: Beat): void {
   introCard.style.display = beat === 1 ? "" : "none";
   legend.style.display = beat === 2 ? "" : "none";
-  sidebar.style.display = beat >= 3 ? "flex" : "none";
+  sidebar.style.display = beat >= 3 || devMode ? "flex" : "none";
   repairPanel.el.style.display = beat === 4 ? "" : "none";
   missionLog.el.style.display = beat === 4 ? "" : "none";
   if (beat === 4) missionLog.resume();
@@ -896,14 +901,8 @@ function tourStopsFrom(regions: { min: number[]; max: number[]; label: string }[
   });
 }
 
-function jumpToNextDefect(): void {
-  if (defectTour.length === 0) {
-    hud.status = "no defects loaded to jump to";
-    return;
-  }
+function flyToStop(stop: TourStop, status: string): void {
   setDefectBoxes(true); // seeing the box is the point of the trip
-  defectTourIdx = (defectTourIdx + 1) % defectTour.length;
-  const stop = defectTour[defectTourIdx];
   const world = stop.local ? worldGroup.localToWorld(stop.center.clone()) : stop.center.clone();
   // stand back proportional to the region, slightly above, keep current bearing
   const back = Math.max(4, stop.size * 1.2);
@@ -913,8 +912,29 @@ function jumpToNextDefect(): void {
   bearing.normalize().multiplyScalar(back);
   camera.position.copy(world).add(bearing).add(new THREE.Vector3(0, Math.max(2.5, stop.size * 0.5), 0));
   controls.target.copy(world);
-  hud.status = `defect ${defectTourIdx + 1}/${defectTour.length}: ${stop.label} — [J] next`;
+  hud.status = status;
 }
+
+function jumpToNextDefect(): void {
+  if (defectTour.length === 0) {
+    hud.status = "no defects loaded to jump to";
+    return;
+  }
+  defectTourIdx = (defectTourIdx + 1) % defectTour.length;
+  const stop = defectTour[defectTourIdx];
+  flyToStop(stop, `defect ${defectTourIdx + 1}/${defectTour.length}: ${stop.label} — [J] next`);
+}
+
+// click-to-fly from the certificate panel's defect list (CustomEvent keeps
+// the panel three.js-free). Regions arrive in certificate coords — same
+// frame as the static boxes (worldGroup-local; identity in practice).
+window.addEventListener("sv-jump-defect", (e) => {
+  const detail = (e as CustomEvent<{ id: string; region?: { min: number[]; max: number[] }; label?: string }>).detail;
+  if (!detail?.region) return;
+  const a = anchorRegion(detail.region.min, detail.region.max);
+  const stop = tourStopsFrom([{ min: a.min, max: a.max, label: detail.label ?? detail.id }], true)[0];
+  flyToStop(stop, `${stop.label} — jumped from the certificate list`);
+});
 
 /**
  * Live overlay from the certify worker (engine coords → scene root).
@@ -1571,6 +1591,17 @@ async function main(): Promise<void> {
   const [metadata, certificate] = await Promise.all([fetchMetadata(dir), fetchCertificate(dir)]);
   splatIsAppExport = (metadata as { source?: string } | undefined)?.source === "marble-app-export";
   if (metadata?.worldId) hud.worldId = metadata.worldId.slice(0, 8);
+  if (certificate) {
+    // the saved certificate populates the panel immediately: the defect list
+    // is a clickable map of the world before any live survey runs
+    try {
+      certificatePanel.update(
+        summarizeCertificate(certificate as unknown as Parameters<typeof summarizeCertificate>[0]) as unknown as CertificateSummary,
+      );
+    } catch {
+      /* malformed/legacy certificate — the panel fills after a live survey */
+    }
+  }
   introWorld.textContent = hud.worldId;
 
   // --- collider ---
