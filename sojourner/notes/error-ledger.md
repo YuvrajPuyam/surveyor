@@ -187,3 +187,29 @@ carries:   1) any ad-hoc reader of vendor files must respect the scene
            itself never made this mistake — the lesson is about side
            tooling; 3) adversarial review of your own evidence works:
            the user's one-line skepticism caught what three renders missed.
+
+## E11 — REAL ERROR, verified: the invisible rampart             (2026-07-15)
+stage:     cleanup / geometry (see proof/proof-phantom-rampart.png)
+symptom:   corrected-frame per-cell audit. East of the cairn (x 12..24+,
+           z -1.5..3.5): visible ground is FLAT at ~+1 m with DENSE splat
+           coverage (50-237 pts/cell — the camera saw it), while the
+           collider holds a continuous ~+4.2 m wall for 13+ meters. A drone
+           at 2 m over visible ground impacts invisible physics.
+           Control: x 0..9.5 agrees within 0.1 m; the cairn itself exists
+           in BOTH layers (+5.0 vis / +4.4 col) — comparison is sound.
+cause:     occlusion-silhouette extrusion: from the pano viewpoint the
+           cairn hides the strip behind it; the mesher extruded the
+           silhouette eastward instead of returning to ground. Because the
+           splats DO cover that ground, this is not "unknown" — it is
+           physics objectively contradicted by visual evidence.
+fix:       carve_opening — the EXISTING repair tool for exactly this class
+           (phantom contradicted by visuals). Fixable today, no new code.
+carries:   the strongest defect class outdoors = divergent-WITH-evidence
+           (dense splats disagree with collider), distinct from the
+           evidence-free occlusion ring; rank phantoms by local splat
+           density to split "carve now" from "quarantine as unknown".
+           Second confirmed real error, type A: visible mid-field ridge at
+           (x~-90, z~+88) rising to +38 m with collider flat at -8 m
+           (47 m gap, 294 cells) — a planner trusting physics flies through
+           a visible mountainside; classify far/mid-field walls before
+           planning.
