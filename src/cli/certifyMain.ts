@@ -13,6 +13,7 @@ import { certifyWorld } from "../certify/certificate.js";
 import { GRAVITY, type Grade } from "../core/types.js";
 import { loadWorldBundle } from "../ingest/bundleIO.js";
 import { certificateSha256, renderReportHtml } from "../report/reportHtml.js";
+import { renderCertificateMd } from "../report/certificateMd.js";
 
 const GRADE_ORDER: Grade[] = ["F", "D", "C", "B", "A"];
 
@@ -176,6 +177,10 @@ ${CERTIFY_USAGE}`);
   if (outPath) {
     writeFileSync(outPath, JSON.stringify(certificate, null, 2));
     console.log(`  certificate → ${outPath}`);
+    // the page a human reads — written beside the JSON on every run
+    const mdPath = outPath.replace(/\.json$/i, "") + ".md";
+    writeFileSync(mdPath, renderCertificateMd(certificate));
+    console.log(`  readable    → ${mdPath}`);
   }
   if (!has("no-report")) {
     const reportPath = flag("report") ?? (has("write-bundle") ? join(dir, "report.html") : outPath ? outPath.replace(/\.json$/i, "") + ".report.html" : undefined);
