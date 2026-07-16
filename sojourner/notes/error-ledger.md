@@ -115,3 +115,20 @@ fix:       scale probe count to world AREA, not a fixed number; the
 carries:   event-day: default probe count is tuned for interior worlds;
            outdoor sites need 2000+ (24 min runtime) or a coarser honest
            claim. Full 2000-probe run is the trustworthy one.
+
+## E7 — VISUAL PROOF: phantoms ring the summit (occlusion shadows) (2026-07-15)
+stage:     cleanup / evidence
+symptom:   see proof/proof-defect-map.png — the 15,125 phantom colliders form
+           a RING around the pano viewpoint: terrain hidden behind the
+           near-field ridge from the single capture point. proof/
+           proof-side-elevation.png shows the 84 m photovisual dome above the
+           36 m physical slab (the summit cairn is the bright cluster).
+cause:     single-viewpoint capture -> everything occluded from the pano
+           point has visual gaps; the collider meshes it anyway.
+fix:       for the drone map: the phantom ring = UNKNOWN voxels (never free,
+           never trusted-occupied). Renderer: sojourner/proof/render-proof.py
+           (reads bundle + certificate.json, no re-survey).
+carries:   "distance from capture viewpoint" is a first-class trust prior
+           for aerial worlds; also the interior-prior artifacts (metrology
+           measuring boulder gaps as "doorways", scale 1.21x from a rock
+           arch) show interior priors need an outdoor profile.
