@@ -32,6 +32,10 @@ options:
                               scale consensus, settling, reachability; merges
                               <bundle>/depth-audit.json when present) —
                               informational, never enters the grade
+  --evidence-tiers            outdoor/single-viewpoint policy: phantoms with
+                              no visual evidence either way stay in the trust
+                              map as unwitnessed space instead of the defect
+                              list; grading uses bucket-capped deductions
   --min-grade A|B|C|D|F       exit 3 if the grade lands below this (default D)
   --out <file>                write certificate JSON here (default <bundle>/certificate.json is NOT overwritten unless --write-bundle)
   --write-bundle              write certificate.json + report.html into the bundle dir
@@ -92,7 +96,13 @@ ${CERTIFY_USAGE}`);
         visualScales: world.visualScales,
         metadata: world.metadata,
       },
-      { gravity: GRAVITY[gravityName], seed, survey: { probeCount: probes }, extended: has("extended") },
+      {
+        gravity: GRAVITY[gravityName],
+        seed,
+        survey: { probeCount: probes },
+        extended: has("extended"),
+        evidencePolicy: has("evidence-tiers"),
+      },
     ));
     elapsedS = ((performance.now() - t0) / 1000).toFixed(1);
     // depth-audit promotion: the monocular-depth cross-check is produced by a

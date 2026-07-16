@@ -91,6 +91,8 @@ export class RepairEngine {
       probeCount?: number;
       /** survey progress passthrough (observational only — see SurveyOptions.onProgress) */
       onSurveyProgress?: (stage: string, done: number, total: number) => void;
+      /** evidence-tiered certification (see CertifyOptions.evidencePolicy) */
+      evidencePolicy?: boolean;
     } = {},
   ) {
     this.state = {
@@ -534,6 +536,7 @@ export class RepairEngine {
           ...(focusRegion ? { focusRegion } : {}),
           ...(this.opts.onSurveyProgress ? { onProgress: this.opts.onSurveyProgress } : {}),
         },
+        ...(this.opts.evidencePolicy ? { evidencePolicy: true } : {}),
       },
     );
   }

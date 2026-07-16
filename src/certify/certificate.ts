@@ -36,6 +36,17 @@ export interface CertifyOptions {
    * certificates stay byte-identical.
    */
   extended?: boolean;
+  /**
+   * Evidence-tiered certification (outdoor/single-viewpoint worlds): a
+   * phantom collider is a DEFECT only when densely-seen visual ground
+   * contradicts it; phantoms with no visual evidence either way (occlusion
+   * shadows, capture-decay rim walls) stay in the trust map as unwitnessed
+   * space but leave the defect list, with a disclosure. Grading switches to
+   * bucket-capped deductions so a thousand instances of one systemic issue
+   * cannot saturate the score. Default OFF — canonical certificates stay
+   * byte-identical.
+   */
+  evidencePolicy?: boolean;
 }
 
 export interface CertifyResult {
@@ -61,6 +72,28 @@ function computeGrade(defects: Certificate["defects"]): { grade: Grade; rational
   };
 }
 
+/**
+ * Bucket-capped grading for the evidence policy: a thousand instances of one
+ * systemic issue is ONE systemic issue, not a thousand times worse — majors
+ * cap at -45, minors at -15. Criticals stay uncapped: each one is
+ * mission-fatal on its own.
+ */
+function computeGradeCapped(defects: Certificate["defects"]): { grade: Grade; rationale: string } {
+  const open = defects.filter((d) => !d.outcome || d.outcome === "escalated");
+  const critical = open.filter((d) => d.severity === "critical").length;
+  const major = open.filter((d) => d.severity === "major").length;
+  const minor = open.filter((d) => d.severity === "minor").length;
+  const score = 100 - 40 * critical - Math.min(45, 15 * major) - Math.min(15, 5 * minor);
+  const grade: Grade = score >= 90 ? "A" : score >= 75 ? "B" : score >= 60 ? "C" : score >= 40 ? "D" : "F";
+  return {
+    grade,
+    rationale:
+      `${critical} critical, ${major} major, ${minor} minor unresolved defect(s); ` +
+      `score ${Math.max(0, score)}/100 (evidence-tiered: critical -40 each, majors capped at -45 total, minors at -15 total). ` +
+      `Repaired/quarantined/accepted defects do not count against the grade but remain listed.`,
+  };
+}
+
 export async function certifyWorld(input: CertifyInput, opts: CertifyOptions = {}): Promise<CertifyResult> {
   const seed = opts.seed ?? 1234;
   const gravity = opts.gravity ?? GRAVITY.earth;
@@ -79,7 +112,16 @@ export async function certifyWorld(input: CertifyInput, opts: CertifyOptions = {
     unsurveyable = err instanceof Error ? err.message : String(err);
     metrology = unsurveyableMetrology(survey.rayGrid);
   }
-  const defects = unsurveyable ? [] : synthesizeDefects(survey, metrology);
+  let defects = unsurveyable ? [] : synthesizeDefects(survey, metrology);
+  // evidence policy: unwitnessed phantoms leave the defect list (they stay
+  // in the trust map — unverified space, not proven-wrong physics)
+  let unwitnessedPhantoms = 0;
+  if (opts.evidencePolicy && !unsurveyable) {
+    const { partitionPhantomsByEvidence } = await import("./evidencePolicy.js");
+    const part = partitionPhantomsByEvidence(defects, survey, input.visualPoints);
+    defects = part.kept;
+    unwitnessedPhantoms = part.unwitnessedPhantoms;
+  }
   const trustMap = buildTrustMap(survey.trustGrid);
   const verdicts = unsurveyable ? [] : computeVerdicts(robots, metrology, defects, gravity);
   const { grade, rationale } = unsurveyable
@@ -90,7 +132,9 @@ export async function certifyWorld(input: CertifyInput, opts: CertifyOptions = {
           `or robot verdicts were performed. F by policy: a world the instrument cannot survey is not ` +
           `certified for any robot.`,
       }
-    : computeGrade(defects);
+    : opts.evidencePolicy
+      ? computeGradeCapped(defects)
+      : computeGrade(defects);
 
   const vendorFactor = input.metadata?.metricScaleFactor;
   const est = metrology.scaleEstimate;
@@ -138,6 +182,9 @@ export async function certifyWorld(input: CertifyInput, opts: CertifyOptions = {
       agreement,
     },
     disclosures: [
+      ...(unwitnessedPhantoms > 0
+        ? [(await import("./evidencePolicy.js")).evidencePolicyDisclosure(unwitnessedPhantoms)]
+        : []),
       ...(unsurveyable
         ? [
             `UNSURVEYABLE: ${unsurveyable}. The survey could not establish a floor reference; ` +
