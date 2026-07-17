@@ -5,11 +5,13 @@
  *   npx tsx scripts/sojourner-ghostfix.ts <bundle-dir> [--out <collider.glb>]
  *
  * Default output: <bundle>/collider.glb IN PLACE with the original backed up
- * to collider.pre-ghostfix.glb (the bundle is itself a derived artifact).
- * --out writes elsewhere and touches nothing. Receipt: ghostfix-receipt.json.
+ * to collider.pre-ghostfix.glb — allowed ONLY on derivative bundles
+ * (-fixed/-cleaned suffixes); frozen source bundles are refused (the
+ * pipeline's law: sources are never mutated). --out writes the mesh AND the
+ * receipt elsewhere and touches the bundle dir not at all.
  */
 import { copyFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { mergeTriMeshes, type TriMesh } from "../src/core/geom.js";
 import { CertificateSchema } from "../src/core/types.js";
 import { loadColliderGlb, saveTriMeshGlb } from "../src/ingest/glb.js";
@@ -19,6 +21,20 @@ const dir = process.argv[2];
 if (!dir) { console.error("usage: npx tsx scripts/sojourner-ghostfix.ts <bundle-dir> [--out <path>]"); process.exit(2); }
 const oi = process.argv.indexOf("--out");
 const outPath = oi > -1 ? process.argv[oi + 1] : join(dir, "collider.glb");
+if (!outPath || outPath.startsWith("--")) {
+  console.error("--out requires a path");
+  process.exit(2);
+}
+// robust in-place detection (string compare breaks on slash/case/relative
+// variants — resolve both sides), and in-place mutation is only allowed on
+// derivative bundles, never a frozen source
+const inPlace = resolve(outPath) === resolve(join(dir, "collider.glb"));
+const dirName = resolve(dir).replace(/[\\/]+$/, "");
+if (inPlace && !/-(fixed|cleaned)$/.test(dirName)) {
+  console.error(`refusing to mutate '${dir}' in place: not a derivative bundle (-fixed/-cleaned).`);
+  console.error(`Source bundles are never mutated — use --out <path> to write elsewhere.`);
+  process.exit(2);
+}
 
 const collider = await loadColliderGlb(join(dir, "collider.glb"));
 const raw = readFileSync(join(dir, "visual-points.f32"));
@@ -95,13 +111,14 @@ if (patches.length === 0) {
 }
 const before = collider.indices.length / 3;
 const mergedMesh = mergeTriMeshes([collider, ...patches]);
-if (outPath === join(dir, "collider.glb") && !existsSync(join(dir, "collider.pre-ghostfix.glb"))) {
+if (inPlace && !existsSync(join(dir, "collider.pre-ghostfix.glb"))) {
   copyFileSync(join(dir, "collider.glb"), join(dir, "collider.pre-ghostfix.glb"));
   console.log("original backed up to collider.pre-ghostfix.glb");
 }
 await saveTriMeshGlb(outPath, mergedMesh, "collider-ghostfixed");
+// receipt travels WITH the output — --out must not touch the bundle dir
 writeFileSync(
-  join(dir, "ghostfix-receipt.json"),
+  join(inPlace ? dir : dirname(resolve(outPath)), "ghostfix-receipt.json"),
   JSON.stringify({ ghostsOpen: ghosts.length, patched: patches.length, skippedNoEvidence: skipped, trianglesBefore: before, trianglesAfter: mergedMesh.indices.length / 3, perGhost: receipt }, null, 2),
 );
 const added = mergedMesh.indices.length / 3 - before;

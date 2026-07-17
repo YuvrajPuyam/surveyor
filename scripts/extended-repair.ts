@@ -15,6 +15,9 @@
  *
  *   npx tsx scripts/extended-repair.ts <bundle-dir> [--out <dir>]
  *                                      [--seed N] [--gravity earth|moon|mars]
+ *
+ * Exit codes: 0 = settling improved or already clean · 1 = repairs written
+ * but settling did NOT improve (bundle + receipt still produced) · 2 = usage.
  */
 import { copyFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { basename, dirname, join } from "node:path";

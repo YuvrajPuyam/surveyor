@@ -17,7 +17,7 @@ import type {
   RepairStep,
   ScaleSummary,
   VerdictSummary,
-} from "./protocol";
+} from "./protocol.js"; // explicit extension: valid under BOTH the app's bundler resolution and the root's NodeNext (verify-beat-truth.ts imports this file into the root project)
 
 // -------------------------------------------------------------- formatting
 

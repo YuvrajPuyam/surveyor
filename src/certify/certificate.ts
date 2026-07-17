@@ -56,7 +56,7 @@ export interface CertifyResult {
   metrology: import("./metrology.js").MetrologyResult;
 }
 
-function computeGrade(defects: Certificate["defects"]): { grade: Grade; rationale: string } {
+export function computeGrade(defects: Certificate["defects"]): { grade: Grade; rationale: string } {
   const open = defects.filter((d) => !d.outcome || d.outcome === "escalated");
   const critical = open.filter((d) => d.severity === "critical").length;
   const major = open.filter((d) => d.severity === "major").length;
@@ -78,7 +78,7 @@ function computeGrade(defects: Certificate["defects"]): { grade: Grade; rational
  * cap at -45, minors at -15. Criticals stay uncapped: each one is
  * mission-fatal on its own.
  */
-function computeGradeCapped(defects: Certificate["defects"]): { grade: Grade; rationale: string } {
+export function computeGradeCapped(defects: Certificate["defects"]): { grade: Grade; rationale: string } {
   const open = defects.filter((d) => !d.outcome || d.outcome === "escalated");
   const critical = open.filter((d) => d.severity === "critical").length;
   const major = open.filter((d) => d.severity === "major").length;

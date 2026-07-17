@@ -31,6 +31,10 @@ if (!dir) { console.error("usage: npx tsx scripts/sojourner-fix.ts <bundle-dir>"
 // E11's evidence-convicted rampart box (corrected frame): dense splats say
 // flat ground ~+1 m; collider holds a ~+4 m wall. Carve only ABOVE the
 // ground band so the real floor beneath survives.
+// WORLD-SPECIFIC: these coordinates were measured on the Fouriesburg world —
+// carving them on any other world would delete arbitrary triangles, so the
+// carve step only runs when the worldId matches (patch + defloat are generic).
+const CARVE_WORLD = "7f8eb141-3486-4b39-a546-eb98c47ba351";
 const CARVE = { x0: 12.0, x1: 25.5, y0: 1.6, y1: 6.5, z0: -2.0, z1: 4.5 };
 
 const world = await loadWorldBundle(dir);
@@ -47,19 +51,24 @@ console.log(`      grade ${before.certificate.grade} · ${before.certificate.def
 // ---------- FIX 1: carve the rampart (centroid rule, same as carve_opening)
 console.log("[2/5] FIX 1 — carving the rampart…");
 const { positions, indices } = world.collider;
-const keep: number[] = [];
 let carved = 0;
-for (let t = 0; t < indices.length; t += 3) {
-  const i0 = indices[t] * 3, i1 = indices[t + 1] * 3, i2 = indices[t + 2] * 3;
-  const cx = (positions[i0] + positions[i1] + positions[i2]) / 3;
-  const cy = (positions[i0 + 1] + positions[i1 + 1] + positions[i2 + 1]) / 3;
-  const cz = (positions[i0 + 2] + positions[i1 + 2] + positions[i2 + 2]) / 3;
-  const inside = cx >= CARVE.x0 && cx <= CARVE.x1 && cy >= CARVE.y0 && cy <= CARVE.y1 && cz >= CARVE.z0 && cz <= CARVE.z1;
-  if (inside) carved++;
-  else keep.push(indices[t], indices[t + 1], indices[t + 2]);
+let collider: TriMesh = world.collider;
+if (world.worldId === CARVE_WORLD) {
+  const keep: number[] = [];
+  for (let t = 0; t < indices.length; t += 3) {
+    const i0 = indices[t] * 3, i1 = indices[t + 1] * 3, i2 = indices[t + 2] * 3;
+    const cx = (positions[i0] + positions[i1] + positions[i2]) / 3;
+    const cy = (positions[i0 + 1] + positions[i1 + 1] + positions[i2 + 1]) / 3;
+    const cz = (positions[i0 + 2] + positions[i1 + 2] + positions[i2 + 2]) / 3;
+    const inside = cx >= CARVE.x0 && cx <= CARVE.x1 && cy >= CARVE.y0 && cy <= CARVE.y1 && cz >= CARVE.z0 && cz <= CARVE.z1;
+    if (inside) carved++;
+    else keep.push(indices[t], indices[t + 1], indices[t + 2]);
+  }
+  collider = { positions, indices: new Uint32Array(keep) };
+  console.log(`      ${carved} wall triangles removed (ground band below ${CARVE.y0} m preserved)`);
+} else {
+  console.log(`      SKIPPED: carve box was measured on world ${CARVE_WORLD.slice(0, 8)} — this is ${world.worldId.slice(0, 8)}; carving foreign coordinates would delete arbitrary geometry`);
 }
-let collider: TriMesh = { positions, indices: new Uint32Array(keep) };
-console.log(`      ${carved} wall triangles removed (ground band below ${CARVE.y0} m preserved)`);
 
 // ---------- FIX 4: patch holes at the LOCAL floor
 console.log("[3/5] FIX 4 — patching collider holes at the local floor…");

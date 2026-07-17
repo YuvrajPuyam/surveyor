@@ -54,7 +54,9 @@ const spzName = spzs.sort((a, b) => a.localeCompare(b))[0];
 const spzBuf = readFileSync(join(dir, spzName));
 console.log(`parsing ${spzName} (${(spzBuf.length / 1e6).toFixed(1)} MB)…`);
 const { positions, numPoints, alphas, maxScales } = parseSpzPositions(spzBuf);
-const ALPHA_MIN = 0.1;
+// MUST match marble.ts's API-lane filter exactly — the point evidence (and
+// every downstream certificate hash) would otherwise differ by ingest lane
+const ALPHA_MIN = 0.15;
 const keptPos: number[] = [];
 const keptScale: number[] = [];
 for (let i = 0; i < numPoints; i++) {

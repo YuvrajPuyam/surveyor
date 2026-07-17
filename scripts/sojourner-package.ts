@@ -30,16 +30,25 @@ const out = clean + "-package";
 const P = (...s: string[]) => join(out, ...s);
 for (const sub of ["world", "certificate", "flightmap", "receipts", "proof"]) mkdirSync(P(sub), { recursive: true });
 
+const missing: string[] = [];
 const take = (src: string, dest: string, required = true): boolean => {
   if (existsSync(src)) { copyFileSync(src, dest); return true; }
-  if (required) console.warn(`  MISSING: ${src}`);
+  if (required) { console.warn(`  MISSING (required): ${src}`); missing.push(src); }
   return false;
 };
 
 console.log("[1/4] collecting artifacts…");
 take(join(clean, "collider.glb"), P("world", "collider.glb"));
 take(join(clean, "visual-points.f32"), P("world", "visual-points.f32"));
-take(existsSync(join(clean, "world.spz")) ? join(clean, "world.spz") : join(rawDir, "world.spz"), P("world", "world.spz"));
+// splat: bundles name it differently by lane (API: splat-<tier>.spz, app
+// export: whatever the user saved). Search both dirs, best tier first.
+const SPLAT_CANDIDATES = ["splat-full.spz", "splat-500k.spz", "splat-100k.spz", "world.spz", "splat.spz"];
+const splatSrc = [clean, rawDir]
+  .flatMap((d) => SPLAT_CANDIDATES.map((n) => join(d, n)))
+  .concat([clean, rawDir].flatMap((d) => (existsSync(d) ? readdirSync(d).filter((f) => f.endsWith(".spz")).map((f) => join(d, f)) : [])))
+  .find((p) => existsSync(p));
+if (splatSrc) copyFileSync(splatSrc, P("world", "world.spz"));
+else { console.warn("  MISSING (required): no .spz splat found in bundle or raw sibling"); missing.push("<any>.spz"); }
 take(join(clean, "world.usda"), P("world", "world.usda"));
 take(join(clean, "certificate.json"), P("certificate", "certificate.json"));
 take(join(clean, "certificate.md"), P("certificate", "certificate.md"), false);
@@ -198,5 +207,11 @@ The flight map inherits the certificate's evidence rules; the certificate hash
 is in flightmap-meta.json. Chain: nothing in this package is asserted without
 a measurement behind it — see certificate/certificate.md for the fine print.
 `);
+if (missing.length > 0) {
+  console.error(`\nPACKAGE INCOMPLETE — ${missing.length} required artifact(s) missing:`);
+  for (const m of missing) console.error(`  ${m}`);
+  console.error("(a package that silently ships without its collider or splats is worse than no package)");
+  process.exit(1);
+}
 console.log(`\npackage -> ${out}`);
 console.log("PACKAGE-DONE");

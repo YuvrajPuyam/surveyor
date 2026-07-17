@@ -26,6 +26,10 @@ const dir = process.argv[2];
 if (!dir) { console.error("usage: npx tsx scripts/sojourner-grid.ts <bundle-dir> [--voxel M]"); process.exit(2); }
 const vi = process.argv.indexOf("--voxel");
 const VOXEL = vi > -1 ? parseFloat(process.argv[vi + 1]) : 1.0;
+if (!Number.isFinite(VOXEL) || VOXEL <= 0.05) {
+  console.error(`invalid --voxel "${process.argv[vi + 1]}" — must be a number > 0.05 (meters)`);
+  process.exit(2);
+}
 
 const UNKNOWN = 0, FREE = 1, OCCUPIED = 2, SKY = 3;
 const CLASS_NAMES = ["unknown", "free", "occupied", "sky"];

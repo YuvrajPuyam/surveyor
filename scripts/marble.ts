@@ -235,5 +235,8 @@ switch (cmd) {
     break;
   }
   default:
-    console.log("commands: list | generate --prompt <p> [--model m] [--name n] [--wait] | pano --uri <u> [--wait] | wait <opId> | get <worldId> | download <worldId> | gate-d1 [--model m]");
+    // unknown/missing command is a USAGE error — exiting 0 here made typos
+    // ("downlaod") look like success to wrapper scripts
+    console.error("commands: list | generate --prompt <p> [--model m] [--name n] [--wait] | image --uri <u> [--prompt p] [--wait] | pano --uri <u> [--wait] | wait <opId> | get <worldId> | download <worldId> | gate-d1 [--model m]");
+    process.exit(2);
 }

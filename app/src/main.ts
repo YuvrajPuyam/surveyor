@@ -19,7 +19,7 @@
  * Certified; the survey starts when Beat 2 is entered (not at boot) so the
  * trust-map paint is always witnessed.
  *
- * Keys: [1-5]/[→←]/[Space] five-beat stepper  [D] dev overlay
+ * Keys: [1-5]/[→←]/[Space] five-beat stepper  [G] dev overlay
  *       [WASD/arrows] fly  [V] wireframe  [T] trust map  [P] patrol  [B] defect boxes  [F] flip splats  [I] camera
  *       [R] raw twin run (Beats 1–3 — drives the raw physics into a certificate-confirmed hole)
  */
@@ -1098,6 +1098,9 @@ function setDefectBoxes(on: boolean): void {
 }
 
 function toggleDefectBoxes(): void {
+  // an explicit user toggle outranks a pending fail-and-adapt flash — without
+  // this, the flash timer switches boxes off 3 s after the user turned them ON
+  clearTimeout(defectFlashTimer);
   setDefectBoxes(!defectBoxesVisible);
   // the toggle must ACKNOWLEDGE the keypress even when every box is off-screen
   hud.status = defectBoxesVisible
@@ -1559,7 +1562,7 @@ function startPhysics(soup: TriSoup): void {
 }
 
 // ------------------------------------------------------------------- keys
-// W/T/P/B/F/I are unchanged; the stepper owns →/←/N/1-5/Space/Enter; D is
+// V/T/P/B/F/I/J are the world toggles; the stepper owns →/←/N/1-5/Space/Enter; D is
 // the dev overlay. All handlers ignore events aimed at focused controls.
 
 function togglePatrol(): void {
@@ -1631,7 +1634,10 @@ addEventListener("keydown", (e) => {
   if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
   const k = e.key.toLowerCase();
   if (k === "v") {
-    if (colliderWireframe) colliderWireframe.visible = !colliderWireframe.visible;
+    if (colliderWireframe) {
+      colliderWireframe.visible = !colliderWireframe.visible;
+      hud.status = `collider wireframe ${colliderWireframe.visible ? "on" : "off"}`;
+    }
   } else if (k === "g") {
     setDevMode(!devMode);
   } else if (k === "b") {
@@ -1639,7 +1645,10 @@ addEventListener("keydown", (e) => {
   } else if (k === "f") {
     // .spz files are y-down; flip if the visuals look upside-down relative
     // to the collider. Applies to whichever visual object is active.
-    if (splatObject) splatObject.rotateX(Math.PI);
+    if (splatObject) {
+      splatObject.rotateX(Math.PI);
+      hud.status = "splats flipped 180° about X";
+    }
   } else if (k === "t") {
     const on = trustLayer.toggle();
     hud.status = `trust map ${on ? "on" : "off"}${trustLayer.painted ? "" : " (paints when the survey streams states)"}`;
@@ -1652,6 +1661,8 @@ addEventListener("keydown", (e) => {
     if (e.shiftKey) {
       // Shift+J: fly to a specific defect by id (any of them, incl. unlisted)
       const id = window.prompt("defect id (e.g. d-phantom-7709):");
+      // the prompt swallows the Shift keyup — without this, sprint sticks on
+      moveKeys.delete("shift");
       if (id) jumpToDefectId(id);
     } else {
       // defect tour: teleport to the next defect box ([N] advances demo
@@ -1744,7 +1755,7 @@ async function main(): Promise<void> {
       }),
     );
     wireframe.name = "collider-wireframe";
-    // pretty world first — the Beat-1 "Reveal the physics" (or W) shows it;
+    // pretty world first — the Beat-1 "Reveal the physics" (or V) shows it;
     // honor a reveal that happened while the collider was still loading
     wireframe.visible = introRevealed;
     worldGroup.add(wireframe);
@@ -1817,10 +1828,12 @@ async function main(): Promise<void> {
     let insideView = true;
     addEventListener("keydown", (e) => {
       if (isUiKeyTarget(e)) return;
+      if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return; // Ctrl+I etc. are browser shortcuts
       if (e.key.toLowerCase() !== "i") return;
       insideView = !insideView;
       camera.position.copy(insideView ? inside : orbit);
       controls.target.copy(insideView ? new THREE.Vector3(0, eyeY, 0).addScaledVector(lookDir, Math.max(3, radius * 0.3)) : center);
+      hud.status = `camera: ${insideView ? "inside" : "orbit"}`;
     });
 
     startPhysics(soup);

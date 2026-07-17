@@ -17,7 +17,8 @@ export async function saveWorldBundle(dir: string, bundle: WorldBundle): Promise
   mkdirSync(dir, { recursive: true });
   await saveTriMeshGlb(join(dir, "collider.glb"), bundle.collider, "collider");
   await saveTriMeshGlb(join(dir, "visual.glb"), bundle.visual, "visual");
-  writeFileSync(join(dir, "visual-points.f32"), Buffer.from(bundle.visualPoints.buffer));
+  // respect byteOffset/byteLength: a subarray view would otherwise serialize its ENTIRE backing buffer
+  writeFileSync(join(dir, "visual-points.f32"), Buffer.from(bundle.visualPoints.buffer, bundle.visualPoints.byteOffset, bundle.visualPoints.byteLength));
   writeFileSync(join(dir, "manifest.json"), JSON.stringify(bundle.manifest, null, 2));
   writeFileSync(join(dir, "metadata.json"), JSON.stringify(bundle.metadata, null, 2));
 }

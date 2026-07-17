@@ -26,6 +26,10 @@ if (!dir) {
 }
 const pi = process.argv.indexOf("--probes");
 const probeCount = pi > -1 ? parseInt(process.argv[pi + 1], 10) : 2000;
+if (!Number.isFinite(probeCount) || probeCount <= 0) {
+  console.error(`invalid --probes "${process.argv[pi + 1]}" — must be a positive integer`);
+  process.exit(2);
+}
 
 const world = await loadWorldBundle(dir);
 console.log(`[1/4] init survey (${probeCount} probes) — this is the slow part…`);

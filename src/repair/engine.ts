@@ -1,6 +1,6 @@
 /**
  * Repair engine — the deterministic tool backend behind the agent's closed
- * 9-tool menu. The agent never edits geometry: it calls these operations,
+ * 11-tool menu. The agent never edits geometry: it calls these operations,
  * every one of which is parameterized, reversible (operation stack with full
  * snapshots), and verified by re-certification before it counts.
  *
@@ -18,7 +18,7 @@ import type { Aabb, TriMesh } from "../core/geom.js";
 import { boxTriMesh, mergeTriMeshes } from "../core/geom.js";
 import type { Certificate, Defect, DefectOutcome, Gravity, Region, RobotSpec, WorldMetadata } from "../core/types.js";
 import { GRAVITY, ROBOT_PRESETS } from "../core/types.js";
-import { certifyWorld, type CertifyResult } from "../certify/certificate.js";
+import { certifyWorld, computeGrade, computeGradeCapped, type CertifyResult } from "../certify/certificate.js";
 import { computeVerdicts } from "../certify/verdicts.js";
 import { iouXZ } from "../core/geom.js";
 
@@ -42,6 +42,9 @@ export interface AppliedAction {
   beforeVisualScales?: Float32Array;
   /** ledger defect regions BEFORE the action — whole-world transforms move them */
   beforeRegions: Map<string, Region>;
+  /** quarantine zones + spawns BEFORE the action — apply_vendor_scale rescales them too */
+  beforeQuarantined: { defectId: string; region: Region; reason: string }[];
+  beforeSpawns: SpawnPoint[];
   reverted: boolean;
 }
 
@@ -183,6 +186,8 @@ export class RepairEngine {
       beforeVisualPoints: this.state.visualPoints, // visual points only change on scale ops; shared ref is fine otherwise
       beforeVisualScales: this.state.visualScales,
       beforeRegions,
+      beforeQuarantined: this.quarantined.map((q) => ({ defectId: q.defectId, region: { min: [...q.region.min], max: [...q.region.max] }, reason: q.reason })),
+      beforeSpawns: this.spawns.map((s) => ({ ...s })),
       reverted: false,
     };
     this.stack.push(action);
@@ -373,6 +378,11 @@ export class RepairEngine {
         const d = this.ledger.get(id);
         if (d) d.region = { min: [...region.min], max: [...region.max] };
       }
+      // quarantine zones + spawns are rescaled by apply_vendor_scale — restore
+      // them too, or exportBundle/rebuildNavmesh use wrong-unit AABBs after a
+      // revert (review finding 2026-07-16)
+      this.quarantined = a.beforeQuarantined.map((q) => ({ defectId: q.defectId, region: { min: [...q.region.min], max: [...q.region.max] }, reason: q.reason }));
+      this.spawns = a.beforeSpawns.map((s) => ({ ...s }));
       if (a.tool === "quarantine") {
         const args = a.args as { defectId: string };
         this.quarantined = this.quarantined.filter((q) => q.defectId !== args.defectId);
@@ -545,18 +555,24 @@ export class RepairEngine {
   private currentCertificate(): Certificate {
     if (!this.lastResult) throw new Error("call init() first");
     const cert = this.lastResult.certificate;
+    // UNSURVEYABLE worlds are F BY POLICY with no verdicts — recomputing from
+    // an empty ledger would mint a grade-A certificate with all-pass verdicts
+    // against the metrology stub. Preserve the policy verdict verbatim.
+    // (Review finding 2026-07-16.)
+    if (cert.gradeRationale.startsWith("Unsurveyable:")) {
+      return { ...cert };
+    }
     const defects = [...this.ledger.values()];
     const open = defects.filter((d) => !d.outcome || d.outcome === "escalated");
-    const critical = open.filter((d) => d.severity === "critical").length;
-    const major = open.filter((d) => d.severity === "major").length;
-    const minor = open.filter((d) => d.severity === "minor").length;
-    const score = 100 - 40 * critical - 15 * major - 5 * minor;
-    const grade = score >= 90 ? "A" : score >= 75 ? "B" : score >= 60 ? "C" : score >= 40 ? "D" : "F";
-    // Same wording as certifyWorld's computeGrade — a FRESH engine
-    // certificate must be byte-identical to the CLI's (the content hash is
-    // the demo's determinism claim). Only once outcomes exist does the
+    // Grade via the SAME exported functions certifyWorld uses (incl. the
+    // evidence-tiered capped formula when this engine runs that policy) —
+    // a fresh engine certificate is byte-identical to the CLI's by
+    // construction, not by copy-paste. Only once outcomes exist does the
     // rationale gain the outcomes line: a repaired certificate is a
     // different artifact and may say so.
+    const { grade, rationale: baseRationale } = this.opts.evidencePolicy
+      ? computeGradeCapped(defects)
+      : computeGrade(defects);
     const outcomes = defects.filter((d) => d.outcome).length;
     // verdicts must respect outcomes: a quarantined/accepted defect no longer
     // fails checks (audit finding 2026-07-12: grade A + floor_integrity:fail
@@ -568,10 +584,6 @@ export class RepairEngine {
       open,
       this.opts.gravity ?? GRAVITY.earth,
     );
-    const baseRationale =
-      `${critical} critical, ${major} major, ${minor} minor unresolved defect(s); ` +
-      `score ${Math.max(0, score)}/100 (critical -40, major -15, minor -5). ` +
-      `Repaired/quarantined/accepted defects do not count against the grade but remain listed.`;
     return {
       ...cert,
       defects,
