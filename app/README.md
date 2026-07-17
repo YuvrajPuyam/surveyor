@@ -58,13 +58,21 @@ splat file inside the bundle.
 
 ## Keys
 
+Click the 3D view once first so the app has keyboard focus.
+
 | Key | Action |
 | --- | --- |
-| `W` | toggle collider wireframe |
+| `WASD` / arrows | fly the camera (hold `Shift` to sprint) |
+| `V` | toggle collider wireframe |
 | `T` | toggle trust map |
+| `B` | toggle defect boxes (nearest 250, severity-colored; HUD acks the toggle) |
+| `J` | jump to the next defect (teleports the camera box-to-box) |
+| `R` | raw run: rover drives at a defect and physically fails (Beats 1–3) |
 | `P` | toggle rover patrol (builds spawns on demand if repairs are done) |
-| `B` | toggle defect boxes (severity-colored; purple = quarantined) |
-| `F` | flip splats 180° about X (`.spz` is y-down) |
+| `F` | flip splats 180° about X (API `.spz` is y-down; app-exported splats auto-skip the flip via `metadata.json` `source`) |
+| `I` | camera mode · `G` dev mode (HUD + sidebar) · `1–5` demo beats (`2` = live survey, with progress bar) |
+
+Clicking a row in the certificate panel's defect list flies to that defect.
 
 ## Architecture notes
 
