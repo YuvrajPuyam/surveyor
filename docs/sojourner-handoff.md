@@ -178,6 +178,32 @@ system elegance only matters where it surfaces in the output.
      visibly (invisible rampart / fall-through) — before/after, live.
 - E2 A certificate a human actually reads (grade, trust, verdicts, fine
      print) and a hash anyone can re-derive.
+- E3 **Presentation before/after imagery — splats vs mesh misalignment.**
+     "Why fixing the world mattered" is told in pictures: gaussian splats
+     (what you see) overlaid with the collider mesh (what physics has),
+     misaligned BEFORE, agreeing AFTER. Already rendered (in
+     `assets/marble/7f8eb141-…/proof-*.png`, copies in the `sojourner`
+     branch under `sojourner/proof/`):
+     - `proof-phantom-rampart.png` — THE slide: blue visible-ground line vs
+       orange physics line agreeing to ±0.1 m for ten meters, then a 13 m
+       invisible physics wall over camera-verified flat ground (red zone),
+       with the drone-impact annotation.
+     - `proof-side-elevation.png` — the corrected side elevation: collider
+       tracking terrain at ~0.4 m; the 84 m photovisual dome above the
+       physical world (backdrop band).
+     - `proof-defect-map.png` — top-down: 15k phantoms ringing the
+       viewpoint (occlusion shadows made visible).
+     - `proof-unbuilt-summit.png` — cross-section chart, physics-vs-visible
+       per meter.
+     - Interactive 3D versions exist (see §7 pointers): layer toggles ARE
+       the before/after (PHANTOM off = post-repair preview).
+     TO PRODUCE (small, high value): the true AFTER-fix re-renders on the
+     `-fixed` bundle — the rampart chart with the orange wall GONE, and the
+     ghost-rock crop with new collider hugging the visible rock. The
+     renderer is `sojourner/proof/render-proof.py` (applies glTF node
+     transforms — non-negotiable; see ledger E10); pair each AFTER with its
+     BEFORE at identical crop/scale/axes so the slide is a diff, not two
+     pictures.
 
 Open product questions the missions below must answer:
 - Which ONE of D3 / A4 / E1 is the killer feature to center the demo on?
