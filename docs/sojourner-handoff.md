@@ -128,10 +128,72 @@ honest-ignorance labeling + repair-with-receipts is the product.
    flight map → mission succeeds, honestly routing around UNKNOWN → live
    map-healing when the drone's camera contradicts the map (stretch).
 
-## 5. THE ASK — criticize, enlarge, refine (agent missions)
+## 5. THE PRODUCT IS THE OUTPUT, NOT THE SYSTEM
+
+Hard-won SURVEYOR lesson, re-affirmed by the owner for Sojourner: judges and
+customers buy the FINAL OUTPUT; the pipeline is only how we get there. Every
+feature below is stated from the CONSUMER's side (a drone operator, a judge
+watching, Brandon's planner). Agents must evaluate and extend THIS list —
+system elegance only matters where it surfaces in the output.
+
+### Draft final-output feature set (v0 — criticize/enlarge/refine THIS)
+
+**A. A world you can trust** (the twin itself)
+- A1 Photoreal, flyable digital twin of a REAL site from a single capture.
+- A2 Physics ≡ visuals within a stated tolerance (repaired, with receipts):
+     nothing visible is intangible, nothing invisible blocks you.
+- A3 Every cubic meter labeled: confirmed / observed / unknown / sky.
+- A4 "Certified against reality": generated terrain cross-checked against
+     the real site's elevation data (DEM) and map data (OSM) at its real
+     GPS coordinates — the feature no pure-generation project can copy.
+
+**B. A map that admits ignorance** (the planner's input)
+- B1 Voxel flight map + clearance field + nav-graph, 3-line load in C++.
+- B2 The UNKNOWN class as a first-class feature: honest ignorance you can
+     price into a route, not silent danger.
+- B3 The frontier surface: WHERE flying next earns the most information.
+- B4 Provenance chained to the certificate hash: every voxel answers
+     "says who?"
+
+**C. Missions, not just paths** (Brandon's layer)
+- C1 k diverse routes with visible trade-offs: shortest / safest /
+     best-surveyed, each with a cost receipt (meters, joules,
+     meters-through-unknown).
+- C2 Battery feasibility per route; reserve enforcement — plans that
+     don't lie about range.
+- C3 Policy knobs for unknown space (forbid / price / explore).
+
+**D. The living mission** (the demo experience — likely the on-stage core)
+- D1 Fly it: first/third-person photoreal flight of the planned mission.
+- D2 Live dashboard: battery, distance remaining, coverage %, and
+     UNKNOWN-% DROPPING as the drone looks around.
+- D3 **The self-healing map**: mid-flight, the camera contradicts the map →
+     divergence event → cell upgrades → live replan. The 42% unknown stops
+     being a weakness and becomes the plot: THE DRONE FINISHES THE MAP.
+- D4 Mission debrief: what this flight confirmed — the map's before/after
+     as a receipt, ready to feed the next mission.
+
+**E. Receipts as features** (the differentiator, kept from SURVEYOR)
+- E1 The crash that sells it: same mission planned on the RAW world fails
+     visibly (invisible rampart / fall-through) — before/after, live.
+- E2 A certificate a human actually reads (grade, trust, verdicts, fine
+     print) and a hash anyone can re-derive.
+
+Open product questions the missions below must answer:
+- Which ONE of D3 / A4 / E1 is the killer feature to center the demo on?
+- What does "done" look like for each feature at hackathon scope (must-have
+  vs stretch), and who builds it (pipeline / planner / third teammate)?
+- What's the output for someone who is NOT a drone person — what does a
+  World Labs designer or a VFX judge take away in 30 seconds?
+
+## 6. THE ASK — criticize, enlarge, refine (agent missions)
 
 Spawn agents against the following. Each mission lists the questions it must
 answer. Findings should be concrete (what to build/cut/say), not vibes.
+
+All three missions operate on the §5 FEATURE SET first and the pipeline
+second: a finding that doesn't change what the final output does, shows, or
+proves is low value.
 
 ### Mission A — Criticize (red team)
 Personas worth simulating: a robotics/graphics engineer judge (Sony devtech,
@@ -198,7 +260,7 @@ Evaluate feasibility × wow for, at minimum:
 - The error ledger's "carries" lines (E1–E11) are pre-answered lessons — do
   not re-propose what they already settle; build on them.
 
-## 6. Pointers (verify anything here against these)
+## 7. Pointers (verify anything here against these)
 
 - Baseline repo: `github.com/YuvrajPuyam/surveyor` (private) — root README
   has quickstart/app/CLI; `docs/code-review-2026-07.md` lists known deferred
