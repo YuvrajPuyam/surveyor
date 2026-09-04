@@ -122,7 +122,7 @@ working; "download this exact pack now") → 0:25 twin-run failure in the
 raw world → 0:55 the instrument (probe rain, trust map painting, grade) →
 1:25 agent repair with MISSION LOG (its own reasoning on screen; its
 fitted-slab patch FAILS re-inspection, reverts, re-patches — the certifier
-audits our own repairs; F→A, 81/81 outcomes) → 2:00 the certificate
+audits our own repairs; F→A, 75/75 outcomes) → 2:00 the certificate
 compiles into Isaac config, cut to the box-lift footage ("nothing
 hand-placed") → 2:40 live delivery + SHA-256 re-hashed on stage matching
 the one printed on our Devpost before the event.
@@ -152,7 +152,7 @@ the one printed on our Devpost before the event.
 
 **The repair agent (real episode, replayable):**
 - Claude-driven, closed 11-tool menu, operation stack with revert; on the
-  real hero world it went **F → A with 81/81 defect outcomes recorded**
+  real hero world it went **F → A with 75/75 defect outcomes recorded**
   (fixed / quarantined / accepted), including an ORGANIC fail-and-adapt:
   its fitted-slab patch created a new 0.48 m step, regional re-inspection
   caught it, the agent reverted and re-patched with mesh_fill, which held.

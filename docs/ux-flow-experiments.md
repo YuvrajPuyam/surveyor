@@ -152,7 +152,7 @@ $ npx surveyor certify ./moon-hab --robot go2.yaml --robot rover.yaml
 3. **Anomaly board.** Each defect arrives as a chip lighting up on a board (capped, severity-ordered — the existing 200-box discipline becomes a feature: the board triages). Click a chip → camera flies to evidence, probe-fall replay.
 4. **FLIGHT RULES — GO/NO-GO.** The sill verdict gets its own full-screen moment: two rows, two physical checks, opposite outcomes. This is the marquee "sim-readiness is relative to the robot" sentence given protected screen time, not just narration time.
 5. **Repair ops.** Agent proposes; user issues **GO FOR REPAIR**. Ops log streams each operation. When fitted_slab fails regional recertify, a red **ANOMALY** banner fires, the board gets a new chip *created by our own repair*, and the log shows revert → mesh_fill → holds. The whole interface exists to make this 45 seconds legible.
-6. **Mission complete.** Grade F → A stamped; the 81/81 defect-outcome ledger scrolls; rover deploys from a verified spawn and patrols (over the patch, around the quarantined ghost geometry). "Mission elapsed time 2:47."
+6. **Mission complete.** Grade F → A stamped; the 75/75 defect-outcome ledger scrolls; rover deploys from a verified spawn and patrols (over the patch, around the quarantined ghost geometry). "Mission elapsed time 2:47."
 7. **Debrief.** Certificate + artifacts + the replay-cassette scrubber — the existing trace/JSONL cassette becomes a user-facing flight recorder, which is also exactly the replay-decisions/execute-live demo discipline made native.
 
 ### Wireframes

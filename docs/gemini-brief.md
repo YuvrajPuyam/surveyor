@@ -71,7 +71,7 @@ downloadable before judging.
   splat capture envelope). Diagnosed, fixed (survey confined to the capture
   envelope), bench unchanged. Before/after kept as a change-control record.
 - **Agent repair loop**: a RECORDED LLM-agent episode repairs the hero world
-  F→A — 81 defects, 81 recorded outcomes (fixed / quarantined / accepted),
+  F→A — 75 defects, 75 recorded outcomes (fixed / quarantined / accepted),
   including an organic fail-revert-adapt (its slab patch created a new step;
   the certifier caught its own repair; it reverted and used a different
   method). Replayable cassette; the whole repaired bundle regenerates from

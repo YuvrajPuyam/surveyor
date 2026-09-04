@@ -136,7 +136,7 @@ in the rooms, plans on what the cameras see, physics drops it through a
 floor that is only pixels → 0:55 the instrument (probe rain, trust map,
 grade; suspension lines where scale is unresolved) → 1:25 agent repair
 with MISSION LOG (its own recorded reasoning; fitted-slab patch FAILS
-re-inspection, reverts, mesh_fill holds; F→A, 81/81 outcomes; "the agent
+re-inspection, reverts, mesh_fill holds; F→A, 75/75 outcomes; "the agent
 never edits geometry — nine deterministic reversible tools, every choice
 re-inspected") → 2:00 the certificate compiles into Isaac config; cut to
 the films (arm, policy, rover, WALKING QUADRUPED) → 2:40 live delivery +
