@@ -285,7 +285,7 @@ export async function runPairedReceipt(
     seed,
     controller: `driven sphere r=${PROXY_RADIUS_M} m, ${SPEED_MPS} m/s toward goal, Earth gravity, fixed dt ${FIXED_DT}`,
     caveat:
-      "navmesh-level traversability with a kinematic waypoint controller, small N — " +
+      "navmesh-level traversability with a kinematic waypoint controller, small N: " +
       "a floor for the training-contract claim, NOT a policy-transfer study",
     goals,
     raw: rawResults,
@@ -293,7 +293,7 @@ export async function runPairedReceipt(
     rawSuccess,
     repairedSuccess,
     headline:
-      `same ${goals.length} routes, same controller: raw world ${rawSuccess}/${goals.length} — ` +
+      `same ${goals.length} routes, same controller: raw world ${rawSuccess}/${goals.length}, ` +
       `repaired world ${repairedSuccess}/${goals.length}`,
   };
 }

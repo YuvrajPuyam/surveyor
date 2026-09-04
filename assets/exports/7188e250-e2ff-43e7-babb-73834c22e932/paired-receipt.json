@@ -2,7 +2,7 @@
  "n": 15,
  "seed": 1234,
  "controller": "driven sphere r=0.25 m, 1.2 m/s toward goal, Earth gravity, fixed dt 0.016666666666666666",
- "caveat": "navmesh-level traversability with a kinematic waypoint controller, small N — a floor for the training-contract claim, NOT a policy-transfer study",
+ "caveat": "navmesh-level traversability with a kinematic waypoint controller, small N: a floor for the training-contract claim, NOT a policy-transfer study",
  "goals": [
   {
    "id": 0,
@@ -1606,5 +1606,5 @@
  ],
  "rawSuccess": 0,
  "repairedSuccess": 13,
- "headline": "same 15 routes, same controller: raw world 0/15 — repaired world 13/15"
+ "headline": "same 15 routes, same controller: raw world 0/15, repaired world 13/15"
 }
